@@ -24,10 +24,9 @@ const targets = [
   { slug: "hoapulse", url: "https://hoapulse.net" },
   { slug: "cardtacular", url: "https://cardtacular.com" },
   { slug: "plainstocks", url: "https://plainstocks.com" },
-  {
-    slug: "full-data-stack-lab",
-    url: "https://github.com/CameronSpilker/full-data-stack-lab",
-  },
+  // The dashboard, not the repo. The repo was the stand-in while the Evidence
+  // build had nowhere to live; a showcase panel should show the product.
+  { slug: "full-data-stack-lab", url: "https://lab.cameronspilker.com" },
 ];
 
 const only = process.argv.slice(2);
