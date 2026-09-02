@@ -5,8 +5,8 @@ export type ProjectState = "live" | "repo" | "archive";
  *
  * `image` is a path under `public/` — set automatically by the server
  * component when a capture exists (see `scripts/capture-shots.mjs`). Until a
- * real screenshot lands, the showcase draws a wireframe in `tint`, which shows
- * the product's color world without inventing marketing copy for it.
+ * real screenshot lands, the showcase draws a wireframe in `tint`. The tints
+ * and nav labels below are taken from each product's own repo, not invented.
  */
 export type Preview = {
   /** Wordmark drawn on the wireframe. */
@@ -40,18 +40,17 @@ export const projects: Project[] = [
     slug: "hoapulse",
     name: "HOApulse",
     state: "live",
-    kicker: "HOA financial analysis, automated",
-    // TODO: replace with your own description of the problem it solves and the
-    // analysis it automates. Everything here is safe but generic.
+    kicker: "AI financial analysis for HOA boards",
     blurb:
-      "A SaaS product that turns an HOA's financial documents into an analysis a board can act on, instead of a PDF nobody reads.",
+      "Upload an HOA's income statement and balance sheet; get parsed line items, a dashboard, and a read on reserve health, budget vs. actual, and delinquency. The parser tries deterministic strategies first and only falls back to a model when they fail validation, so a normal month costs compute rather than tokens.",
     href: "https://hoapulse.net",
-    tags: ["SaaS", "Finance", "Product"],
+    tags: ["Next.js", "Supabase", "PDF parsing", "AI"],
     preview: {
       brand: "HOApulse",
-      nav: ["Product", "Pricing", "Sign in"],
-      tint: ["#04212B", "#0E5C6E"],
-      accent: "#3FD2C7",
+      nav: ["Upload", "Documents", "Dashboard"],
+      // Dark reading of the product's own blue-and-teal palette.
+      tint: ["#061627", "#0C4C5C"],
+      accent: "#5B9DF9",
       shape: "chart",
     },
   },
@@ -60,16 +59,16 @@ export const projects: Project[] = [
     name: "Cardtacular",
     state: "live",
     kicker: "Co-founded with my brother Ethan",
-    // TODO: replace with the real product description — what you sell and to whom.
     blurb:
-      "A trading card company I co-founded in 2025. I own the data side: inventory, pricing, and the reporting the business runs on.",
+      "Digital greeting cards built in the browser. Pick a template, then lay out text, images, GIFs, and voice messages across a four-page card and share it with a link — no login needed to make one. React and Supabase, deployed as a static SPA.",
     href: "https://cardtacular.com",
-    tags: ["Founder", "E-commerce"],
+    tags: ["Founder", "React", "Supabase"],
     preview: {
       brand: "Cardtacular",
-      nav: ["Shop", "Breaks", "Cart"],
-      tint: ["#1B0733", "#6D22A0"],
-      accent: "#C77DFF",
+      nav: ["Editor", "Templates", "Dashboard"],
+      // The app's own navy ground and cyan accent.
+      tint: ["#0D1520", "#123A44"],
+      accent: "#22E4DB",
       shape: "grid",
     },
   },
@@ -77,19 +76,18 @@ export const projects: Project[] = [
     slug: "plainstocks",
     name: "Plainstocks",
     state: "live",
-    // TODO: this is the one I know least about — tell me what it does and who
-    // it is for, and both the kicker and the blurb should be rewritten.
-    kicker: "Market data without the jargon",
+    kicker: "AI agents running one portfolio, in the open",
     blurb:
-      "A side project built around the idea that stock research should be readable by someone who does not do this for a living.",
+      "A multi-agent research desk that manages a single continuously-held portfolio of 8–15 positions and publishes what it changed each week. Python gathers the data with no model involved; two Claude Code steps propose adds and exits; a judge step can only lower confidence, never invent a pick. Every position is marked daily against the S&P 500, and every issue stops at a human review gate before it sends.",
     href: "https://plainstocks.com",
-    tags: ["Product", "Data"],
+    tags: ["Python", "Multi-agent", "Supabase", "GitHub Actions"],
     preview: {
       brand: "Plainstocks",
-      nav: ["Screener", "Watchlist", "About"],
-      tint: ["#06140F", "#155E3C"],
-      accent: "#5BE49B",
-      shape: "chart",
+      nav: ["The desk", "Scorecard", "Subscribe"],
+      // "The Ledger": the product's own ink panel and brass accent.
+      tint: ["#14130E", "#3B3218"],
+      accent: "#E7A93C",
+      shape: "feed",
     },
   },
   {
@@ -106,7 +104,7 @@ export const projects: Project[] = [
       nav: ["Models", "Lineage", "Dashboard"],
       tint: ["#070D18", "#1D3768"],
       accent: "#7CA9FF",
-      shape: "feed",
+      shape: "chart",
     },
   },
 ];
