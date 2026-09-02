@@ -3,21 +3,13 @@ import type { Preview } from "@/content/projects";
 const BARS = [34, 58, 41, 72, 49, 66, 38, 61];
 
 /**
- * The full-bleed backdrop for one project panel.
+ * The panel's ambient ground: the product's colors flooding the whole viewport.
  *
- * With a capture in `public/shots/`, this is the site's own homepage. Without
- * one it is a wireframe in the product's colors — deliberately abstract, so the
- * page never puts words in a real product's mouth.
+ * A capture goes in blurred and dimmed — it is atmosphere, not content, and a
+ * real homepage is full of its own text that would otherwise fight the copy on
+ * top of it. The crisp version lives in SiteFrame.
  */
-export function SitePreview({
-  preview,
-  image,
-  alt,
-}: {
-  preview: Preview;
-  image?: string;
-  alt: string;
-}) {
+export function SiteBackdrop({ preview, image }: { preview: Preview; image?: string }) {
   const [from, to] = preview.tint;
 
   return (
@@ -25,23 +17,19 @@ export function SitePreview({
       className="absolute inset-0 overflow-hidden"
       style={{ backgroundImage: `linear-gradient(150deg, ${from} 0%, ${to} 60%, ${from} 100%)` }}
     >
-      {image ? (
+      {image && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={image}
-          alt={alt}
-          className="h-full w-full object-cover object-top opacity-90"
+          alt=""
+          aria-hidden="true"
+          className="h-full w-full scale-110 object-cover object-top opacity-50 blur-3xl"
         />
-      ) : (
-        <Wireframe preview={preview} />
       )}
-
-      {/* Scrim: enough to keep the copy legible over any capture, light or
-          dark, without draining the colour that makes the panel read as the
-          product's own page. */}
+      <div aria-hidden="true" className="absolute inset-0 bg-ink/30" />
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-r from-ink via-ink/60 to-transparent"
+        className="absolute inset-0 bg-gradient-to-r from-ink via-ink/70 to-ink/20"
       />
       <div
         aria-hidden="true"
@@ -51,62 +39,102 @@ export function SitePreview({
   );
 }
 
-function Wireframe({ preview }: { preview: Preview }) {
+/**
+ * The site itself, crisp, in a browser frame. This is the part that has to be
+ * legible, so nothing is layered over it.
+ */
+export function SiteFrame({
+  preview,
+  image,
+  alt,
+  href,
+}: {
+  preview: Preview;
+  image?: string;
+  alt: string;
+  href?: string;
+}) {
+  const host = href ? href.replace(/^https?:\/\//, "").replace(/\/$/, "") : preview.brand;
+
   return (
-    <div aria-hidden="true" className="absolute inset-0 text-white">
-      <div className="flex items-center justify-between px-8 py-6 sm:px-14">
-        <span className="text-sm font-semibold tracking-tight sm:text-base">
-          {preview.brand}
+    <figure
+      className="m-0 overflow-hidden rounded-xl border border-white/15 bg-ink shadow-2xl shadow-black/60"
+      style={{ borderColor: `${preview.accent}33` }}
+    >
+      <div className="flex items-center gap-2 border-b border-white/10 bg-white/5 px-3 py-2">
+        <span aria-hidden="true" className="flex gap-1.5">
+          {["#ff5f57", "#febc2e", "#28c840"].map((c) => (
+            <span key={c} className="block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: c }} />
+          ))}
         </span>
-        <span className="flex gap-5 text-[11px] opacity-70 sm:text-xs">
+        <span className="truncate pl-2 font-mono text-[11px] text-body/70">{host}</span>
+      </div>
+
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-ink">
+        {image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={image} alt={alt} className="h-full w-full object-cover object-top" />
+        ) : (
+          <Wireframe preview={preview} />
+        )}
+      </div>
+    </figure>
+  );
+}
+
+/** Stand-in until a capture exists: the product's colors, no invented copy. */
+function Wireframe({ preview }: { preview: Preview }) {
+  const [from, to] = preview.tint;
+
+  return (
+    <div
+      aria-hidden="true"
+      className="absolute inset-0 text-white"
+      style={{ backgroundImage: `linear-gradient(150deg, ${from} 0%, ${to} 70%)` }}
+    >
+      <div className="flex items-center justify-between px-5 py-4">
+        <span className="text-xs font-semibold tracking-tight">{preview.brand}</span>
+        <span className="flex gap-3 text-[10px] opacity-70">
           {preview.nav.map((item) => (
             <span key={item}>{item}</span>
           ))}
         </span>
       </div>
 
-      {/* Kept to the right half, clear of the copy column. */}
-      <div className="absolute top-1/3 right-8 flex w-1/3 flex-col items-end gap-3 sm:right-14">
-        <div className="h-3 w-full rounded-full bg-white/20" />
-        <div className="h-3 w-2/3 rounded-full bg-white/12" />
+      <div className="mt-6 space-y-2.5 px-5">
+        <div className="h-2.5 w-3/5 rounded-full bg-white/25" />
+        <div className="h-2.5 w-2/5 rounded-full bg-white/14" />
       </div>
 
-      <div className="absolute right-8 bottom-14 sm:right-14">
+      <div className="absolute right-5 bottom-5">
         {preview.shape === "chart" && (
-          <div className="flex h-32 items-end gap-2 sm:h-44">
+          <div className="flex h-20 items-end gap-1.5">
             {BARS.map((h, i) => (
-              <span
-                key={i}
-                className="block w-4 rounded-t bg-white/35 sm:w-6"
-                style={{ height: `${h}%` }}
-              />
+              <span key={i} className="block w-3 rounded-t bg-white/35" style={{ height: `${h}%` }} />
             ))}
           </div>
         )}
         {preview.shape === "grid" && (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             {Array.from({ length: 6 }).map((_, i) => (
-              <span
-                key={i}
-                className="block h-16 w-14 rounded border border-white/22 bg-white/10 sm:h-24 sm:w-20"
-              />
+              <span key={i} className="block h-10 w-12 rounded border border-white/20 bg-white/10" />
             ))}
           </div>
         )}
         {preview.shape === "feed" && (
-          <div className="space-y-3">
-            {[68, 84, 56, 76].map((w, i) => (
+          <div className="space-y-2">
+            {[120, 150, 96, 132].map((w, i) => (
               <span
                 key={i}
-                className="flex h-9 items-center rounded border border-white/18 bg-white/8 sm:h-11"
-                style={{ width: `${w * 2.6}px` }}
+                className="block h-6 rounded border border-white/16 bg-white/8"
+                style={{ width: `${w}px` }}
               />
             ))}
           </div>
         )}
       </div>
 
-      <span className="absolute right-8 bottom-6 font-mono text-[10px] tracking-[0.18em] text-white/40 uppercase sm:right-14">
+      <span className="absolute bottom-4 left-5 font-mono text-[9px] tracking-[0.16em] text-white/40 uppercase">
         screenshot pending
       </span>
     </div>

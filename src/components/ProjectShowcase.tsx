@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { Project } from "@/content/projects";
-import { SitePreview } from "./SitePreview";
+import { SiteBackdrop, SiteFrame } from "./SitePreview";
 import { Tag } from "./Tag";
 
 export type ShowcaseItem = Project & { image?: string };
@@ -66,14 +66,11 @@ export function ProjectShowcase({ items }: { items: ShowcaseItem[] }) {
         >
           <div className="sticky top-0 h-[100svh] overflow-hidden">
             <div className="showcase-layer absolute inset-0">
-              <SitePreview
-                preview={project.preview!}
-                image={project.image}
-                alt={`${project.name} homepage`}
-              />
+              <SiteBackdrop preview={project.preview!} image={project.image} />
             </div>
 
-            <div className="showcase-copy relative mx-auto flex h-full w-full max-w-5xl flex-col justify-center px-6">
+            <div className="showcase-copy relative mx-auto grid h-full w-full max-w-7xl items-center gap-8 px-6 py-20 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-14">
+              <div className="flex flex-col justify-center">
               <p
                 className="font-mono text-xs tracking-[0.2em] uppercase"
                 style={{ color: project.preview!.accent }}
@@ -82,21 +79,21 @@ export function ProjectShowcase({ items }: { items: ShowcaseItem[] }) {
                 <span className="text-body/60"> · {project.kicker}</span>
               </p>
 
-              <h3 className="mt-4 text-4xl font-semibold tracking-tight text-bright sm:text-6xl">
+              <h3 className="mt-4 text-3xl font-semibold tracking-tight text-bright sm:text-5xl">
                 {project.name}
               </h3>
 
-              <p className="mt-5 max-w-xl text-base leading-relaxed text-body sm:text-lg">
+              <p className="mt-4 max-w-xl text-sm leading-relaxed text-body sm:text-base">
                 {project.blurb}
               </p>
 
-              <div className="mt-6 flex flex-wrap gap-2">
+              <div className="mt-5 flex flex-wrap gap-2">
                 {project.tags.map((tag) => (
                   <Tag key={tag}>{tag}</Tag>
                 ))}
               </div>
 
-              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 font-mono text-sm">
+              <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 font-mono text-sm">
                 {project.href && (
                   <a
                     href={project.href}
@@ -123,6 +120,18 @@ export function ProjectShowcase({ items }: { items: ShowcaseItem[] }) {
                     View the repo →
                   </a>
                 )}
+              </div>
+              </div>
+
+              {/* Bleeds past the right edge on wide screens: the site should
+                  feel like it is taking the page over, not sitting in a slot. */}
+              <div className="lg:-mr-[5vw]">
+                <SiteFrame
+                  preview={project.preview!}
+                  image={project.image}
+                  alt={`${project.name} homepage`}
+                  href={project.href}
+                />
               </div>
             </div>
           </div>
