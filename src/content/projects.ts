@@ -88,9 +88,12 @@ export const projects: Project[] = [
     state: "live",
     kicker: "A weekly newsletter written by AI agents",
     summary:
-      "Every week, a team of AI agents manages one real portfolio and writes up what it changed, trying to beat the S&P 500 in public.",
+      "Every week, a team of AI agents manages one simulated portfolio and writes up what it changed, trying to beat the S&P 500 in public.",
+    // Say "simulated" in the first sentence and again in the detail. A
+    // portfolio newsletter that leaves the reader guessing whether the money
+    // is real has misled them, whatever the small print says.
     blurb:
-      "A multi-agent research desk holds 8 to 15 positions continuously and publishes every trade. Python gathers the data with no model involved; two Claude Code steps propose adds and exits; a judge step can only lower confidence, never invent a pick. Every position is marked daily against the S&P 500, and every issue stops at a human review gate before it sends.",
+      "No real money is at stake. A multi-agent research desk holds 8 to 15 paper positions continuously and publishes every trade. Python gathers the data with no model involved; two Claude Code steps propose adds and exits; a judge step can only lower confidence, never invent a pick. Every position is marked daily against the S&P 500, and every issue stops at a human review gate before it sends.",
     href: "https://plainstocks.com",
     cta: {
       label: "Read this week's issue",
@@ -120,7 +123,9 @@ export const projects: Project[] = [
     cta: {
       label: "Make a card in five minutes",
       href: "https://cardtacular.com",
-      note: "No login to build one. No login for whoever opens it.",
+      // Only what the repo actually establishes. Whether the recipient needs
+      // an account is unconfirmed, so the note does not claim either way.
+      note: "No account needed to make one. Text, photos, GIFs, and voice.",
     },
     tags: ["Founder", "React", "Supabase"],
     preview: {
