@@ -9,10 +9,10 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
-  title: `${site.name} — ${site.title}`,
+  title: `${site.name} · ${site.title}`,
   description: site.tagline,
   openGraph: {
-    title: `${site.name} — ${site.title}`,
+    title: `${site.name} · ${site.title}`,
     description: site.tagline,
     url: site.url,
     siteName: site.name,

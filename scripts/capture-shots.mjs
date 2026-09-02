@@ -8,7 +8,7 @@
  * a project without a capture falls back to its wireframe, so a failed run
  * degrades instead of breaking the page.
  *
- * Requires Playwright locally — it is not a dependency of the site:
+ * Requires Playwright locally. It is not a dependency of the site:
  *   npm i -D playwright && npx playwright install chromium
  */
 import { existsSync, mkdirSync } from "node:fs";
@@ -18,8 +18,8 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = join(root, "public", "shots");
 
-// Kept in step with src/content/projects.ts by hand — four entries is not
-// worth a build-time import of TypeScript.
+// Kept in step with src/content/projects.ts by hand. Four entries is not worth
+// a build-time import of TypeScript.
 const targets = [
   { slug: "hoapulse", url: "https://hoapulse.net" },
   { slug: "cardtacular", url: "https://cardtacular.com" },
@@ -64,7 +64,7 @@ for (const { slug, url } of queue) {
     console.log(`captured  ${slug}`);
   } catch (error) {
     failures += 1;
-    console.error(`failed    ${slug} — ${error.message.split("\n")[0]}`);
+    console.error(`failed    ${slug}: ${error.message.split("\n")[0]}`);
   } finally {
     await page.close();
   }

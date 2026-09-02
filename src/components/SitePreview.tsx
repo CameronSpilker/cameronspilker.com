@@ -5,7 +5,7 @@ const BARS = [34, 58, 41, 72, 49, 66, 38, 61];
 /**
  * The panel's ambient ground: the product's colors flooding the whole viewport.
  *
- * A capture goes in blurred and dimmed — it is atmosphere, not content, and a
+ * A capture goes in blurred and dimmed. It is atmosphere, not content, and a
  * real homepage is full of its own text that would otherwise fight the copy on
  * top of it. The crisp version lives in SiteFrame.
  */

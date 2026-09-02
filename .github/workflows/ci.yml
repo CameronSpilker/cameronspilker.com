@@ -21,8 +21,15 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # House style, enforced: no em dashes anywhere in the repo. See CLAUDE.md.
+      - name: Prose
+        run: npm run check:prose
+
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Test
+        run: npm test
 
       - name: Build
         run: npm run build

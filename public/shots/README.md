@@ -13,5 +13,5 @@ npm run shots hoapulse   # just one
 
 `src/components/Projects.tsx` looks for `<slug>.webp`, `.png`, or `.jpg` here at
 build time. A project without a file falls back to a wireframe in its own
-colors, so it is always safe to leave one out — or to drop a hand-made image in
+colors, so it is always safe to leave one out, or to drop a hand-made image in
 rather than running the script.

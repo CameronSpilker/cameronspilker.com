@@ -51,10 +51,41 @@
  * Project takeover.
  *
  * `--enter` and `--exit` are written by ProjectShowcase on scroll. Both default
- * to a fully visible resting state, so the first paint — and any visit where
- * the JavaScript never runs — shows a finished panel rather than a blank one.
+ * to a fully visible resting state. The first paint, and any visit where the
+ * JavaScript never runs, shows a finished panel rather than a blank one.
  */
 @layer components {
+  /*
+   * The connector between two assets in the Lab's pipeline diagram. The pulse
+   * says "data moves along here", nothing more. The numbers next to it are the
+   * real schedule, so the motion is allowed to be decorative as long as it
+   * never implies a run is happening right now.
+   */
+  .flow-rail {
+    display: block;
+    width: 1.75rem;
+    height: 1px;
+    background-color: var(--color-line);
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-accent),
+      transparent
+    );
+    background-size: 60% 100%;
+    background-repeat: no-repeat;
+    animation: flow-rail 2.4s linear infinite;
+  }
+
+  @keyframes flow-rail {
+    from {
+      background-position: -60% 0;
+    }
+    to {
+      background-position: 160% 0;
+    }
+  }
+
   .showcase-track {
     --enter: 1;
     --exit: 0;
@@ -79,10 +110,15 @@
     scroll-behavior: auto;
   }
 
-  /* Keep the layout — drop the movement. Panels still hand off by stacking. */
+  /* Keep the layout, drop the movement. Panels still hand off by stacking. */
   .showcase-layer,
   .showcase-copy {
     opacity: 1;
     transform: none;
+  }
+
+  .flow-rail {
+    animation: none;
+    background-image: none;
   }
 }
