@@ -1,6 +1,6 @@
 export const site = {
   name: "Cameron Spilker",
-  title: "Analytics Engineer",
+  title: "Senior Analytics Engineer",
   tagline:
     "I build data systems end to end — raw API to trusted model to dashboard — and I build them in public.",
   location: "American Fork, Utah",

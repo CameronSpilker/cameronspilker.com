@@ -11,9 +11,14 @@ export function Experience() {
             key={`${role.company}-${role.title}`}
             className="grid gap-4 sm:grid-cols-[10rem_1fr] sm:gap-8"
           >
-            <p className="font-mono text-xs text-body/70 sm:pt-1">
-              {role.start} — {role.end}
-            </p>
+            <div className="font-mono text-xs text-body/70 sm:pt-1">
+              <p>
+                {role.start} — {role.end}
+              </p>
+              {role.location && (
+                <p className="mt-1 text-body/50">{role.location}</p>
+              )}
+            </div>
             <div>
               <h3 className="text-lg font-medium text-bright">{role.company}</h3>
               <p className="mt-0.5 text-sm text-body">{role.title}</p>
