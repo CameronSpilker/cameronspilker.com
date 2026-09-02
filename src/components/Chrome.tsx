@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { site } from "@/content/site";
 
+// Same order as the page. The active-section logic below walks this list and
+// takes the last match, so it has to stay in document order.
 const sections = [
-  { id: "work", label: "Work" },
   { id: "projects", label: "Projects" },
   { id: "stack", label: "Lab" },
+  { id: "work", label: "Experience" },
   { id: "about", label: "About" },
   { id: "contact", label: "Contact" },
 ];

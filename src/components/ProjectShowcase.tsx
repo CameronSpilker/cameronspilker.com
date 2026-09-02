@@ -11,7 +11,7 @@ export type ShowcaseItem = Project & { image?: string };
  * The takeover: each project pins to the viewport and the page becomes that
  * site, then hands off to the next one.
  *
- * Scroll position drives two custom properties per panel — `--enter` (0 as the
+ * Scroll position drives two custom properties per panel: `--enter` (0 as the
  * panel approaches, 1 once pinned) and `--exit` (0 while pinned, 1 once it has
  * scrolled away). All the motion lives in CSS reading those two numbers, so
  * this effect costs one passive listener and one rAF per frame. Both default to
@@ -83,7 +83,14 @@ export function ProjectShowcase({ items }: { items: ShowcaseItem[] }) {
                 {project.name}
               </h3>
 
-              <p className="mt-4 max-w-xl text-sm leading-relaxed text-body sm:text-base">
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-bright sm:text-lg">
+                {project.summary}
+              </p>
+
+              {/* The panel is pinned to one viewport, and on a phone the
+                  summary plus the frame already fill it. The detail paragraph
+                  is the first thing to give up when there is no room. */}
+              <p className="mt-3 hidden max-w-xl text-sm leading-relaxed text-body sm:block">
                 {project.blurb}
               </p>
 
@@ -93,34 +100,41 @@ export function ProjectShowcase({ items }: { items: ShowcaseItem[] }) {
                 ))}
               </div>
 
+              {/* The button says what the visitor leaves with, and the line
+                  under it says what it costs them. "Visit site" says neither. */}
               <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 font-mono text-sm">
-                {project.href && (
-                  <a
-                    href={project.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded border px-5 py-2.5 transition-colors"
-                    style={{
-                      color: project.preview!.accent,
-                      borderColor: `${project.preview!.accent}66`,
-                      backgroundColor: `${project.preview!.accent}1a`,
-                    }}
-                  >
-                    Visit {project.name}
-                    <span aria-hidden="true">→</span>
-                  </a>
-                )}
-                {project.repo && (
+                <a
+                  href={project.cta.href}
+                  {...(isExternal(project.cta.href)
+                    ? { target: "_blank", rel: "noreferrer" }
+                    : {})}
+                  className="inline-flex items-center gap-2 rounded border px-5 py-2.5 transition-colors"
+                  style={{
+                    color: project.preview!.accent,
+                    borderColor: `${project.preview!.accent}66`,
+                    backgroundColor: `${project.preview!.accent}1a`,
+                  }}
+                >
+                  {project.cta.label}
+                  <span aria-hidden="true">{isExternal(project.cta.href) ? "→" : "↓"}</span>
+                </a>
+                {project.repo && project.repo !== project.cta.href && (
                   <a
                     href={project.repo}
                     target="_blank"
                     rel="noreferrer"
                     className="text-bright underline decoration-line underline-offset-4 transition-colors hover:decoration-current"
                   >
-                    View the repo →
+                    Read the source →
                   </a>
                 )}
               </div>
+
+              {project.cta.note && (
+                <p className="mt-3 max-w-md font-mono text-xs leading-relaxed text-body/60">
+                  {project.cta.note}
+                </p>
+              )}
               </div>
 
               {/* Bleeds past the right edge on wide screens: the site should
@@ -143,4 +157,9 @@ export function ProjectShowcase({ items }: { items: ShowcaseItem[] }) {
 
 function clamp(n: number) {
   return Math.min(1, Math.max(0, n));
+}
+
+/** In-page anchors must not open a new tab, and must not be rel=noreferrer. */
+function isExternal(href: string) {
+  return !href.startsWith("#");
 }

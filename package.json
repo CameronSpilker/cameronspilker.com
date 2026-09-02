@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "check:prose": "node scripts/check-prose.mjs",
+    "test": "node --test \"src/**/*.test.ts\"",
     "typecheck": "tsc --noEmit",
     "shots": "node scripts/capture-shots.mjs"
   },

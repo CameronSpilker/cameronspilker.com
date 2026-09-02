@@ -4,7 +4,7 @@ import { Section } from "./Section";
 const facts = [
   { k: "Based in", v: site.location },
   { k: "Studied", v: "Information Systems, BYU (BS + MS)" },
-  { k: "Teaching", v: "IS 515, Advanced Spreadsheets" },
+  { k: "Taught", v: "IS 515, Advanced Spreadsheets, at BYU" },
   { k: "Tools", v: "dbt · Snowflake · Looker · Omni · Python" },
 ];
 
@@ -15,22 +15,22 @@ export function About() {
         <div className="max-w-2xl space-y-4 text-base leading-relaxed">
           <p>
             I am an analytics engineer based in {site.location}. I work across
-            the whole stack — pulling from raw APIs, modeling in dbt,
+            the whole stack: pulling from raw APIs, modeling in dbt,
             orchestrating the runs, and shipping the dashboard people actually
-            open. The parts I care most about are the unglamorous ones: tests,
-            lineage, and documentation that makes a number defensible.
+            open. The parts I care most about are the unglamorous ones. Tests,
+            lineage, and documentation are what make a number defensible.
           </p>
           <p>
             I work AI-forward. I treat models as a way to move faster through
             the mechanical parts so more of my attention goes to the judgment
-            calls — what to measure, what to trust, and what to throw away.
+            calls: what to measure, what to trust, and what to throw away.
           </p>
           <p>
-            I studied information systems at BYU, and I still teach spreadsheets
-            there. Mostly I like building things with AI and working with data,
-            and I am always happy to talk with people doing either. If something
-            here is useful to you, or you want to compare notes on any of it,
-            get in touch.
+            I studied information systems at BYU and taught spreadsheets there.
+            Mostly I like building things with AI and working with data, and I
+            am always happy to talk with people doing either. If something here
+            is useful to you, or you want to compare notes on any of it, get in
+            touch.
           </p>
         </div>
 

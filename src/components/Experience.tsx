@@ -1,12 +1,14 @@
-import { experience } from "@/content/experience";
+import { earlier, experience } from "@/content/experience";
 import { site } from "@/content/site";
 import { Tag } from "./Tag";
 
 /**
- * Deliberately not a takeover. Eleven roles is something a hiring manager
- * skims, so the heading pins and the roles scroll past it — the same
- * full-height staging as everything else, without pinning content they need to
- * read at their own pace.
+ * Deliberately not a takeover. This is the section a hiring manager skims, so
+ * the heading pins and the roles scroll past it at their own pace.
+ *
+ * Three roles carry bullets and everything before them is a name and a date.
+ * The projects above already argue the case; this exists to show the arc and
+ * the scale of the systems behind it.
  */
 export function Experience() {
   const [current, ...rest] = experience;
@@ -20,24 +22,49 @@ export function Experience() {
             Nine years of making numbers defensible.
           </h2>
           <p className="mt-5 text-sm leading-relaxed">
-            Analytics engineering at Typeform, Apollo.io, and Gopuff; data
-            engineering before that. The through line is migrations, cost, and
-            trust — the work that makes a dashboard worth opening.
+            Analytics engineering at Typeform, Apollo.io, and Gopuff, with data
+            engineering and audit analytics before that. The through line is
+            migrations, cost, and trust: the work that makes a dashboard worth
+            opening.
           </p>
           <a
             href={site.linkedin}
+            target="_blank"
+            rel="noreferrer"
             className="mt-6 inline-block font-mono text-sm text-accent underline decoration-accent/40 underline-offset-4 hover:decoration-accent"
           >
             Full history on LinkedIn →
           </a>
         </div>
 
-        <ol className="space-y-14">
-          <Role role={current} highlight />
-          {rest.map((role) => (
-            <Role key={`${role.company}-${role.title}`} role={role} />
-          ))}
-        </ol>
+        <div>
+          <ol className="space-y-14">
+            <Role role={current} highlight />
+            {rest.map((role) => (
+              <Role key={`${role.company}-${role.title}`} role={role} />
+            ))}
+          </ol>
+
+          <div className="mt-16 border-t border-line/70 pt-8">
+            <p className="font-mono text-xs tracking-[0.2em] text-body/60 uppercase">
+              Before that
+            </p>
+            <ul className="mt-5 space-y-2.5">
+              {earlier.map((role) => (
+                <li
+                  key={`${role.company}-${role.title}`}
+                  className="grid gap-x-4 gap-y-0.5 text-sm sm:grid-cols-[8rem_1fr]"
+                >
+                  <span className="font-mono text-xs text-body/50 sm:pt-0.5">{role.years}</span>
+                  <span>
+                    <span className="text-bright">{role.company}</span>
+                    <span className="text-body/70"> · {role.title}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -59,7 +86,7 @@ function Role({
         }`}
       />
       <p className="font-mono text-xs text-body/60">
-        {role.start} — {role.end}
+        {role.start} to {role.end}
         {role.location && <span className="text-body/40"> · {role.location}</span>}
       </p>
       <h3 className="mt-2 text-lg font-medium text-bright">{role.company}</h3>
