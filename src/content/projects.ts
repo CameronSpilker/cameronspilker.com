@@ -96,12 +96,12 @@ export const projects: Project[] = [
     state: "repo",
     kicker: "Ingestion to dashboard, all in the open",
     blurb:
-      "A living analytics engineering project that tracks the health and growth of the open-source data ecosystem using public GitHub and PyPI data. Python, DuckDB, dbt, Dagster, and Evidence — every layer in one repo, readable end to end.",
+      "Every NCAA Division I men's basketball team tracked through the season, the tournament simulated 20,000 times, and — the part most bracket models leave out — a page reporting how well its own predictions did. Python to DuckDB to dbt to Dagster to Evidence: 22 models, 113 tests, every layer in one repo and readable end to end.",
     repo: "https://github.com/CameronSpilker/full-data-stack-lab",
     tags: ["dbt", "DuckDB", "Dagster", "Evidence.dev", "Python"],
     preview: {
       brand: "Full Data Stack Lab",
-      nav: ["Models", "Lineage", "Dashboard"],
+      nav: ["Season", "Bracket", "Accuracy"],
       tint: ["#070D18", "#1D3768"],
       accent: "#7CA9FF",
       shape: "chart",

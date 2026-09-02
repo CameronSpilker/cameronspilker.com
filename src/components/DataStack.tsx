@@ -1,7 +1,7 @@
 import { Section } from "./Section";
 
 const layers = [
-  { name: "Ingest", tool: "Python + GitHub / PyPI APIs" },
+  { name: "Ingest", tool: "Python + httpx · two public APIs" },
   { name: "Store", tool: "DuckDB" },
   { name: "Transform", tool: "dbt Core" },
   { name: "Orchestrate", tool: "Dagster" },
@@ -11,7 +11,7 @@ const layers = [
 const decisions = [
   {
     q: "Why DuckDB?",
-    a: "Free forever, runs anywhere, and Evidence reads it natively. The dataset is small enough that a warehouse bill would buy nothing but a logo on the diagram.",
+    a: "Free, runs anywhere, and Evidence reads it natively. The dataset is small enough that a cloud warehouse would buy nothing but a logo on the diagram.",
   },
   {
     q: "Why Dagster over Airflow?",
@@ -21,6 +21,10 @@ const decisions = [
     q: "Why Evidence?",
     a: "Dashboards as code, versioned in the same repo as the models they read. Nothing lives only inside a BI tool's UI.",
   },
+  {
+    q: "Why score itself?",
+    a: "A bracket model that never reports its own Brier score is asking to be believed rather than checked. The backtest flags which forecasts saw the future and which did not.",
+  },
 ];
 
 export function DataStack() {
@@ -29,7 +33,7 @@ export function DataStack() {
       id="stack"
       label="Analytics engineering"
       title="Full Data Stack Lab"
-      lede="A public analytics project that tracks the health and growth of the open-source data ecosystem — the tools I use, measured with the tools I use. Every layer is in one repo and readable end to end."
+      lede="Every NCAA Division I men's basketball team tracked through the season, the tournament simulated 20,000 times, and a page reporting how well the model's own predictions did — the part most bracket models leave out. 22 dbt models, 113 tests, every layer in one repo."
     >
       {/* The pipeline is a genuine sequence, so it gets numbered steps and a
           connecting rail. Nothing else on the page is numbered. */}
@@ -50,7 +54,7 @@ export function DataStack() {
         ))}
       </ol>
 
-      <dl className="mt-14 grid gap-8 sm:grid-cols-3">
+      <dl className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
         {decisions.map((d) => (
           <div key={d.q}>
             <dt className="font-mono text-sm text-bright">{d.q}</dt>
