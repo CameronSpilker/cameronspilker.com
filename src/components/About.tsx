@@ -27,10 +27,10 @@ export function About() {
           </p>
           <p>
             I studied information systems at BYU, and I still teach spreadsheets
-            there. I am not looking for a role — I just like building things
-            with AI and working with data, and I am always happy to talk with
-            people doing either. If something here is useful to you, or you want
-            to compare notes on any of it, get in touch.
+            there. Mostly I like building things with AI and working with data,
+            and I am always happy to talk with people doing either. If something
+            here is useful to you, or you want to compare notes on any of it,
+            get in touch.
           </p>
         </div>
 

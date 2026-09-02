@@ -20,8 +20,8 @@ export function Footer() {
           Get in touch
         </h2>
         <p className="mt-4 max-w-xl text-base leading-relaxed">
-          Not looking for a role, but always up for a conversation — data
-          platforms, building with AI, or anything here you want to dig into.
+          Always up for a conversation — data platforms, building with AI, or
+          anything here you want to dig into.
         </p>
 
         <dl className="mt-10 grid gap-6 sm:grid-cols-3">
