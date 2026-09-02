@@ -16,6 +16,8 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* Anchor jumps must clear the fixed chrome rail. */
+    scroll-padding-top: 4rem;
   }
 
   body {
@@ -28,6 +30,11 @@
     background-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
     color: var(--color-bright);
   }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
 }
 
 @utility rule {
@@ -38,4 +45,44 @@
     var(--color-line) 80%,
     transparent
   );
+}
+
+/*
+ * Project takeover.
+ *
+ * `--enter` and `--exit` are written by ProjectShowcase on scroll. Both default
+ * to a fully visible resting state, so the first paint — and any visit where
+ * the JavaScript never runs — shows a finished panel rather than a blank one.
+ */
+@layer components {
+  .showcase-track {
+    --enter: 1;
+    --exit: 0;
+  }
+
+  .showcase-layer {
+    opacity: calc(1 - 0.5 * var(--exit));
+    transform: scale(calc(1 - 0.05 * var(--exit))) translateY(calc(var(--exit) * 5vh));
+    transform-origin: 50% 40%;
+    will-change: transform, opacity;
+  }
+
+  .showcase-copy {
+    opacity: calc(min(1, var(--enter) * 1.7) * (1 - var(--exit)));
+    transform: translateY(calc((1 - min(1, var(--enter) * 1.5)) * 24px));
+    will-change: transform, opacity;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* Keep the layout — drop the movement. Panels still hand off by stacking. */
+  .showcase-layer,
+  .showcase-copy {
+    opacity: 1;
+    transform: none;
+  }
 }

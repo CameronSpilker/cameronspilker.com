@@ -31,9 +31,9 @@ export const experience: Role[] = [
     start: "Oct 2025",
     end: "Present",
     highlights: [
-      "Co-founded a trading card e-commerce company with my brother, owning the data and analytics side end to end.",
+      "Co-founded a digital greeting card product with my brother — a browser-based editor that builds a four-page card and shares it with a link.",
     ],
-    tags: ["Founder", "E-commerce"],
+    tags: ["Founder", "React", "Supabase"],
   },
   {
     company: "Independent",

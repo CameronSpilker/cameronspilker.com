@@ -10,18 +10,18 @@ export function Footer() {
   return (
     <footer
       id="contact"
-      className="border-t border-line/70 py-20 sm:py-28"
+      className="flex min-h-[80svh] flex-col justify-center border-t border-line/60 py-24 sm:py-32"
     >
       <div className="mx-auto w-full max-w-5xl px-6">
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">
-          06 / contact
+          Contact
         </p>
-        <h2 className="mt-3 text-2xl font-semibold tracking-tight text-bright sm:text-3xl">
+        <h2 className="mt-3 max-w-2xl text-2xl font-semibold tracking-tight text-balance text-bright sm:text-4xl">
           Get in touch
         </h2>
         <p className="mt-4 max-w-xl text-base leading-relaxed">
-          Open to conversations about analytics engineering work, data platform
-          problems, and anything built in public.
+          Always up for a conversation — data platforms, building with AI, or
+          anything here you want to dig into.
         </p>
 
         <dl className="mt-10 grid gap-6 sm:grid-cols-3">

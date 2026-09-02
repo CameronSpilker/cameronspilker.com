@@ -17,11 +17,12 @@ The structure is real; a lot of the copy is not. Every `TODO` in
 `src/content/` is a placeholder that would embarrass you in front of a
 recruiter if it shipped.
 
-- [ ] `src/content/experience.ts` — real dates for every role, and 3–5 bullets
-      each. Write outcomes, not responsibilities: what changed, by how much,
-      and how you knew. This is the single highest-value item on this list
-- [ ] `src/content/projects.ts` — real descriptions for Plainstocks, HOApulse,
-      Cardtacular, HoloRekognition, and the marketing analytics project
+- [x] `src/content/experience.ts` — synced with LinkedIn: real dates,
+      locations, and outcome bullets for every role
+- [x] `src/content/projects.ts` — every project described from its own repo
+      or from Cameron's own account of it
+- [ ] `npm run shots` — capture the four project homepages so the showcase
+      panels show real pages instead of wireframes
 - [ ] `src/components/About.tsx` — the closing line about what you are building
       now and what you are looking for
 - [ ] Confirm the GitHub URL casing and the LinkedIn slug in `src/content/site.ts`
@@ -37,8 +38,7 @@ recruiter if it shipped.
 ### 3. Polish
 
 - [ ] Add an OG image so links unfurl properly when shared
-- [ ] Add screenshots or logos to the project cards; text-only cards read thin
-      next to a live site link
+- [x] Project showcase: full-screen scroll takeover, one panel per product
 - [ ] Add `sitemap.ts` and `robots.ts`
 - [ ] Run Lighthouse and fix whatever it flags — a portfolio for a data person
       that scores badly on measurable things is a bad look
