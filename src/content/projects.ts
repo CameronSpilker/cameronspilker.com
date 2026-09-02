@@ -125,12 +125,14 @@ export const archived: Project[] = [
     tags: ["HoloLens", "Unity", "Azure Face API", "Python"],
   },
   {
-    slug: "marketing-analytics-consulting",
-    name: "Digital Marketing Analytics",
+    slug: "hair-vibes-studio",
+    name: "Hair Vibes Studio",
     state: "archive",
-    kicker: "Consulting engagement",
-    // TODO: describe scope and outcome, and add a link if it is still live.
-    blurb: "An analytics build-out for a digital marketing practice.",
-    tags: ["GA4", "Consulting"],
+    kicker: "Marketing and analytics for my wife's salon",
+    // No link: the studio's Google Business site stopped resolving when Google
+    // retired Business Profile websites.
+    blurb:
+      "Launched and ran the online presence for my wife's hair studio — a Google Business site, Google Ads campaigns, and local SEO — along with the performance tracking that showed which spend actually brought clients through the door. The studio has since closed, but it was small-business marketing owned end to end rather than analyzed from the outside.",
+    tags: ["Google Ads", "Local SEO", "Small business"],
   },
 ];

@@ -19,9 +19,8 @@ recruiter if it shipped.
 
 - [x] `src/content/experience.ts` — synced with LinkedIn: real dates,
       locations, and outcome bullets for every role
-- [ ] `src/content/projects.ts` — real descriptions for Plainstocks, HOApulse,
-      Cardtacular, HoloRekognition, and the marketing analytics project. The
-      current text is a safe draft, not yours — every one is marked `TODO`
+- [x] `src/content/projects.ts` — every project described from its own repo
+      or from Cameron's own account of it
 - [ ] `npm run shots` — capture the four project homepages so the showcase
       panels show real pages instead of wireframes
 - [ ] `src/components/About.tsx` — the closing line about what you are building
