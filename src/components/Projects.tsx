@@ -54,11 +54,21 @@ export function Projects() {
               </div>
               <div>
                 <p className="text-sm leading-relaxed">{project.blurb}</p>
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-3 flex flex-wrap items-center gap-2">
                   {project.tags.map((tag) => (
                     <Tag key={tag}>{tag}</Tag>
                   ))}
                 </div>
+                {(project.href ?? project.repo) && (
+                  <a
+                    href={project.href ?? project.repo}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 inline-block font-mono text-xs text-accent underline decoration-accent/40 underline-offset-4 hover:decoration-accent"
+                  >
+                    {project.href ? "Visit site →" : "View the repo →"}
+                  </a>
+                )}
               </div>
             </li>
           ))}

@@ -118,11 +118,11 @@ export const archived: Project[] = [
     slug: "holorekognition",
     name: "HoloRekognition",
     state: "archive",
-    kicker: "BYU capstone, 2019 — Most Innovative Project",
-    // TODO: describe the architecture and which part you owned.
+    kicker: "BYU MISM capstone, 2019 — Most Innovative Project",
     blurb:
-      "A Microsoft HoloLens facial recognition app built as an information systems capstone.",
-    tags: ["HoloLens", "C#", "Computer Vision"],
+      "A Microsoft HoloLens app that identifies the person in front of you. A tap gesture captures a photo, Azure Face locates the face and matches it against a trained person group, and Unity draws a rectangle with that person's details in 3D space — positioned by estimating distance from how large the face reads. Built by a team of three; my piece was the Python utility that exported and managed the Azure person group behind it.",
+    repo: "https://github.com/CameronSpilker/DownloadPersonGroupInformation",
+    tags: ["HoloLens", "Unity", "Azure Face API", "Python"],
   },
   {
     slug: "marketing-analytics-consulting",
