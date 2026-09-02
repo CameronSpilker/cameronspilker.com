@@ -66,7 +66,7 @@ export const projects: Project[] = [
     summary:
       "Every NCAA Division I men's basketball team tracked through the season, the tournament simulated 20,000 times, and a page grading how well the model's own predictions did.",
     blurb:
-      "Python pulls two public APIs into a DuckDB warehouse, dbt builds 22 models behind 113 tests, Dagster schedules the whole graph, and Evidence renders the dashboard from the same file dbt writes. The self-grading page is the part most bracket models leave out: forecasts that used only prior games are scored separately from ones that saw the future.",
+      "Python pulls a public API into a DuckDB warehouse, dbt builds 22 models behind 118 tests, Dagster schedules the whole graph, and Evidence renders the dashboard from the same file dbt writes. The self-grading page is the part most bracket models leave out: forecasts that used only prior games are scored separately from ones that saw the future.",
     repo: "https://github.com/CameronSpilker/full-data-stack-lab",
     cta: {
       label: "Take the pipeline apart",
