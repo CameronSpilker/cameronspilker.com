@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { site } from "@/content/site";
+import { THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -24,7 +25,14 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/*
+          Runs before the first paint so a stored appearance is already on the
+          document, rather than arriving after a frame of the wrong one.
+        */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
         <Analytics />

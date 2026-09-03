@@ -96,7 +96,9 @@ export const projects: Project[] = [
       "No real money is at stake. A multi-agent research desk holds 8 to 15 paper positions continuously and publishes every trade. Python gathers the data with no model involved; two Claude Code steps propose adds and exits; a judge step can only lower confidence, never invent a pick. Every position is marked daily against the S&P 500, and every issue stops at a human review gate before it sends.",
     href: "https://plainstocks.com",
     cta: {
-      label: "Read this week's issue",
+      // The issues go out by email and are not posted on the site, so a button
+      // promising this week's issue promises something the link cannot deliver.
+      label: "Sign up for the newsletter",
       href: "https://plainstocks.com",
       note: "Free weekly email. Every trade and the running score against the S&P 500.",
     },
