@@ -93,45 +93,44 @@ export const schedules: Schedule[] = [
 
 export type DashboardPage = {
   title: string;
+  /**
+   * The Evidence route, appended to the dashboard URL to link the card. A path
+   * holding a bracketed parameter is a dynamic route with no landing page of
+   * its own, so it is shown without a link.
+   */
   path: string;
-  question: string;
   detail: string;
 };
 
-/** The Evidence pages, and the question each one exists to answer. */
+/** The Evidence pages, in the order the dashboard lists them. */
 export const dashboardPages: DashboardPage[] = [
   {
     title: "Season overview",
     path: "/",
-    question: "Who is actually good this year?",
     detail:
       "Every Division I team ranked on adjusted efficiency margin, with tempo, record, and strength of schedule alongside it.",
   },
   {
     title: "Tournament odds",
     path: "/bracket",
-    question: "Who wins in March?",
     detail:
       "The projected 64-team field and the odds of every team reaching each round, from 20,000 simulated brackets.",
   },
   {
     title: "Conferences",
     path: "/conferences",
-    question: "Which league is deepest?",
     detail:
       "Ranked on the median team's rating rather than the best one, because one outstanding program can carry a mediocre league's reputation.",
   },
   {
     title: "Team pages",
     path: "/teams/[id]",
-    question: "How did this team get here?",
     detail:
-      "A game log, an Elo timeline, and the priced matchup against anyone else in the country.",
+      "A game log, an Elo timeline, and the priced matchup against anyone else in the country. Open one from any team on the season overview.",
   },
   {
     title: "How good is the model?",
     path: "/model",
-    question: "Should you believe any of this?",
     detail:
       "Accuracy, log loss, Brier score, and calibration curves for each predictor, with real forecasts separated from the ones that saw the future.",
   },
