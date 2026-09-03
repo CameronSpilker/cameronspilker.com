@@ -1,13 +1,7 @@
 "use client";
 
 import { useId, useState, useSyncExternalStore } from "react";
-import {
-  dashboardPages,
-  decisions,
-  layers,
-  schedules,
-  stats,
-} from "@/content/lab";
+import { dashboardPages, layers, schedules, stats } from "@/content/lab";
 import { lab } from "@/content/site";
 import { formatCountdown, formatInZone, nextRun } from "@/lib/cron";
 
@@ -191,36 +185,25 @@ export function Lab() {
 
 function Methodology() {
   return (
-    <>
-      {/* The pipeline is a genuine sequence, so it gets numbered steps and a
-          connecting rail. Nothing else on the page is numbered. */}
-      <ol className="relative grid gap-3 sm:grid-cols-5">
-        <span
-          aria-hidden="true"
-          className="absolute top-9 right-4 left-4 hidden h-px bg-gradient-to-r from-accent/50 via-line to-line sm:block"
-        />
-        {layers.map((layer, i) => (
-          <li
-            key={layer.name}
-            className="relative rounded-lg border border-line bg-surface p-4 transition-colors hover:border-accent/40"
-          >
-            <p className="font-mono text-xs text-accent">{String(i + 1).padStart(2, "0")}</p>
-            <p className="mt-2 font-medium text-bright">{layer.name}</p>
-            <p className="mt-1 font-mono text-xs text-body/70">{layer.tool}</p>
-            <p className="mt-3 text-xs leading-relaxed text-body/80">{layer.detail}</p>
-          </li>
-        ))}
-      </ol>
-
-      <dl className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        {decisions.map((d) => (
-          <div key={d.q}>
-            <dt className="font-mono text-sm text-bright">{d.q}</dt>
-            <dd className="mt-2 text-sm leading-relaxed">{d.a}</dd>
-          </div>
-        ))}
-      </dl>
-    </>
+    // The pipeline is a genuine sequence, so it gets numbered steps and a
+    // connecting rail. Nothing else on the page is numbered.
+    <ol className="relative grid gap-3 sm:grid-cols-5">
+      <span
+        aria-hidden="true"
+        className="absolute top-9 right-4 left-4 hidden h-px bg-gradient-to-r from-accent/50 via-line to-line sm:block"
+      />
+      {layers.map((layer, i) => (
+        <li
+          key={layer.name}
+          className="relative rounded-lg border border-line bg-surface p-4 transition-colors hover:border-accent/40"
+        >
+          <p className="font-mono text-xs text-accent">{String(i + 1).padStart(2, "0")}</p>
+          <p className="mt-2 font-medium text-bright">{layer.name}</p>
+          <p className="mt-1 font-mono text-xs text-body/70">{layer.tool}</p>
+          <p className="mt-3 text-xs leading-relaxed text-body/80">{layer.detail}</p>
+        </li>
+      ))}
+    </ol>
   );
 }
 
@@ -312,25 +295,7 @@ function Pipeline() {
 function Dashboard() {
   return (
     <>
-      <ul className="grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-2">
-        {dashboardPages.map((page, i) => (
-          <li
-            key={page.path}
-            // Five pages in two columns leaves a hole. The last one, which is
-            // the page worth reading first, fills the row instead.
-            className={`bg-surface p-5 ${
-              i === dashboardPages.length - 1 ? "sm:col-span-2" : ""
-            }`}
-          >
-            <p className="font-mono text-xs text-body/50">{page.path}</p>
-            <h3 className="mt-2 font-medium text-bright">{page.title}</h3>
-            <p className="mt-2 text-sm text-accent">{page.question}</p>
-            <p className="mt-2 text-sm leading-relaxed">{page.detail}</p>
-          </li>
-        ))}
-      </ul>
-
-      <div className="mt-8 rounded-lg border border-line bg-surface p-5 sm:p-6">
+      <div className="rounded-lg border border-line bg-surface p-5 sm:p-6">
         {lab.dashboard ? (
           <>
             <p className="text-sm leading-relaxed">
@@ -345,7 +310,7 @@ function Dashboard() {
               className="mt-5 inline-flex items-center gap-2 rounded border border-accent/40 bg-accent/10 px-5 py-2.5 font-mono text-sm text-accent transition-colors hover:bg-accent/20"
             >
               Open the live dashboard
-              <span aria-hidden="true">→</span>
+              <span aria-hidden="true">&rarr;</span>
             </a>
           </>
         ) : (
@@ -366,11 +331,59 @@ function Dashboard() {
               rel="noreferrer"
               className="mt-5 inline-block font-mono text-sm text-accent underline decoration-accent/40 underline-offset-4 hover:decoration-accent"
             >
-              Read the page sources meanwhile →
+              Read the page sources meanwhile &rarr;
             </a>
           </>
         )}
       </div>
+
+      <ul className="mt-8 grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-2">
+        {dashboardPages.map((page, i) => {
+          // A bracketed segment is a dynamic route with no page of its own to
+          // open, so that card stays as plain text.
+          const href =
+            lab.dashboard && !page.path.includes("[")
+              ? `${lab.dashboard}${page.path}`
+              : null;
+
+          const body = (
+            <>
+              <p className="font-mono text-xs text-body/50">{page.path}</p>
+              <h3 className="mt-2 font-medium text-bright">{page.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed">{page.detail}</p>
+              {href && (
+                <p className="mt-3 font-mono text-xs text-accent">
+                  Open this page <span aria-hidden="true">&rarr;</span>
+                </p>
+              )}
+            </>
+          );
+
+          return (
+            <li
+              key={page.path}
+              // Five pages in two columns leaves a hole. The last one, which is
+              // the page worth reading first, fills the row instead.
+              className={`bg-surface ${
+                i === dashboardPages.length - 1 ? "sm:col-span-2" : ""
+              }`}
+            >
+              {href ? (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block h-full p-5 transition-colors hover:bg-raised"
+                >
+                  {body}
+                </a>
+              ) : (
+                <div className="p-5">{body}</div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </>
   );
 }
