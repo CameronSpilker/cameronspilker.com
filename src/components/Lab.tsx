@@ -302,8 +302,8 @@ function Pipeline() {
       <p className="mt-6 max-w-2xl text-xs leading-relaxed text-body/60">
         These are the literal cron expressions from the repo&rsquo;s Dagster
         definitions, evaluated here in your browser. GitHub Actions runs the same
-        pipeline daily and commits the rebuilt warehouse, so the dashboard builds
-        from a clean checkout without a local run.
+        pipeline daily and publishes the rebuilt warehouse as a release asset, so
+        the dashboard builds from a clean checkout without a local run.
       </p>
     </>
   );

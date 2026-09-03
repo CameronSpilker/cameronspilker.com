@@ -20,7 +20,7 @@ export const layers: Layer[] = [
     name: "Ingest",
     tool: "Python + httpx",
     detail:
-      "collegebasketballdata.com for games, box scores, betting lines, and adjusted efficiency. The API truncates at 3,000 records without saying so, so requests are read in date windows that split and retry when one comes back exactly at the limit.",
+      "collegebasketballdata.com for games, box scores, betting lines, and adjusted efficiency. Every extract lands as dated Parquet before anything reads it, so a run is replayable from disk without touching the API again.",
   },
   {
     name: "Store",
@@ -71,14 +71,6 @@ export const decisions: Decision[] = [
   {
     q: "Why is Elo the only Python model?",
     a: "Everything else is SQL and should be. Elo is irreducibly sequential, which in SQL is a recursive CTE tens of thousands of levels deep. A loop is the honest shape of that computation.",
-  },
-  {
-    q: "Why doesn't a forfeit count as a game?",
-    a: "The source calls a row final whenever it comes off the schedule, which sweeps in fixtures nobody played: seventeen COVID forfeits recorded as an administrative 2-0, cancellations left at 0-0, and three records missing a digit. Each is a true row about the season and a false one about basketball, so staging labels them and holds them out of the models rather than deleting them.",
-  },
-  {
-    q: "Why null a rating instead of clamping it?",
-    a: "The ratings feed publishes Pittsburgh's 2023 season at a 160.4 offensive efficiency and five teams at tempos in the thirties. Rounding those into range would invent a season. They are dropped and flagged, so a prediction goes missing instead of going wrong.",
   },
   {
     q: "Why simulate the tournament 20,000 times?",
