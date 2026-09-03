@@ -1,16 +1,81 @@
 @import "tailwindcss";
 
-@theme {
-  --color-ink: #07090c;
-  --color-surface: #0d1117;
-  --color-raised: #141b24;
-  --color-line: #1f2933;
-  --color-body: #9fb0c3;
-  --color-bright: #e8eef5;
-  --color-accent: #4cc9a4;
+/*
+ * Two palettes, one set of names.
+ *
+ * Every component asks for `ink`, `surface`, `body` and so on; only this file
+ * knows what those are worth in a given appearance. `@theme inline` is what
+ * makes that work: the utilities compile to `var(--ink)` rather than to a
+ * frozen hex, so a scope that redefines `--ink` (the project takeovers, below)
+ * repaints everything inside it without a single extra class.
+ */
+@theme inline {
+  --color-ink: var(--ink);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-body: var(--body);
+  --color-bright: var(--bright);
+  --color-accent: var(--accent);
 
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
+}
+
+/* Light. The default set, so a palette is never defined only inside a query. */
+:root {
+  --ink: #fbfcfd;
+  --surface: #f2f5f8;
+  --raised: #e9edf3;
+  --line: #d3dbe4;
+  --body: #4a5b6d;
+  --bright: #0a1119;
+  --accent: #0e7357;
+
+  --glow-accent: rgba(14, 115, 87, 0.1);
+  --glow-cool: rgba(59, 110, 200, 0.08);
+  --frame-shadow: rgba(10, 17, 25, 0.18);
+
+  color-scheme: light;
+}
+
+/* Dark, the palette this site was drawn in. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #07090c;
+    --surface: #0d1117;
+    --raised: #141b24;
+    --line: #1f2933;
+    --body: #9fb0c3;
+    --bright: #e8eef5;
+    --accent: #4cc9a4;
+
+    --glow-accent: rgba(76, 201, 164, 0.1);
+    --glow-cool: rgba(124, 169, 255, 0.08);
+    --frame-shadow: rgba(0, 0, 0, 0.6);
+
+    color-scheme: dark;
+  }
+}
+
+/*
+ * An explicit choice wins over the system in both directions, so the toggle
+ * still works for someone whose machine is set the other way.
+ */
+:root[data-theme="dark"] {
+  --ink: #07090c;
+  --surface: #0d1117;
+  --raised: #141b24;
+  --line: #1f2933;
+  --body: #9fb0c3;
+  --bright: #e8eef5;
+  --accent: #4cc9a4;
+
+  --glow-accent: rgba(76, 201, 164, 0.1);
+  --glow-cool: rgba(124, 169, 255, 0.08);
+  --frame-shadow: rgba(0, 0, 0, 0.6);
+
+  color-scheme: dark;
 }
 
 @layer base {
@@ -86,9 +151,37 @@
     }
   }
 
+  /*
+   * A project takeover is the product's own colors flooding the viewport, and
+   * every one of those tints is dark. So the panel stays dark in both
+   * appearances: it repins the palette for its whole subtree rather than
+   * asking the copy and the browser frame inside it to know which theme is on.
+   */
   .showcase-track {
     --enter: 1;
     --exit: 0;
+
+    --ink: #07090c;
+    --surface: #0d1117;
+    --raised: #141b24;
+    --line: #1f2933;
+    --body: #9fb0c3;
+    --bright: #e8eef5;
+    --accent: #4cc9a4;
+    --frame-shadow: rgba(0, 0, 0, 0.6);
+
+    color-scheme: dark;
+  }
+
+  /*
+   * The hero's ambient field: the same gradient language as the takeovers, at
+   * a fraction of the intensity. The two stops are palette-driven so the wash
+   * reads as a tint on white and as a glow on black.
+   */
+  .hero-field {
+    background-image:
+      radial-gradient(80% 60% at 15% 10%, var(--glow-accent), transparent 60%),
+      radial-gradient(60% 50% at 85% 80%, var(--glow-cool), transparent 60%);
   }
 
   .showcase-layer {

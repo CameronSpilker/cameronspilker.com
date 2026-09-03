@@ -47,6 +47,28 @@ npm run shots hoapulse   # just one
 Captures are resolved at build time in `src/components/Projects.tsx`, so adding
 a file to `public/shots/` is all it takes to swap a wireframe for the real page.
 
+## Light and dark
+
+The site follows the operating system by default. The control in the top right
+cycles System, Light, and Dark, and the choice is kept in `localStorage` and
+read back by a small script in `<head>`, so a chosen appearance is already on
+the page before the first paint.
+
+Components never name a color. They ask for `ink`, `surface`, `raised`, `line`,
+`body`, `bright` and `accent`, and `src/app/globals.css` decides what each is
+worth in each appearance. Adding a color means adding it to all three blocks
+there: the light `:root` set, the `prefers-color-scheme` set, and the
+`[data-theme="dark"]` set.
+
+The project takeovers are the exception. Each panel is the product's own colors
+flooding the viewport, and every one of those tints is dark, so `.showcase-track`
+repins the palette to the dark values for its whole subtree and the panels look
+the same either way.
+
+The Full Data Stack Lab dashboard behaves the same: `appearance` in
+`dashboard/evidence.config.yaml` gives Evidence the same default and the same
+switcher.
+
 ## Layout
 
 ```
@@ -54,7 +76,8 @@ src/
 ├── app/            # App Router entry: layout, page, global styles
 ├── components/     # Section components (Hero, Projects, Lab, Experience, ...)
 ├── lib/            # Framework-free helpers, with their tests
-│   └── cron.ts         # next-run maths behind the Lab's live countdowns
+│   ├── cron.ts         # next-run maths behind the Lab's live countdowns
+│   └── theme.ts        # appearance settings, and the pre-paint script
 ├── ../scripts/     # capture-shots.mjs, check-prose.mjs
 └── content/        # Typed content modules: edit these, not components
     ├── site.ts         # name, tagline, contact links, lab URLs

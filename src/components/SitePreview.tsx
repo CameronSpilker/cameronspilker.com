@@ -58,8 +58,8 @@ export function SiteFrame({
 
   return (
     <figure
-      className="m-0 overflow-hidden rounded-xl border border-white/15 bg-ink shadow-2xl shadow-black/60"
-      style={{ borderColor: `${preview.accent}33` }}
+      className="m-0 overflow-hidden rounded-xl border border-white/15 bg-ink shadow-2xl"
+      style={{ borderColor: `${preview.accent}33`, boxShadow: `0 25px 50px -12px var(--frame-shadow)` }}
     >
       <div className="flex items-center gap-2 border-b border-white/10 bg-white/5 px-3 py-2">
         <span aria-hidden="true" className="flex gap-1.5">

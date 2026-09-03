@@ -16,7 +16,7 @@ export function Hero() {
           a fraction of the intensity, so the takeovers feel prefigured here. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(80%_60%_at_15%_10%,rgba(76,201,164,0.10),transparent_60%),radial-gradient(60%_50%_at_85%_80%,rgba(124,169,255,0.08),transparent_60%)]"
+        className="hero-field pointer-events-none absolute inset-0"
       />
 
       <div className="relative mx-auto w-full max-w-5xl px-6 py-28">

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { site } from "@/content/site";
+import { ThemeToggle } from "./ThemeToggle";
 
 // Same order as the page. The active-section logic below walks this list and
 // takes the last match, so it has to stay in document order.
@@ -73,23 +74,27 @@ export function Chrome() {
             {site.name}
           </a>
 
-          <nav aria-label="Sections">
-            <ul className="flex items-center gap-3 font-mono text-[11px] sm:gap-6 sm:text-xs">
-              {sections.map((section) => (
-                <li key={section.id}>
-                  <a
-                    href={`#${section.id}`}
-                    aria-current={active === section.id ? "true" : undefined}
-                    className={`transition-colors hover:text-accent ${
-                      active === section.id ? "text-accent" : "text-body/70"
-                    }`}
-                  >
-                    {section.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          <div className="flex items-center gap-3 sm:gap-6">
+            <nav aria-label="Sections">
+              <ul className="flex items-center gap-3 font-mono text-[11px] sm:gap-6 sm:text-xs">
+                {sections.map((section) => (
+                  <li key={section.id}>
+                    <a
+                      href={`#${section.id}`}
+                      aria-current={active === section.id ? "true" : undefined}
+                      className={`transition-colors hover:text-accent ${
+                        active === section.id ? "text-accent" : "text-body/70"
+                      }`}
+                    >
+                      {section.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+
+            <ThemeToggle />
+          </div>
         </div>
       </div>
 
