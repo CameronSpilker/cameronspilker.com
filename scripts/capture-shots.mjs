@@ -10,6 +10,12 @@
  *
  * Requires Playwright locally. It is not a dependency of the site:
  *   npm i -D playwright && npx playwright install chromium
+ *
+ * CHROMIUM_PATH overrides the browser. Playwright pins an exact build and
+ * refuses to start when the one on disk is a different number, which is what
+ * every preinstalled or system Chromium is. Pointing at it directly is quicker
+ * than downloading a second copy:
+ *   CHROMIUM_PATH=/opt/pw-browsers/chromium npm run shots
  */
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -47,7 +53,8 @@ try {
 
 if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
 
-const browser = await chromium.launch();
+const executablePath = process.env.CHROMIUM_PATH;
+const browser = await chromium.launch(executablePath ? { executablePath } : {});
 let failures = 0;
 
 for (const { slug, url } of queue) {
