@@ -1,13 +1,7 @@
 "use client";
 
 import { useId, useState, useSyncExternalStore } from "react";
-import {
-  dashboardPages,
-  decisions,
-  layers,
-  schedules,
-  stats,
-} from "@/content/lab";
+import { dashboardPages, layers, schedules, stats } from "@/content/lab";
 import { lab } from "@/content/site";
 import { formatCountdown, formatInZone, nextRun } from "@/lib/cron";
 
@@ -191,36 +185,25 @@ export function Lab() {
 
 function Methodology() {
   return (
-    <>
-      {/* The pipeline is a genuine sequence, so it gets numbered steps and a
-          connecting rail. Nothing else on the page is numbered. */}
-      <ol className="relative grid gap-3 sm:grid-cols-5">
-        <span
-          aria-hidden="true"
-          className="absolute top-9 right-4 left-4 hidden h-px bg-gradient-to-r from-accent/50 via-line to-line sm:block"
-        />
-        {layers.map((layer, i) => (
-          <li
-            key={layer.name}
-            className="relative rounded-lg border border-line bg-surface p-4 transition-colors hover:border-accent/40"
-          >
-            <p className="font-mono text-xs text-accent">{String(i + 1).padStart(2, "0")}</p>
-            <p className="mt-2 font-medium text-bright">{layer.name}</p>
-            <p className="mt-1 font-mono text-xs text-body/70">{layer.tool}</p>
-            <p className="mt-3 text-xs leading-relaxed text-body/80">{layer.detail}</p>
-          </li>
-        ))}
-      </ol>
-
-      <dl className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        {decisions.map((d) => (
-          <div key={d.q}>
-            <dt className="font-mono text-sm text-bright">{d.q}</dt>
-            <dd className="mt-2 text-sm leading-relaxed">{d.a}</dd>
-          </div>
-        ))}
-      </dl>
-    </>
+    // The pipeline is a genuine sequence, so it gets numbered steps and a
+    // connecting rail. Nothing else on the page is numbered.
+    <ol className="relative grid gap-3 sm:grid-cols-5">
+      <span
+        aria-hidden="true"
+        className="absolute top-9 right-4 left-4 hidden h-px bg-gradient-to-r from-accent/50 via-line to-line sm:block"
+      />
+      {layers.map((layer, i) => (
+        <li
+          key={layer.name}
+          className="relative rounded-lg border border-line bg-surface p-4 transition-colors hover:border-accent/40"
+        >
+          <p className="font-mono text-xs text-accent">{String(i + 1).padStart(2, "0")}</p>
+          <p className="mt-2 font-medium text-bright">{layer.name}</p>
+          <p className="mt-1 font-mono text-xs text-body/70">{layer.tool}</p>
+          <p className="mt-3 text-xs leading-relaxed text-body/80">{layer.detail}</p>
+        </li>
+      ))}
+    </ol>
   );
 }
 
