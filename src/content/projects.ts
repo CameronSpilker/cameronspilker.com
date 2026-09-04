@@ -61,17 +61,20 @@ export const projects: Project[] = [
   {
     slug: "full-data-stack-lab",
     name: "Full Data Stack Lab",
-    state: "repo",
+    state: "live",
     kicker: "NCAA basketball, ingestion to dashboard, all in the open",
     summary:
       "Every NCAA Division I men's basketball team tracked through the season, the tournament simulated 20,000 times, and a page grading how well the model's own predictions did.",
     blurb:
-      "Python pulls a public API into a DuckDB warehouse, dbt builds 22 models behind 118 tests, Dagster schedules the whole graph, and Evidence renders the dashboard from the same file dbt writes. The self-grading page is the part most bracket models leave out: forecasts that used only prior games are scored separately from ones that saw the future.",
+      "Python pulls a public API into a DuckDB warehouse, dbt builds 20 models behind 118 tests, Dagster schedules the whole graph, and Evidence renders the dashboard from the same file dbt writes. The self-grading page is the part most bracket models leave out: forecasts that used only prior games are scored separately from ones that saw the future.",
+    href: "https://lab.cameronspilker.com",
     repo: "https://github.com/CameronSpilker/full-data-stack-lab",
+    // The dashboard is the product. Sending a visitor to an explanation of the
+    // pipeline first asks them to take the interesting part on trust.
     cta: {
-      label: "Take the pipeline apart",
-      href: "#stack",
-      note: "Methodology, live schedule, and the dashboard, without leaving this page.",
+      label: "Open the live dashboard",
+      href: "https://lab.cameronspilker.com",
+      note: "Team ratings, tournament odds, and the page grading the model's own forecasts. How it is built is one link away from there.",
     },
     tags: ["dbt", "DuckDB", "Dagster", "Evidence.dev", "Python"],
     preview: {
