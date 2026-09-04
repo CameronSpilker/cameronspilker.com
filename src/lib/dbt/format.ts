@@ -9,11 +9,15 @@ export function formatDuration(ms: number): string {
   if (seconds < 10) return `${seconds.toFixed(1)}s`;
   if (seconds < 60) return `${Math.round(seconds)}s`;
 
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ${String(Math.round(seconds % 60)).padStart(2, "0")}s`;
+  // Round to the unit being shown before splitting it, or 299.9 seconds
+  // renders as "4m 60s" rather than as "5m 00s".
+  const wholeSeconds = Math.round(seconds);
+  if (wholeSeconds < 3600) {
+    return `${Math.floor(wholeSeconds / 60)}m ${String(wholeSeconds % 60).padStart(2, "0")}s`;
+  }
 
-  const hours = Math.floor(minutes / 60);
-  return `${hours}h ${String(minutes % 60).padStart(2, "0")}m`;
+  const wholeMinutes = Math.round(seconds / 60);
+  return `${Math.floor(wholeMinutes / 60)}h ${String(wholeMinutes % 60).padStart(2, "0")}m`;
 }
 
 /** Elapsed position within a run, for axis ticks: "0:00", "1:45", "1:02:30". */

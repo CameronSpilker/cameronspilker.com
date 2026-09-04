@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseRunResults, RunResultsError, type Run, type RunNode } from "@/lib/dbt/parse";
 import { summarize } from "@/lib/dbt/metrics";
 import { formatBytes, formatCount, formatDuration, formatTimestamp } from "@/lib/dbt/format";
@@ -15,6 +15,8 @@ const MODES: ColorMode[] = ["type", "status", "duration"];
 export function RunResultsVisualizer() {
   const [run, setRun] = useState<Run | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  /** True while what is on screen is the sample rather than the reader's run. */
+  const [isSample, setIsSample] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reading, setReading] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -25,18 +27,20 @@ export function RunResultsVisualizer() {
   const [resetKey, setResetKey] = useState(0);
   const input = useRef<HTMLInputElement | null>(null);
 
-  const load = useCallback(async (text: string, name: string) => {
+  const load = useCallback(async (text: string, name: string, sample = false) => {
     setReading(true);
     setError(null);
     try {
       const parsed = parseRunResults(text);
       setRun(parsed);
       setFileName(name);
+      setIsSample(sample);
       setSelected(null);
       setResetKey((key) => key + 1);
     } catch (thrown) {
       setRun(null);
       setFileName(null);
+      setIsSample(false);
       setError(
         thrown instanceof RunResultsError ? thrown.message : "Something in that file could not be read.",
       );
@@ -53,16 +57,37 @@ export function RunResultsVisualizer() {
     [load],
   );
 
-  const loadSample = useCallback(async () => {
-    setReading(true);
-    try {
-      const response = await fetch(copy.sample.path);
-      await load(await response.text(), "run-results.sample.json");
-    } catch {
-      setError("The sample could not be fetched.");
-      setReading(false);
-    }
-  }, [load]);
+  const loadSample = useCallback(
+    async (quiet = false) => {
+      setReading(true);
+      try {
+        const response = await fetch(copy.sample.path);
+        await load(await response.text(), "run-results.sample.json", true);
+      } catch {
+        // The automatic load on arrival is a convenience. If it fails, the
+        // reader is left with the dropzone they came for, not an error about
+        // a file they never asked for.
+        if (!quiet) setError("The sample could not be fetched.");
+        setReading(false);
+      }
+    },
+    [load],
+  );
+
+  /**
+   * Show the sample on arrival.
+   *
+   * A file-drop tool that opens on an empty box asks the reader to decide
+   * whether it is worth trying before it has shown them anything. Loading the
+   * sample costs one request and answers the question instead, and the banner
+   * over the results makes sure nobody mistakes it for their own run.
+   */
+  const greeted = useRef(false);
+  useEffect(() => {
+    if (greeted.current) return;
+    greeted.current = true;
+    void loadSample(true);
+  }, [loadSample]);
 
   const summary = useMemo(() => (run ? summarize(run) : null), [run]);
   const legend = useMemo(() => legendFor(colorMode), [colorMode]);
@@ -94,7 +119,13 @@ export function RunResultsVisualizer() {
         }`}
       >
         <p className="text-base text-bright">
-          {reading ? copy.dropzone.reading : dragging ? copy.dropzone.active : copy.dropzone.idle}
+          {reading
+            ? copy.dropzone.reading
+            : dragging
+              ? copy.dropzone.active
+              : isSample
+                ? copy.dropzone.replace
+                : copy.dropzone.idle}
         </p>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
           <button
@@ -104,13 +135,15 @@ export function RunResultsVisualizer() {
           >
             {copy.dropzone.hint}
           </button>
-          <button
-            type="button"
-            onClick={() => void loadSample()}
-            className="rounded-md border border-line px-4 py-2 text-sm text-bright transition-colors hover:border-accent hover:text-accent"
-          >
-            {copy.sample.label}
-          </button>
+          {!isSample && (
+            <button
+              type="button"
+              onClick={() => void loadSample()}
+              className="rounded-md border border-line px-4 py-2 text-sm text-bright transition-colors hover:border-accent hover:text-accent"
+            >
+              {copy.sample.label}
+            </button>
+          )}
           <input
             ref={input}
             type="file"
@@ -133,9 +166,27 @@ export function RunResultsVisualizer() {
 
       {run && summary && (
         <>
+          {isSample && (
+            <section className="rounded-lg border border-[color:var(--viz-warning)]/50 bg-raised/40 p-4">
+              <p className="font-mono text-xs tracking-widest text-[color:var(--viz-warning)] uppercase">
+                {copy.sample.banner}
+              </p>
+              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-body">
+                {copy.sample.bannerDetail}
+              </p>
+            </section>
+          )}
+
           <section className="space-y-4">
             <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b border-line pb-3">
-              <p className="font-mono text-xs text-bright">{fileName}</p>
+              <p className="font-mono text-xs text-bright">
+                {fileName}
+                {isSample && (
+                  <span className="ml-2 rounded-sm border border-line px-1.5 py-0.5 text-[10px] text-body/70">
+                    sample
+                  </span>
+                )}
+              </p>
               <p className="font-mono text-[11px] text-body/70">
                 {[
                   run.command ? `dbt ${run.command}` : null,
