@@ -17,6 +17,14 @@ Where the site stands and what comes next.
 
 ## Next, in order
 
+### 0. Tools
+
+- [x] `/tools/dbt-run-results`: drop in a `run_results.json`, get the timeline,
+      the thread utilization, the long poles and every node in a sortable table
+- [ ] Optional `manifest.json`, for the critical path and counterfactual savings
+- [ ] Two-run comparison, so a regression is visible without reading two charts
+- [ ] Cron explainer, reusing the tested `src/lib/cron.ts`
+
 ### 1. Replace the placeholder content (blocks launch)
 
 The structure is real; a lot of the copy is not. Every `TODO` in

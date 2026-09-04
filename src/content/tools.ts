@@ -1,0 +1,95 @@
+/**
+ * Copy for the tools section of the site.
+ *
+ * The components under `src/components/tools` hold no strings of their own, the
+ * same rule the homepage sections follow.
+ */
+
+export const runResultsTool = {
+  slug: "dbt-run-results",
+  name: "dbt run results visualizer",
+  title: "See where a dbt run actually spent its time",
+  description:
+    "Drop in a run_results.json and get the timeline, the idle threads, and the models worth fixing. Nothing leaves your browser.",
+  lede:
+    "Every dbt invocation writes a full account of itself to target/run_results.json: what ran, on which thread, for how long, and how it ended. This reads that file and draws it. The file never leaves your browser, so you can use it on a work artifact without asking anyone.",
+  privacy:
+    "Parsed in the page with JavaScript. There is no upload, no server, and no analytics event carrying anything from your file.",
+  howto: {
+    title: "Where the file is",
+    steps: [
+      "dbt Core writes it to target/run_results.json in your project after every run, build, test or seed.",
+      "dbt Cloud has it under the Artifacts tab of any run, next to manifest.json.",
+      "In CI, it is whatever your job archived from the target directory.",
+    ],
+  },
+  sample: {
+    label: "Load a sample run",
+    note:
+      "A synthetic run in the shape of the Full Data Stack Lab pipeline. Real node names, invented timings, so there is something to click before you go and find your own.",
+    path: "/samples/run-results.sample.json",
+  },
+  dropzone: {
+    idle: "Drop run_results.json here",
+    hint: "Choose a file",
+    active: "Release to read it",
+    reading: "Reading the file",
+  },
+  /**
+   * Each tile is one question. The wording of the hint matters more than the
+   * number: a reader who does not know what utilization means will not act on
+   * 38%.
+   */
+  tiles: {
+    wall: { label: "Wall clock", hint: "First node started to last node finished" },
+    utilization: {
+      label: "Thread utilization",
+      hint: "Share of the thread budget that was doing work",
+    },
+    solo: {
+      label: "Longest single thread stretch",
+      hint: "One node holding the run while the rest of the pool sat idle",
+    },
+    tail: { label: "Tail", hint: "Run time after the pool dropped to one thread" },
+    stalled: { label: "Stalled", hint: "Wall clock with nothing running at all" },
+    compile: { label: "Compile share", hint: "Time in Jinja rather than in the warehouse" },
+    nodes: { label: "Nodes", hint: "Everything dbt reported on" },
+    failures: { label: "Failures", hint: "Errors and failed tests" },
+    tests: { label: "Test share", hint: "Portion of node time spent testing, not building" },
+    rows: { label: "Rows written", hint: "Summed from the adapter response" },
+    bytes: { label: "Bytes billed", hint: "Reported by BigQuery only" },
+  },
+  chart: {
+    title: "Timeline",
+    lede: "One row per thread. Bar length is compile start to execute end.",
+    colorBy: "Colour by",
+    modes: { type: "Type", status: "Status", duration: "Duration" },
+    onlyFailures: "Failures only",
+    search: "Filter by name",
+    reset: "Reset zoom",
+    zoomHint: "Drag to pan, pinch or ctrl and scroll to zoom, drag the strip below to pick a window",
+    soloBand: "one thread",
+    overview: "Threads busy",
+    empty: "No node in this run carried timing, so there is nothing to draw.",
+  },
+  table: {
+    title: "Every node",
+    lede: "Sorted by duration. Click a row to pin it on the timeline.",
+    columns: {
+      node: "Node",
+      type: "Type",
+      status: "Status",
+      thread: "Thread",
+      start: "Start",
+      compile: "Compile",
+      execute: "Execute",
+      total: "Total",
+      rows: "Rows",
+    },
+    untimed: "Never ran, so it has no timing. Usually skipped after something upstream failed.",
+  },
+  errors: {
+    heading: "That file did not read",
+    retry: "Try another file",
+  },
+} as const;
