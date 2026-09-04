@@ -1,0 +1,2901 @@
+{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/run-results/v6.json",
+    "dbt_version": "1.10.4",
+    "generated_at": "2026-09-03T06:01:12.247",
+    "invocation_id": "0f4c5a2e-6b13-4d92-9b7f-1a8ce2d0f331",
+    "env": {}
+  },
+  "results": [
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:04.118",
+          "completed_at": "2026-09-03T06:00:04.219"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:04.219",
+          "completed_at": "2026-09-03T06:00:04.719"
+        }
+      ],
+      "thread_id": "Thread-1",
+      "execution_time": 0.601,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 25096
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "seed.ncaa_lab.tournament_seeds",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:04.118",
+          "completed_at": "2026-09-03T06:00:04.205"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:04.205",
+          "completed_at": "2026-09-03T06:00:04.605"
+        }
+      ],
+      "thread_id": "Thread-2",
+      "execution_time": 0.487,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 57044
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "seed.ncaa_lab.conference_map",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:04.118",
+          "completed_at": "2026-09-03T06:00:04.155"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:04.155",
+          "completed_at": "2026-09-03T06:00:07.666"
+        }
+      ],
+      "thread_id": "Thread-3",
+      "execution_time": 3.548,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 234954
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.stg_ncaa__teams",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:04.118",
+          "completed_at": "2026-09-03T06:00:04.170"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:04.170",
+          "completed_at": "2026-09-03T06:00:06.868"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 2.75,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 191135
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.stg_ncaa__betting_lines",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:04.118",
+          "completed_at": "2026-09-03T06:00:04.353"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:04.353",
+          "completed_at": "2026-09-03T06:00:06.489"
+        }
+      ],
+      "thread_id": "Thread-5",
+      "execution_time": 2.371,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 120482
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.stg_ncaa__games",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:04.118",
+          "completed_at": "2026-09-03T06:00:04.206"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:04.206",
+          "completed_at": "2026-09-03T06:00:06.276"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 2.158,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 142995
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.stg_ncaa__team_box",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:04.118",
+          "completed_at": "2026-09-03T06:00:04.400"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:04.400",
+          "completed_at": "2026-09-03T06:00:06.027"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 1.909,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 81831
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.stg_ncaa__ratings",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:06.276",
+          "completed_at": "2026-09-03T06:00:06.424"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:06.424",
+          "completed_at": "2026-09-03T06:00:09.468"
+        }
+      ],
+      "thread_id": "Thread-1",
+      "execution_time": 3.192,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "snapshot.ncaa_lab.snap_team_ratings",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:06.276",
+          "completed_at": "2026-09-03T06:00:06.575"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:06.575",
+          "completed_at": "2026-09-03T06:00:07.967"
+        }
+      ],
+      "thread_id": "Thread-2",
+      "execution_time": 1.691,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.accepted_values_stg_ncaa__betting_lines_id.322952",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:06.276",
+          "completed_at": "2026-09-03T06:00:06.375"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:06.375",
+          "completed_at": "2026-09-03T06:00:07.688"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 1.412,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.unique_stg_ncaa__team_box_id.457579",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:06.276",
+          "completed_at": "2026-09-03T06:00:06.519"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:06.519",
+          "completed_at": "2026-09-03T06:00:07.772"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 1.496,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_stg_ncaa__betting_lines_id.565890",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:06.276",
+          "completed_at": "2026-09-03T06:00:06.568"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:06.568",
+          "completed_at": "2026-09-03T06:00:07.818"
+        }
+      ],
+      "thread_id": "Thread-8",
+      "execution_time": 1.542,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_stg_ncaa__team_box_id.242725",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:06.489",
+          "completed_at": "2026-09-03T06:00:06.529"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:06.529",
+          "completed_at": "2026-09-03T06:00:07.744"
+        }
+      ],
+      "thread_id": "Thread-5",
+      "execution_time": 1.255,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.accepted_values_stg_ncaa__games_id.330197",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:06.868",
+          "completed_at": "2026-09-03T06:00:07.134"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:07.134",
+          "completed_at": "2026-09-03T06:00:08.306"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 1.438,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.unique_stg_ncaa__ratings_id.270710",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:07.666",
+          "completed_at": "2026-09-03T06:00:07.966"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:07.966",
+          "completed_at": "2026-09-03T06:00:09.057"
+        }
+      ],
+      "thread_id": "Thread-3",
+      "execution_time": 1.391,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.unique_stg_ncaa__teams_id.758338",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:07.688",
+          "completed_at": "2026-09-03T06:00:07.982"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:07.982",
+          "completed_at": "2026-09-03T06:00:08.973"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 1.285,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_stg_ncaa__games_id.425136",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:07.744",
+          "completed_at": "2026-09-03T06:00:07.977"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:07.977",
+          "completed_at": "2026-09-03T06:00:08.901"
+        }
+      ],
+      "thread_id": "Thread-5",
+      "execution_time": 1.157,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_stg_ncaa__teams_id.898189",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:07.772",
+          "completed_at": "2026-09-03T06:00:07.855"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:07.855",
+          "completed_at": "2026-09-03T06:00:08.745"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 0.973,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.accepted_values_stg_ncaa__teams_id.339077",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:07.818",
+          "completed_at": "2026-09-03T06:00:07.948"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:07.948",
+          "completed_at": "2026-09-03T06:00:08.767"
+        }
+      ],
+      "thread_id": "Thread-8",
+      "execution_time": 0.949,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.accepted_values_stg_ncaa__team_box_id.265845",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:07.967",
+          "completed_at": "2026-09-03T06:00:08.054"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:08.054",
+          "completed_at": "2026-09-03T06:00:08.726"
+        }
+      ],
+      "thread_id": "Thread-2",
+      "execution_time": 0.759,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.relationships_stg_ncaa__team_box_id.856324",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:08.306",
+          "completed_at": "2026-09-03T06:00:08.609"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:08.609",
+          "completed_at": "2026-09-03T06:00:09.250"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 0.944,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_key_stg_ncaa__ratings_id.217758",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:08.726",
+          "completed_at": "2026-09-03T06:00:08.825"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:08.825",
+          "completed_at": "2026-09-03T06:00:09.454"
+        }
+      ],
+      "thread_id": "Thread-2",
+      "execution_time": 0.728,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.unique_stg_ncaa__betting_lines_id.860275",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:08.745",
+          "completed_at": "2026-09-03T06:00:08.802"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:08.802",
+          "completed_at": "2026-09-03T06:00:09.417"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 0.672,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.relationships_stg_ncaa__teams_id.254594",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:08.767",
+          "completed_at": "2026-09-03T06:00:08.997"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:08.997",
+          "completed_at": "2026-09-03T06:00:09.588"
+        }
+      ],
+      "thread_id": "Thread-8",
+      "execution_time": 0.821,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.relationships_stg_ncaa__betting_lines_id.725658",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:08.901",
+          "completed_at": "2026-09-03T06:00:08.970"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:08.970",
+          "completed_at": "2026-09-03T06:00:09.473"
+        }
+      ],
+      "thread_id": "Thread-5",
+      "execution_time": 0.572,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_key_stg_ncaa__teams_id.608331",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:08.973",
+          "completed_at": "2026-09-03T06:00:09.165"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:09.165",
+          "completed_at": "2026-09-03T06:00:09.625"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 0.652,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.relationships_stg_ncaa__ratings_id.436044",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:09.057",
+          "completed_at": "2026-09-03T06:00:09.331"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:09.331",
+          "completed_at": "2026-09-03T06:00:09.736"
+        }
+      ],
+      "thread_id": "Thread-3",
+      "execution_time": 0.679,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_key_stg_ncaa__betting_lines_id.815965",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:09.250",
+          "completed_at": "2026-09-03T06:00:09.469"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:09.469",
+          "completed_at": "2026-09-03T06:00:09.844"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 0.594,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.unique_stg_ncaa__games_id.528358",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:09.417",
+          "completed_at": "2026-09-03T06:00:09.660"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:09.660",
+          "completed_at": "2026-09-03T06:00:10.023"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 0.606,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.accepted_values_stg_ncaa__ratings_id.247865",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:09.454",
+          "completed_at": "2026-09-03T06:00:09.500"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:09.500",
+          "completed_at": "2026-09-03T06:00:09.863"
+        }
+      ],
+      "thread_id": "Thread-2",
+      "execution_time": 0.409,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_key_stg_ncaa__team_box_id.127435",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:09.468",
+          "completed_at": "2026-09-03T06:00:09.609"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:09.609",
+          "completed_at": "2026-09-03T06:00:09.960"
+        }
+      ],
+      "thread_id": "Thread-1",
+      "execution_time": 0.492,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_key_stg_ncaa__games_id.302510",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:09.473",
+          "completed_at": "2026-09-03T06:00:09.729"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:09.729",
+          "completed_at": "2026-09-03T06:00:10.042"
+        }
+      ],
+      "thread_id": "Thread-5",
+      "execution_time": 0.569,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_stg_ncaa__ratings_id.590412",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:09.588",
+          "completed_at": "2026-09-03T06:00:09.711"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:09.711",
+          "completed_at": "2026-09-03T06:00:09.992"
+        }
+      ],
+      "thread_id": "Thread-8",
+      "execution_time": 0.404,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.relationships_stg_ncaa__games_id.797683",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:09.960",
+          "completed_at": "2026-09-03T06:00:10.247"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:10.247",
+          "completed_at": "2026-09-03T06:01:12.247"
+        }
+      ],
+      "thread_id": "Thread-1",
+      "execution_time": 62.287,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 29685
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.int_game_predictions",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:09.960",
+          "completed_at": "2026-09-03T06:00:10.040"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:10.040",
+          "completed_at": "2026-09-03T06:00:20.583"
+        }
+      ],
+      "thread_id": "Thread-2",
+      "execution_time": 10.623,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 5303
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.int_game_market",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:09.960",
+          "completed_at": "2026-09-03T06:00:10.227"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:10.227",
+          "completed_at": "2026-09-03T06:00:16.468"
+        }
+      ],
+      "thread_id": "Thread-3",
+      "execution_time": 6.508,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 911
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.int_team_prediction_inputs",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:09.960",
+          "completed_at": "2026-09-03T06:00:10.058"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:10.058",
+          "completed_at": "2026-09-03T06:00:16.198"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 6.238,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 99695
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.int_team_games",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:09.960",
+          "completed_at": "2026-09-03T06:00:10.143"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:10.143",
+          "completed_at": "2026-09-03T06:00:15.823"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 5.863,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 218866
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.int_team_season_form",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:09.992",
+          "completed_at": "2026-09-03T06:00:10.044"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:10.044",
+          "completed_at": "2026-09-03T06:00:14.591"
+        }
+      ],
+      "thread_id": "Thread-8",
+      "execution_time": 4.599,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 199442
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.int_team_ratings",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:16.198",
+          "completed_at": "2026-09-03T06:00:16.246"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:16.246",
+          "completed_at": "2026-09-03T06:00:18.178"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 1.98,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_prediction_inputs_col5.685090",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:16.198",
+          "completed_at": "2026-09-03T06:00:16.492"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:16.492",
+          "completed_at": "2026-09-03T06:00:18.368"
+        }
+      ],
+      "thread_id": "Thread-5",
+      "execution_time": 2.17,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_game_market_col1.464125",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:16.198",
+          "completed_at": "2026-09-03T06:00:16.486"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:16.486",
+          "completed_at": "2026-09-03T06:00:18.193"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 1.995,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_ratings_col1.843622",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:16.198",
+          "completed_at": "2026-09-03T06:00:16.409"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:16.409",
+          "completed_at": "2026-09-03T06:00:18.076"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 1.878,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_games_col1.591033",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:16.198",
+          "completed_at": "2026-09-03T06:00:16.386"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:16.386",
+          "completed_at": "2026-09-03T06:00:17.958"
+        }
+      ],
+      "thread_id": "Thread-8",
+      "execution_time": 1.76,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_prediction_inputs_col4.332546",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:16.468",
+          "completed_at": "2026-09-03T06:00:16.785"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:16.785",
+          "completed_at": "2026-09-03T06:00:18.326"
+        }
+      ],
+      "thread_id": "Thread-3",
+      "execution_time": 1.858,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_game_predictions_col1.409886",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:17.958",
+          "completed_at": "2026-09-03T06:00:18.257"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:18.257",
+          "completed_at": "2026-09-03T06:00:19.706"
+        }
+      ],
+      "thread_id": "Thread-8",
+      "execution_time": 1.748,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_games_col2.832352",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:18.076",
+          "completed_at": "2026-09-03T06:00:18.184"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:18.184",
+          "completed_at": "2026-09-03T06:00:19.629"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 1.553,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_season_form_col1.300237",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:18.178",
+          "completed_at": "2026-09-03T06:00:18.230"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:18.230",
+          "completed_at": "2026-09-03T06:00:19.561"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 1.383,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_ratings_col4.441723",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:18.193",
+          "completed_at": "2026-09-03T06:00:18.319"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:18.319",
+          "completed_at": "2026-09-03T06:00:19.556"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 1.363,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_game_predictions_col4.362005",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:18.326",
+          "completed_at": "2026-09-03T06:00:18.510"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:18.510",
+          "completed_at": "2026-09-03T06:00:19.744"
+        }
+      ],
+      "thread_id": "Thread-3",
+      "execution_time": 1.418,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_ratings_col5.172078",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:18.368",
+          "completed_at": "2026-09-03T06:00:18.406"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:18.406",
+          "completed_at": "2026-09-03T06:00:19.629"
+        }
+      ],
+      "thread_id": "Thread-5",
+      "execution_time": 1.261,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_prediction_inputs_col1.759970",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:19.556",
+          "completed_at": "2026-09-03T06:00:19.720"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:19.720",
+          "completed_at": "2026-09-03T06:00:20.832"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 1.276,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_game_market_col3.130058",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:19.561",
+          "completed_at": "2026-09-03T06:00:19.781"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:19.781",
+          "completed_at": "2026-09-03T06:00:20.792"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 1.231,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_games_col3.772951",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:19.629",
+          "completed_at": "2026-09-03T06:00:19.648"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:19.648",
+          "completed_at": "2026-09-03T06:00:20.585"
+        }
+      ],
+      "thread_id": "Thread-5",
+      "execution_time": 0.956,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_season_form_col0.298195",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:19.629",
+          "completed_at": "2026-09-03T06:00:19.826"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:19.826",
+          "completed_at": "2026-09-03T06:00:20.736"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 1.107,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_game_predictions_col3.738643",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:19.706",
+          "completed_at": "2026-09-03T06:00:19.898"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:19.898",
+          "completed_at": "2026-09-03T06:00:20.737"
+        }
+      ],
+      "thread_id": "Thread-8",
+      "execution_time": 1.031,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_game_market_col2.389280",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:19.744",
+          "completed_at": "2026-09-03T06:00:19.942"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:19.942",
+          "completed_at": "2026-09-03T06:00:20.728"
+        }
+      ],
+      "thread_id": "Thread-3",
+      "execution_time": 0.984,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_ratings_col0.406700",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:20.583",
+          "completed_at": "2026-09-03T06:00:20.751"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:20.751",
+          "completed_at": "2026-09-03T06:00:21.527"
+        }
+      ],
+      "thread_id": "Thread-2",
+      "execution_time": 0.944,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_games_col0.154945",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:20.585",
+          "completed_at": "2026-09-03T06:00:20.678"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:20.678",
+          "completed_at": "2026-09-03T06:00:21.429"
+        }
+      ],
+      "thread_id": "Thread-5",
+      "execution_time": 0.844,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_prediction_inputs_col0.479899",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:20.728",
+          "completed_at": "2026-09-03T06:00:20.858"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:20.858",
+          "completed_at": "2026-09-03T06:00:21.555"
+        }
+      ],
+      "thread_id": "Thread-3",
+      "execution_time": 0.827,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_prediction_inputs_col3.337235",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:20.736",
+          "completed_at": "2026-09-03T06:00:20.848"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:20.848",
+          "completed_at": "2026-09-03T06:00:21.446"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 0.71,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_season_form_col2.384064",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:20.737",
+          "completed_at": "2026-09-03T06:00:21.019"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:21.019",
+          "completed_at": "2026-09-03T06:00:21.571"
+        }
+      ],
+      "thread_id": "Thread-8",
+      "execution_time": 0.834,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_game_predictions_col0.390387",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:20.792",
+          "completed_at": "2026-09-03T06:00:20.912"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:20.912",
+          "completed_at": "2026-09-03T06:00:21.422"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 0.63,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_game_predictions_col2.772386",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:20.832",
+          "completed_at": "2026-09-03T06:00:20.854"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:20.854",
+          "completed_at": "2026-09-03T06:00:21.355"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 0.523,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_prediction_inputs_col2.355143",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:21.355",
+          "completed_at": "2026-09-03T06:00:21.661"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:21.661",
+          "completed_at": "2026-09-03T06:00:22.147"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 0.792,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_ratings_col2.623346",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:21.422",
+          "completed_at": "2026-09-03T06:00:21.519"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:21.519",
+          "completed_at": "2026-09-03T06:00:21.991"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 0.569,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_game_market_col0.517991",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:21.429",
+          "completed_at": "2026-09-03T06:00:21.503"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:21.503",
+          "completed_at": "2026-09-03T06:00:21.972"
+        }
+      ],
+      "thread_id": "Thread-5",
+      "execution_time": 0.543,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_ratings_col3.513367",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:21.446",
+          "completed_at": "2026-09-03T06:00:21.562"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:21.562",
+          "completed_at": "2026-09-03T06:00:22.021"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 0.575,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_game_predictions_col5.631750",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:21.527",
+          "completed_at": "2026-09-03T06:00:21.597"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:21.597",
+          "completed_at": "2026-09-03T06:00:21.993"
+        }
+      ],
+      "thread_id": "Thread-2",
+      "execution_time": 0.466,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.not_null_int_team_season_form_col3.834717",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:21.993",
+          "completed_at": "2026-09-03T06:00:22.289"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:22.289",
+          "completed_at": "2026-09-03T06:00:55.713"
+        }
+      ],
+      "thread_id": "Thread-2",
+      "execution_time": 33.72,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 35942
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.mart_matchup_odds",
+      "compiled": true
+    },
+    {
+      "status": "error",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:21.993",
+          "completed_at": "2026-09-03T06:00:22.241"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:22.241",
+          "completed_at": "2026-09-03T06:00:30.992"
+        }
+      ],
+      "thread_id": "Thread-3",
+      "execution_time": 8.999,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 596
+      },
+      "message": "Binder Error: Referenced column \"predicted_prob\" not found in FROM clause",
+      "failures": null,
+      "unique_id": "model.ncaa_lab.mart_model_calibration",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:21.993",
+          "completed_at": "2026-09-03T06:00:22.097"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:22.097",
+          "completed_at": "2026-09-03T06:00:30.361"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 8.368,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 77451
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.mart_game_results",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:21.993",
+          "completed_at": "2026-09-03T06:00:22.074"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:22.074",
+          "completed_at": "2026-09-03T06:00:27.554"
+        }
+      ],
+      "thread_id": "Thread-5",
+      "execution_time": 5.561,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 237165
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.mart_team_season",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:21.993",
+          "completed_at": "2026-09-03T06:00:22.076"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:22.076",
+          "completed_at": "2026-09-03T06:00:26.113"
+        }
+      ],
+      "thread_id": "Thread-8",
+      "execution_time": 4.12,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 85373
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.mart_conference_strength",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:22.021",
+          "completed_at": "2026-09-03T06:00:22.100"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:22.100",
+          "completed_at": "2026-09-03T06:00:25.070"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 3.049,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 205975
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.mart_elo_timeline",
+      "compiled": true
+    },
+    {
+      "status": "success",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:22.147",
+          "completed_at": "2026-09-03T06:00:22.308"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:22.308",
+          "completed_at": "2026-09-03T06:00:24.974"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 2.827,
+      "adapter_response": {
+        "_message": "OK",
+        "rows_affected": 7216
+      },
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.mart_model_accuracy",
+      "compiled": true
+    },
+    {
+      "status": "fail",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:30.361",
+          "completed_at": "2026-09-03T06:00:30.484"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:30.484",
+          "completed_at": "2026-09-03T06:00:34.121"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 3.76,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": "Got 1 result, configured to fail if != 0",
+      "failures": 1,
+      "unique_id": "test.ncaa_lab.assert_point_in_time_models_beat_a_coin_flip",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:30.361",
+          "completed_at": "2026-09-03T06:00:30.562"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:30.562",
+          "completed_at": "2026-09-03T06:00:33.060"
+        }
+      ],
+      "thread_id": "Thread-5",
+      "execution_time": 2.699,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_game_results_4.871951",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:30.361",
+          "completed_at": "2026-09-03T06:00:30.466"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:30.466",
+          "completed_at": "2026-09-03T06:00:32.848"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 2.487,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_team_season_3.407656",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:30.361",
+          "completed_at": "2026-09-03T06:00:30.623"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:30.623",
+          "completed_at": "2026-09-03T06:00:32.943"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 2.582,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_game_results_2.528539",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:30.361",
+          "completed_at": "2026-09-03T06:00:30.556"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:30.556",
+          "completed_at": "2026-09-03T06:00:32.838"
+        }
+      ],
+      "thread_id": "Thread-8",
+      "execution_time": 2.477,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_elo_timeline_4.860193",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:30.992",
+          "completed_at": "2026-09-03T06:00:31.124"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:31.124",
+          "completed_at": "2026-09-03T06:00:33.356"
+        }
+      ],
+      "thread_id": "Thread-3",
+      "execution_time": 2.364,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_conference_strength_0.187406",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:32.838",
+          "completed_at": "2026-09-03T06:00:32.875"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:32.875",
+          "completed_at": "2026-09-03T06:00:34.959"
+        }
+      ],
+      "thread_id": "Thread-8",
+      "execution_time": 2.121,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_conference_strength_4.278061",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:32.848",
+          "completed_at": "2026-09-03T06:00:33.116"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:33.116",
+          "completed_at": "2026-09-03T06:00:35.144"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 2.296,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_team_season_2.321292",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:32.943",
+          "completed_at": "2026-09-03T06:00:33.045"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:33.045",
+          "completed_at": "2026-09-03T06:00:34.873"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 1.93,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_conference_strength_3.817487",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:33.060",
+          "completed_at": "2026-09-03T06:00:33.160"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:33.160",
+          "completed_at": "2026-09-03T06:00:34.975"
+        }
+      ],
+      "thread_id": "Thread-5",
+      "execution_time": 1.915,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_elo_timeline_1.689821",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:33.356",
+          "completed_at": "2026-09-03T06:00:33.487"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:33.487",
+          "completed_at": "2026-09-03T06:00:35.273"
+        }
+      ],
+      "thread_id": "Thread-3",
+      "execution_time": 1.917,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_game_results_0.733284",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:34.121",
+          "completed_at": "2026-09-03T06:00:34.304"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:34.304",
+          "completed_at": "2026-09-03T06:00:36.088"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 1.967,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_matchup_odds_4.706920",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:34.873",
+          "completed_at": "2026-09-03T06:00:35.042"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:35.042",
+          "completed_at": "2026-09-03T06:00:36.788"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 1.915,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_conference_strength_6.587883",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:34.959",
+          "completed_at": "2026-09-03T06:00:34.999"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:34.999",
+          "completed_at": "2026-09-03T06:00:36.591"
+        }
+      ],
+      "thread_id": "Thread-8",
+      "execution_time": 1.632,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_model_accuracy_3.663218",
+      "compiled": true
+    },
+    {
+      "status": "warn",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:34.975",
+          "completed_at": "2026-09-03T06:00:35.102"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:35.102",
+          "completed_at": "2026-09-03T06:00:36.680"
+        }
+      ],
+      "thread_id": "Thread-5",
+      "execution_time": 1.705,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": "Got 12 results, configured to warn if != 0",
+      "failures": 12,
+      "unique_id": "test.ncaa_lab.warn_games_held_out_of_the_models",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:35.144",
+          "completed_at": "2026-09-03T06:00:35.392"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:35.392",
+          "completed_at": "2026-09-03T06:00:36.969"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 1.825,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_model_accuracy_0.140898",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:35.273",
+          "completed_at": "2026-09-03T06:00:35.363"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:35.363",
+          "completed_at": "2026-09-03T06:00:36.930"
+        }
+      ],
+      "thread_id": "Thread-3",
+      "execution_time": 1.657,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_game_results_7.162118",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:36.088",
+          "completed_at": "2026-09-03T06:00:36.261"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:36.261",
+          "completed_at": "2026-09-03T06:00:37.810"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 1.722,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_matchup_odds_1.506438",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:36.591",
+          "completed_at": "2026-09-03T06:00:36.839"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:36.839",
+          "completed_at": "2026-09-03T06:00:38.320"
+        }
+      ],
+      "thread_id": "Thread-8",
+      "execution_time": 1.729,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_elo_timeline_0.378333",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:36.680",
+          "completed_at": "2026-09-03T06:00:36.898"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:36.898",
+          "completed_at": "2026-09-03T06:00:38.335"
+        }
+      ],
+      "thread_id": "Thread-5",
+      "execution_time": 1.655,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_conference_strength_5.242428",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:36.788",
+          "completed_at": "2026-09-03T06:00:37.041"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:37.041",
+          "completed_at": "2026-09-03T06:00:38.464"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 1.676,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_game_results_1.130021",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:36.930",
+          "completed_at": "2026-09-03T06:00:37.103"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:37.103",
+          "completed_at": "2026-09-03T06:00:38.491"
+        }
+      ],
+      "thread_id": "Thread-3",
+      "execution_time": 1.561,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_team_season_0.338714",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:36.969",
+          "completed_at": "2026-09-03T06:00:37.255"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:37.255",
+          "completed_at": "2026-09-03T06:00:38.461"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 1.492,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_game_results_6.712551",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:37.810",
+          "completed_at": "2026-09-03T06:00:38.008"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:38.008",
+          "completed_at": "2026-09-03T06:00:39.198"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 1.388,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_model_accuracy_1.692385",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:38.320",
+          "completed_at": "2026-09-03T06:00:38.545"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:38.545",
+          "completed_at": "2026-09-03T06:00:39.702"
+        }
+      ],
+      "thread_id": "Thread-8",
+      "execution_time": 1.382,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_conference_strength_1.581259",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:38.335",
+          "completed_at": "2026-09-03T06:00:38.424"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:38.424",
+          "completed_at": "2026-09-03T06:00:39.562"
+        }
+      ],
+      "thread_id": "Thread-5",
+      "execution_time": 1.227,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_team_season_4.501886",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:38.461",
+          "completed_at": "2026-09-03T06:00:38.495"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:38.495",
+          "completed_at": "2026-09-03T06:00:39.603"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 1.142,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_game_results_3.810039",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:38.464",
+          "completed_at": "2026-09-03T06:00:38.604"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:38.604",
+          "completed_at": "2026-09-03T06:00:39.672"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 1.208,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_model_accuracy_4.249787",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:38.491",
+          "completed_at": "2026-09-03T06:00:38.531"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:38.531",
+          "completed_at": "2026-09-03T06:00:39.551"
+        }
+      ],
+      "thread_id": "Thread-3",
+      "execution_time": 1.06,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_matchup_odds_2.211557",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:39.198",
+          "completed_at": "2026-09-03T06:00:39.477"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:39.477",
+          "completed_at": "2026-09-03T06:00:40.298"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 1.1,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_elo_timeline_3.647204",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:39.551",
+          "completed_at": "2026-09-03T06:00:39.639"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:39.639",
+          "completed_at": "2026-09-03T06:00:40.453"
+        }
+      ],
+      "thread_id": "Thread-3",
+      "execution_time": 0.902,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_game_results_5.397415",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:39.562",
+          "completed_at": "2026-09-03T06:00:39.681"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:39.681",
+          "completed_at": "2026-09-03T06:00:40.478"
+        }
+      ],
+      "thread_id": "Thread-5",
+      "execution_time": 0.916,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_matchup_odds_0.714885",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:39.603",
+          "completed_at": "2026-09-03T06:00:39.752"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:39.752",
+          "completed_at": "2026-09-03T06:00:40.391"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 0.788,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_conference_strength_7.392241",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:39.672",
+          "completed_at": "2026-09-03T06:00:39.798"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:39.798",
+          "completed_at": "2026-09-03T06:00:40.409"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 0.737,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_team_season_1.569728",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:39.702",
+          "completed_at": "2026-09-03T06:00:39.997"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:39.997",
+          "completed_at": "2026-09-03T06:00:40.498"
+        }
+      ],
+      "thread_id": "Thread-8",
+      "execution_time": 0.796,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_elo_timeline_2.561914",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:40.298",
+          "completed_at": "2026-09-03T06:00:40.435"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:40.435",
+          "completed_at": "2026-09-03T06:00:40.878"
+        }
+      ],
+      "thread_id": "Thread-4",
+      "execution_time": 0.58,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_model_accuracy_2.418501",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:40.391",
+          "completed_at": "2026-09-03T06:00:40.676"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:40.676",
+          "completed_at": "2026-09-03T06:00:41.049"
+        }
+      ],
+      "thread_id": "Thread-6",
+      "execution_time": 0.658,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_conference_strength_2.590712",
+      "compiled": true
+    },
+    {
+      "status": "pass",
+      "timing": [
+        {
+          "name": "compile",
+          "started_at": "2026-09-03T06:00:40.409",
+          "completed_at": "2026-09-03T06:00:40.544"
+        },
+        {
+          "name": "execute",
+          "started_at": "2026-09-03T06:00:40.544",
+          "completed_at": "2026-09-03T06:00:40.870"
+        }
+      ],
+      "thread_id": "Thread-7",
+      "execution_time": 0.461,
+      "adapter_response": {
+        "_message": "SELECT 1",
+        "rows_affected": 0
+      },
+      "message": null,
+      "failures": 0,
+      "unique_id": "test.ncaa_lab.dbt_utils_expression_is_true_mart_matchup_odds_3.614438",
+      "compiled": true
+    },
+    {
+      "status": "skipped",
+      "timing": [],
+      "thread_id": "Thread-1",
+      "execution_time": 0,
+      "adapter_response": {},
+      "message": null,
+      "failures": null,
+      "unique_id": "model.ncaa_lab.mart_bracket",
+      "compiled": false
+    },
+    {
+      "status": "skipped",
+      "timing": [],
+      "thread_id": "Thread-1",
+      "execution_time": 0,
+      "adapter_response": {},
+      "message": null,
+      "failures": null,
+      "unique_id": "test.ncaa_lab.not_null_mart_model_calibration_bucket.4a91c2",
+      "compiled": false
+    },
+    {
+      "status": "skipped",
+      "timing": [],
+      "thread_id": "Thread-1",
+      "execution_time": 0,
+      "adapter_response": {},
+      "message": null,
+      "failures": null,
+      "unique_id": "test.ncaa_lab.accepted_range_mart_bracket_seed.77b013",
+      "compiled": false
+    }
+  ],
+  "elapsed_time": 68.129,
+  "args": {
+    "which": "build",
+    "threads": 8,
+    "target": "prod",
+    "full_refresh": false
+  }
+}
