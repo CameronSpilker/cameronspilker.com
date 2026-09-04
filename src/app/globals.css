@@ -215,3 +215,85 @@
     background-image: none;
   }
 }
+
+/*
+ * Chart palette.
+ *
+ * Separate from the site palette on purpose. The site theme is one accent and a
+ * lot of neutral, which is right for prose and wrong for a chart that has to
+ * distinguish three kinds of work and four run states at a glance.
+ *
+ * These steps are validated rather than chosen: the categorical trio clears the
+ * lightness band, the chroma floor, and colour-vision separation on both of the
+ * surfaces they are drawn on (light #e9edf3, dark #141b24), for every pair, not
+ * just adjacent ones. Three is the cap that clears it. A fourth category folds
+ * into "other" instead of taking a new hue.
+ *
+ * Dark is a selected set stepped for the dark surface, not a flip of the light
+ * one. Status colours are fixed in both modes and never reused as a category,
+ * and they always ship beside a label, since two of them sit under 3:1 on the
+ * light surface and must not carry meaning alone.
+ */
+:root {
+  --viz-model: #2a78d6;
+  --viz-test: #eb6834;
+  --viz-other: #1baf7a;
+
+  --viz-good: #0ca30c;
+  --viz-warning: #fab219;
+  --viz-critical: #d03b3b;
+  --viz-muted: #898781;
+
+  /* One hue, light to dark, for the duration ramp. Ordinal, so the lightest
+     step still clears 2:1 against the surface. */
+  --viz-seq-1: #86b6ef;
+  --viz-seq-2: #5598e7;
+  --viz-seq-3: #2a78d6;
+  --viz-seq-4: #1c5cab;
+  --viz-seq-5: #104281;
+
+  --viz-grid: rgba(10, 17, 25, 0.08);
+  --viz-axis: rgba(10, 17, 25, 0.22);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --viz-model: #3987e5;
+    --viz-test: #d95926;
+    --viz-other: #199e70;
+
+    --viz-good: #0ca30c;
+    --viz-warning: #fab219;
+    --viz-critical: #d03b3b;
+    --viz-muted: #898781;
+
+    --viz-seq-1: #184f95;
+    --viz-seq-2: #256abf;
+    --viz-seq-3: #3987e5;
+    --viz-seq-4: #6da7ec;
+    --viz-seq-5: #9ec5f4;
+
+    --viz-grid: rgba(232, 238, 245, 0.08);
+    --viz-axis: rgba(232, 238, 245, 0.22);
+  }
+}
+
+:root[data-theme="dark"] {
+  --viz-model: #3987e5;
+  --viz-test: #d95926;
+  --viz-other: #199e70;
+
+  --viz-good: #0ca30c;
+  --viz-warning: #fab219;
+  --viz-critical: #d03b3b;
+  --viz-muted: #898781;
+
+  --viz-seq-1: #184f95;
+  --viz-seq-2: #256abf;
+  --viz-seq-3: #3987e5;
+  --viz-seq-4: #6da7ec;
+  --viz-seq-5: #9ec5f4;
+
+  --viz-grid: rgba(232, 238, 245, 0.08);
+  --viz-axis: rgba(232, 238, 245, 0.22);
+}
