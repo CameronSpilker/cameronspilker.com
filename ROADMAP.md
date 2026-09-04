@@ -9,8 +9,9 @@ Where the site stands and what comes next.
   order, so the work someone can click into comes before the resume
 - Project showcase: full-screen scroll takeover, one panel per product, the
   Full Data Stack Lab first
-- Lab section with three tabs (methodology, pipeline, dashboard) and live
-  countdowns computed from the lab repo's real Dagster cron schedules
+- Lab section pointing at the live dashboard, with one countdown computed from
+  the lab repo's real nightly Dagster cron schedule. The methodology, the full
+  schedule and the page tour moved to `lab.cameronspilker.com/how-it-works`
 - Content separated into typed modules under `src/content`
 - House style enforced: `npm run check:prose` fails on em dashes, in CI
 - Lint, prose, tests, typecheck, and build green; CI runs all five on every PR
@@ -49,19 +50,19 @@ recruiter if it shipped.
 
 ### 4. Wire in the analytics project
 
-Depends on the `full-data-stack-lab` roadmap steps 1 and 4. The site is ready
-for all of it: the Lab section already offers each link and hides the ones that
-would 404.
+The dashboard and the dbt docs are both deployed, and the Lab section now leads
+with them. What is left is how much of the dashboard this site should show.
 
-- [ ] Set `lab.dashboard` in `src/content/site.ts` once the Evidence build is
-      deployed. That one line turns the Dashboard tab's "not deployed yet" note
-      into an "Open the live dashboard" button
-- [ ] Set `lab.docs` the same way once the dbt docs are on GitHub Pages
-- [ ] Capture the deployed dashboard with `npm run shots full-data-stack-lab`
-      so the lead panel shows the real thing instead of its wireframe
+- [x] Set `lab.dashboard` and `lab.docs` in `src/content/site.ts`, now that the
+      Evidence build and the dbt docs are both deployed
+- [ ] Capture the deployed dashboard with `npm run shots full-data-stack-lab`.
+      The showcase panel draws its wireframe until that capture exists, and the
+      panel is now the first thing a visitor scrolls into
 - [ ] Decide between an embedded iframe and a link-out. An embed is more
       impressive and much easier to make slow, so measure before committing
-- [ ] Consider a dedicated `/stack` route if the section outgrows the homepage
+- [ ] Consider a dedicated `/stack` route if the section outgrows the homepage,
+      though the explanation now lives on the lab's own site, which is most of
+      the reason the section would have grown
 
 ### 5. Later, if worth it
 

@@ -40,13 +40,19 @@ src/
     ├── site.ts        # name, tagline, contact links, Full Data Stack Lab URLs
     ├── projects.ts    # the four showcase panels and their calls to action
     ├── experience.ts  # three detailed roles plus the compact earlier list
-    └── lab.ts         # the Lab section's three tabs
+    └── lab.ts         # the Lab section: stats, the nightly countdown, links out
 ```
 
 `src/content/lab.ts` mirrors the `full-data-stack-lab` repository: the cron
-strings are copied from its Dagster schedules and the model and test counts come
-from a real `dbt build`. If that repo changes, this file is wrong until it is
-updated with it.
+string is copied from its Dagster schedules and the model and test counts are
+countable in it (20 files under `transform/models`, 108 generic tests in the
+schema YAML plus 10 singular tests). If that repo changes, this file is wrong
+until it is updated with it.
+
+The longer story about the lab, its layers and its full schedule, is not here.
+It lives at `lab.cameronspilker.com/how-it-works`, in the repo that also holds
+the pipeline, so it can be corrected in the same commit that changes the code.
+The homepage section points at the dashboard and gets out of the way.
 
 ## Before pushing
 
