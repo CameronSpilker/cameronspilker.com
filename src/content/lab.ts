@@ -47,10 +47,16 @@ export const intro = {
   lede:
     "One repository holding every stage of an analytics stack: the extractors, the warehouse, 20 models and their tests, the orchestrator, and the dashboard those models exist to serve. The dashboard is the front door, so start there.",
   countdownLabel: "Next rebuild in",
+  /**
+   * The button lands on the team scorecard rather than on the dashboard's home
+   * page. The home page is an index of the project; the scorecard is one team
+   * on one screen, which is what a reader arriving from here came to see. It
+   * falls back to the dashboard root if the scorecard link is ever null.
+   */
   primary: {
-    label: "Open the live dashboard",
+    label: "Open the team scorecard",
     detail:
-      "Team ratings, tournament odds from 20,000 simulated brackets, and a page grading how well the model's own forecasts did.",
+      "One team on one screen: efficiency, percentile rank, the four factors, an Elo line for the season, form, and the odds from 20,000 simulated brackets. Pick any of the 365 teams from the dropdown.",
   },
 };
 
@@ -62,6 +68,12 @@ export type Elsewhere = {
 
 /** The rest of the project, for a reader who wants more than the numbers. */
 export const elsewhere: Elsewhere[] = [
+  {
+    title: "The rest of the dashboard",
+    href: lab.dashboard,
+    detail:
+      "The national table, the projected bracket, conference strength, and a page that grades how well the model's own forecasts did.",
+  },
   {
     title: "How the pipeline is built",
     href: lab.dashboard ? `${lab.dashboard}/how-it-works` : null,

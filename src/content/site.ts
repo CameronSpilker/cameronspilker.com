@@ -13,10 +13,12 @@ export const site = {
 /**
  * Links that belong to the Full Data Stack Lab rather than to this site.
  *
- * Both are live on their own subdomain, served by the `ncaa-lab` Vercel project
- * from the `full-data-stack-lab` repo. The dashboard is the Evidence build;
- * `docs` is the dbt catalogue, unpacked into the same deployment by
- * `dashboard/scripts/fetch-warehouse.sh` rather than hosted separately.
+ * All three are live on their own subdomain, served by the `ncaa-lab` Vercel
+ * project from the `full-data-stack-lab` repo. `dashboard` is the root of the
+ * Evidence build, `scorecard` is the page inside it that a first-time visitor
+ * should land on, and `docs` is the dbt catalogue, unpacked into the same
+ * deployment by `dashboard/scripts/fetch-warehouse.sh` rather than hosted
+ * separately.
  *
  * These were null while the deploy was pending, and the components that use
  * them still check before offering the link, so a future outage degrades to the
@@ -25,5 +27,6 @@ export const site = {
 export const lab = {
   repo: "https://github.com/CameronSpilker/full-data-stack-lab",
   dashboard: "https://lab.cameronspilker.com" as string | null,
+  scorecard: "https://lab.cameronspilker.com/scorecard" as string | null,
   docs: "https://lab.cameronspilker.com/docs/" as string | null,
 } as const;
