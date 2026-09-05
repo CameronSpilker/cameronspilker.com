@@ -16,7 +16,8 @@ export const site = {
  * All three are live on their own subdomain, served by the `ncaa-lab` Vercel
  * project from the `full-data-stack-lab` repo. `dashboard` is the root of the
  * Evidence build, `scorecard` is the page inside it that a first-time visitor
- * should land on, and `docs` is the dbt catalogue, unpacked into the same
+ * should land on, `picks` is the forecast of the games that have not been
+ * played yet, and `docs` is the dbt catalogue, unpacked into the same
  * deployment by `dashboard/scripts/fetch-warehouse.sh` rather than hosted
  * separately.
  *
@@ -28,5 +29,6 @@ export const lab = {
   repo: "https://github.com/CameronSpilker/full-data-stack-lab",
   dashboard: "https://lab.cameronspilker.com" as string | null,
   scorecard: "https://lab.cameronspilker.com/scorecard" as string | null,
+  picks: "https://lab.cameronspilker.com/picks" as string | null,
   docs: "https://lab.cameronspilker.com/docs/" as string | null,
 } as const;

@@ -7,9 +7,9 @@
  * where they can be corrected in the same commit that changes the code. What
  * stays here is the argument for clicking through, and one live countdown.
  *
- * The numbers below are read off the `full-data-stack-lab` repo: 20 model files
- * under `transform/models`, 108 generic tests declared in the schema YAML plus
- * 10 singular tests under `transform/tests`, and the cron string is the literal
+ * The numbers below are read off the `full-data-stack-lab` repo: 24 model files
+ * under `transform/models`, 121 generic tests declared in the schema YAML plus
+ * 11 singular tests under `transform/tests`, and the cron string is the literal
  * `cron_schedule` from `orchestration/full_data_stack_lab/jobs.py`. If that repo
  * changes, this file is wrong and should change with it.
  */
@@ -18,8 +18,8 @@ import { lab } from "./site";
 
 /** Headline counts, each one countable in the lab repo. */
 export const stats = [
-  { value: "20", label: "dbt models" },
-  { value: "118", label: "tests" },
+  { value: "24", label: "dbt models" },
+  { value: "132", label: "tests" },
   { value: "20,000", label: "simulated brackets" },
   { value: "365", label: "teams tracked" },
 ];
@@ -45,7 +45,7 @@ export const intro = {
   label: "Analytics engineering",
   title: "The Full Data Stack Lab is live",
   lede:
-    "One repository holding every stage of an analytics stack: the extractors, the warehouse, 20 models and their tests, the orchestrator, and the dashboard those models exist to serve. The dashboard is the front door, so start there.",
+    "One repository holding every stage of an analytics stack: the extractors, the warehouse, 24 models and their tests, the orchestrator, and the dashboard those models exist to serve. The dashboard is the front door, so start there.",
   countdownLabel: "Next rebuild in",
   /**
    * The button lands on the team scorecard rather than on the dashboard's home
@@ -68,6 +68,12 @@ export type Elsewhere = {
 
 /** The rest of the project, for a reader who wants more than the numbers. */
 export const elsewhere: Elsewhere[] = [
+  {
+    title: "What the model likes next",
+    href: lab.picks,
+    detail:
+      "The games that have not been played yet, priced every morning against the betting market. Ranked on disagreement rather than on confidence, because a 95% favourite is 95% on every screen in the country.",
+  },
   {
     title: "The rest of the dashboard",
     href: lab.dashboard,
