@@ -67,14 +67,19 @@ export const projects: Project[] = [
       "Every NCAA Division I men's basketball team tracked through the season, the tournament simulated 20,000 times, and a page grading how well the model's own predictions did.",
     blurb:
       "Python pulls a public API into a DuckDB warehouse, dbt builds 20 models behind 118 tests, Dagster schedules the whole graph, and Evidence renders the dashboard from the same file dbt writes. The self-grading page is the part most bracket models leave out: forecasts that used only prior games are scored separately from ones that saw the future.",
-    href: "https://lab.cameronspilker.com",
+    href: "https://lab.cameronspilker.com/scorecard",
     repo: "https://github.com/CameronSpilker/full-data-stack-lab",
     // The dashboard is the product. Sending a visitor to an explanation of the
     // pipeline first asks them to take the interesting part on trust.
+    //
+    // Both links land on the scorecard rather than the dashboard root, for the
+    // same reason the Lab section's button does: the root is an index of the
+    // project, and the scorecard is one team on one screen. Everything else on
+    // the dashboard is one click from there.
     cta: {
-      label: "Open the live dashboard",
-      href: "https://lab.cameronspilker.com",
-      note: "Team ratings, tournament odds, and the page grading the model's own forecasts. How it is built is one link away from there.",
+      label: "Open the team scorecard",
+      href: "https://lab.cameronspilker.com/scorecard",
+      note: "One team on one screen: form against last season, the ratings behind it, and the odds from 20,000 simulated brackets. The rest of the dashboard is one link away from there.",
     },
     tags: ["dbt", "DuckDB", "Dagster", "Evidence.dev", "Python"],
     preview: {
