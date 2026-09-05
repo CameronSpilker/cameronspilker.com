@@ -97,9 +97,9 @@ export function Lab() {
         <div className="mt-10 grid gap-6 rounded-lg border border-line bg-surface p-6 sm:p-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-center">
           <div>
             <p className="text-base leading-relaxed text-bright">{intro.primary.detail}</p>
-            {lab.dashboard && (
+            {(lab.scorecard ?? lab.dashboard) && (
               <a
-                href={lab.dashboard}
+                href={lab.scorecard ?? lab.dashboard ?? undefined}
                 target="_blank"
                 rel="noreferrer"
                 className="mt-6 inline-flex items-center gap-2 rounded border border-accent/40 bg-accent/10 px-5 py-2.5 font-mono text-sm text-accent transition-colors hover:bg-accent/20"
