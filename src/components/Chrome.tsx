@@ -9,6 +9,7 @@ import { ThemeToggle } from "./ThemeToggle";
 const sections = [
   { id: "projects", label: "Projects" },
   { id: "stack", label: "Lab" },
+  { id: "tools", label: "Tools" },
   { id: "work", label: "Experience" },
   { id: "about", label: "About" },
   { id: "contact", label: "Contact" },

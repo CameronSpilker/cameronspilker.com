@@ -5,6 +5,28 @@
  * same rule the homepage sections follow.
  */
 
+/**
+ * The framing shared by the homepage section and the `/tools` index.
+ *
+ * One headline in one place, so the section a reader clicks and the page they
+ * land on say the same thing. The homepage adds a sentence of its own, because
+ * a reader scrolling a portfolio needs a different reason to stop than a reader
+ * who already asked for the tools.
+ */
+export const toolsIndex = {
+  label: "Tools",
+  title: "Things I needed, so I built them",
+  lede:
+    "Every one of these runs entirely in your browser. Nothing you load is uploaded anywhere, which is the only way a tool that reads a work artifact is worth using at work.",
+  /** Description metadata for `/tools`. */
+  metaDescription: "Small client-side tools for working with dbt artifacts.",
+  home: {
+    lede:
+      "The same rule as everything else here: if it reads a file you would not hand to a stranger, it has no server to hand it to. These parse in the page and forget it when you close the tab.",
+    all: "All tools",
+  },
+} as const;
+
 export const runResultsTool = {
   slug: "dbt-run-results",
   name: "dbt run results visualizer",
@@ -98,3 +120,12 @@ export const runResultsTool = {
     retry: "Try another file",
   },
 } as const;
+
+/**
+ * The tools with a page behind them, in the order they are shown.
+ *
+ * Only what is built and live belongs here: the homepage section and the
+ * `/tools` index both read this list, so an entry with no page is a dead card
+ * in two places rather than one.
+ */
+export const liveTools = [runResultsTool];
