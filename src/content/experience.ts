@@ -3,18 +3,20 @@ export type Role = {
   title: string;
   start: string;
   end: string;
-  location?: string;
   highlights: string[];
   tags: string[];
 };
 
 /**
- * Source of truth: LinkedIn profile.
+ * Source of truth: LinkedIn profile. The bullets here track the ones on the
+ * profile, so a recruiter reading both sees the same claims.
  *
  * Only the three most recent analytics engineering roles get bullets. Eleven
  * roles is a resume, not a portfolio, and a hiring manager who wants the full
  * history has a LinkedIn link two inches away. Every bullet is an outcome
- * (what changed, by how much), never a responsibility.
+ * (what changed, by how much), never a responsibility. Locations are not
+ * listed: the roles are remote, and where a company is headquartered says
+ * nothing about the work.
  */
 export const experience: Role[] = [
   {
@@ -22,24 +24,25 @@ export const experience: Role[] = [
     title: "Senior Analytics Engineer",
     start: "Oct 2024",
     end: "Present",
-    location: "Remote, Barcelona",
     highlights: [
-      "Co-led a zero-downtime migration of 650+ dbt models and 600+ Looker dashboards, seven years of reporting, from Redshift to Snowflake.",
-      "Built the feature-level product usage framework from an MVP of 7 features to 145 in production, giving stakeholders trustworthy adoption data for the first time.",
-      "Leading the Looker to Omni move (400+ dashboards, 75+ Explores), prioritized by real usage so the highest-traffic reporting cut over first.",
+      "Launched conversational analytics on the Omni semantic layer, giving stakeholders natural language access to governed metrics. Built reusable components into the dbt repo and run evals on the context behind them to keep answers accurate.",
+      "Co-led a zero-downtime migration of 650+ dbt models and 600+ Looker assets, seven years of reporting and operational data, from Redshift to Snowflake.",
+      "Led the Looker to Omni migration of 400+ dashboards and 75+ Explores, prioritized by real usage and delivered with an external team. Now the Omni admin for access, permissions, and user content.",
+      "Built feature-level reporting end to end: consolidated eventing data, defined the key properties, and shipped the dbt models, semantic layer, and dashboards. Scaled from an MVP of 7 features to 145 in production.",
+      "Introduced macros, DRY doc blocks, PR templates, and CI/CD with automated summaries and data diffs, cutting review cycles ~25% across a four person analytics engineering team.",
     ],
-    tags: ["dbt", "Snowflake", "Looker", "Omni", "CI/CD"],
+    tags: ["dbt", "Snowflake", "Omni", "Semantic layer", "AI", "CI/CD"],
   },
   {
     company: "Apollo.io",
     title: "Senior Analytics Engineer",
     start: "Sep 2023",
     end: "Oct 2024",
-    location: "San Francisco, CA",
     highlights: [
-      "Cut CI runtime 90% (60 to 6 minutes) with code diffing and smart caching, tightening the feedback loop for 10+ analytics engineers.",
-      "Re-engineered 50+ dbt models and 150+ Looker assets after a Salesforce re-architecture, restoring accuracy across 20+ dashboards used for forecasting.",
-      "Rebuilt reverse ETL syncs from 6M to 1.8M records and 30+ hours to under 1 hour, lowering compute cost and improving freshness.",
+      "Cut CI/CD runtime from 60 minutes to 6 through code diffing and smart caching, accelerating PR feedback for 10+ analytics engineers.",
+      "Re-engineered 50+ dbt models and 150+ Looker assets after major Salesforce architecture changes, restoring accuracy across 20+ dashboards used by Sales, Finance, Customer Success, and Marketing.",
+      "Streamlined reverse ETL syncs, reducing processed records from 6 million to 1.8 million and sync duration from 30+ hours to under 1, lowering compute cost and improving freshness.",
+      "Led a company wide doc-a-thon that raised dbt documentation coverage from 46% to 85%, improving discoverability and onboarding.",
     ],
     tags: ["dbt", "Snowflake", "Looker", "Census", "Salesforce"],
   },
@@ -48,11 +51,10 @@ export const experience: Role[] = [
     title: "Analytics Engineer",
     start: "Mar 2022",
     end: "Sep 2023",
-    location: "Philadelphia, PA",
     highlights: [
-      "Delivered $300K+ in annualized savings by optimizing Snowflake queries and pipelines across core analytics workloads.",
-      "Designed the centralized subject-area models behind Growth and Product Analytics: search, ads, impressions, marketing, and competitive pricing.",
-      "Cut hourly job volume 33% through consolidation and scheduling changes, improving reliability for every downstream team.",
+      "Achieved $300K+ in annualized savings by optimizing Snowflake queries and pipelines across core analytics workloads.",
+      "Designed centralized subject area models for the Growth and Product Analytics teams covering search, ads, impressions, marketing performance, and competitive pricing, increasing consistency across 10+ core metrics.",
+      "Built and maintained Looker and Sigma dashboards enabling self serve analytics for hundreds of internal users, reducing ad hoc report requests ~25%.",
     ],
     tags: ["dbt", "Snowflake", "Looker", "Sigma"],
   },
