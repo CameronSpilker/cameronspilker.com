@@ -24,8 +24,8 @@ export function Experience() {
           <p className="mt-5 text-sm leading-relaxed">
             Analytics engineering at Typeform, Apollo.io, and Gopuff, with data
             engineering and audit analytics before that. The through line is
-            migrations, cost, and trust: the work that makes a dashboard worth
-            opening.
+            migrations, cost, and trust: the work that makes a dashboard, or an
+            AI answer, worth relying on.
           </p>
           <a
             href={site.linkedin}
@@ -87,7 +87,6 @@ function Role({
       />
       <p className="font-mono text-xs text-body/60">
         {role.start} to {role.end}
-        {role.location && <span className="text-body/40"> · {role.location}</span>}
       </p>
       <h3 className="mt-2 text-lg font-medium text-bright">{role.company}</h3>
       <p className="mt-0.5 text-sm text-body">{role.title}</p>
