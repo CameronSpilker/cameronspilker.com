@@ -31,4 +31,5 @@ export const lab = {
   scorecard: "https://lab.cameronspilker.com/scorecard" as string | null,
   picks: "https://lab.cameronspilker.com/picks" as string | null,
   docs: "https://lab.cameronspilker.com/docs/" as string | null,
+  charts: "https://lab.cameronspilker.com/charts/" as string | null,
 } as const;

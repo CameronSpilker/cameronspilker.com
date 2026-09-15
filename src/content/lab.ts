@@ -7,9 +7,9 @@
  * where they can be corrected in the same commit that changes the code. What
  * stays here is the argument for clicking through, and one live countdown.
  *
- * The numbers below are read off the `full-data-stack-lab` repo: 25 model files
- * under `transform/models`, 128 generic tests declared in the schema YAML plus
- * 11 singular tests under `transform/tests`, and the cron string is the literal
+ * The numbers below are read off the `full-data-stack-lab` repo: 23 model files
+ * under `transform/models`, 135 generic tests declared in the schema YAML plus
+ * 12 singular tests under `transform/tests`, and the cron string is the literal
  * `cron_schedule` from `orchestration/full_data_stack_lab/jobs.py`. If that repo
  * changes, this file is wrong and should change with it.
  */
@@ -18,8 +18,8 @@ import { lab } from "./site";
 
 /** Headline counts, each one countable in the lab repo. */
 export const stats = [
-  { value: "25", label: "dbt models" },
-  { value: "139", label: "tests" },
+  { value: "23", label: "dbt models" },
+  { value: "147", label: "tests" },
   { value: "20,000", label: "simulated brackets" },
   { value: "365", label: "teams tracked" },
 ];
@@ -45,7 +45,7 @@ export const intro = {
   label: "Analytics engineering",
   title: "The Full Data Stack Lab is live",
   lede:
-    "One repository holding every stage of an analytics stack: the extractors, the warehouse, 25 models and their tests, the orchestrator, and the dashboard those models exist to serve. The dashboard is the front door, so start there.",
+    "One repository holding every stage of an analytics stack: the extractors, the warehouse, 23 models and their tests, the orchestrator, and the two dashboards those models exist to serve. The Evidence dashboard is the front door, so start there.",
   countdownLabel: "Next rebuild in",
   /**
    * The button lands on the team scorecard rather than on the dashboard's home
@@ -85,6 +85,12 @@ export const elsewhere: Elsewhere[] = [
     href: lab.dashboard ? `${lab.dashboard}/how-it-works` : null,
     detail:
       "Each layer, the tool it uses, and the reason it is that tool. Plus the real Dagster schedules and what each one rebuilds.",
+  },
+  {
+    title: "The same marts, in dbt Charts",
+    href: lab.charts,
+    detail:
+      "A second presentation layer over the same models, built with dbt Charts. Every board is one YAML file holding its queries, its charts and its layout, rendered to a static page by the pipeline that built the warehouse.",
   },
   {
     title: "The dbt docs and lineage",

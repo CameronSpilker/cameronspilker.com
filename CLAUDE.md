@@ -66,9 +66,15 @@ only changes when the generator does.
 
 `src/content/lab.ts` mirrors the `full-data-stack-lab` repository: the cron
 string is copied from its Dagster schedules and the model and test counts are
-countable in it (20 files under `transform/models`, 108 generic tests in the
-schema YAML plus 10 singular tests). If that repo changes, this file is wrong
-until it is updated with it.
+countable in it (23 files under `transform/models`, 135 generic tests in the
+schema YAML plus 12 singular tests). If that repo changes, this file is wrong
+until it is updated with it. Count rather than guess:
+
+```bash
+find transform/models -name '*.sql' | wc -l    # models
+ls transform/tests/*.sql | wc -l               # singular tests
+# generic tests: total minus singular, from a parsed manifest
+```
 
 The longer story about the lab, its layers and its full schedule, is not here.
 It lives at `lab.cameronspilker.com/how-it-works`, in the repo that also holds
