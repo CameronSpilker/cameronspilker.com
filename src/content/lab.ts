@@ -8,7 +8,7 @@
  * stays here is the argument for clicking through, and one live countdown.
  *
  * The numbers below are read off the `full-data-stack-lab` repo: 23 model files
- * under `transform/models`, 135 generic tests declared in the schema YAML plus
+ * under `transform/models`, 142 generic tests declared in the schema YAML plus
  * 12 singular tests under `transform/tests`, and the cron string is the literal
  * `cron_schedule` from `orchestration/full_data_stack_lab/jobs.py`. If that repo
  * changes, this file is wrong and should change with it.
@@ -19,7 +19,7 @@ import { lab } from "./site";
 /** Headline counts, each one countable in the lab repo. */
 export const stats = [
   { value: "23", label: "dbt models" },
-  { value: "147", label: "tests" },
+  { value: "154", label: "tests" },
   { value: "20,000", label: "simulated brackets" },
   { value: "365", label: "teams tracked" },
 ];
