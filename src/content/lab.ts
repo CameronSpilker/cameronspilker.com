@@ -45,18 +45,19 @@ export const intro = {
   label: "Analytics engineering",
   title: "The Full Data Stack Lab is live",
   lede:
-    "One repository holding every stage of an analytics stack: the extractors, the warehouse, 23 models and their tests, the orchestrator, and the two dashboards those models exist to serve. The Evidence dashboard is the front door, so start there.",
+    "One repository holding every stage of an analytics stack: the extractors, the warehouse, 23 models and their tests, the orchestrator, and the two dashboards those models exist to serve. The landing page opens onto both.",
   countdownLabel: "Next rebuild in",
   /**
-   * The button lands on the team scorecard rather than on the dashboard's home
-   * page. The home page is an index of the project; the scorecard is one team
-   * on one screen, which is what a reader arriving from here came to see. It
-   * falls back to the dashboard root if the scorecard link is ever null.
+   * The button lands on the lab's own landing page, which is a page rather than
+   * an index: it names the two dashboards, says what each one is for, and lets
+   * the reader pick. Deep-linking past it used to be worth it when the root was
+   * a bare file listing. It is not now, and picking for the reader hid the dbt
+   * Charts boards from anyone arriving here.
    */
   primary: {
-    label: "Open the team scorecard",
+    label: "Open the lab",
     detail:
-      "One team on one screen: efficiency, percentile rank, the four factors, an Elo line for the season, form, and the odds from 20,000 simulated brackets. Pick any of the 365 teams from the dropdown.",
+      "Two ways in, both reading the same models: the Evidence dashboard, where you pick a team and the page answers, and the dbt Charts boards, where each page is one YAML file. The landing page says what each one is for.",
   },
 };
 
