@@ -67,8 +67,9 @@ only changes when the generator does.
 `src/content/lab.ts` mirrors the `full-data-stack-lab` repository: the cron
 string is copied from its Dagster schedules and the model and test counts are
 countable in it (23 files under `transform/models`, 135 generic tests in the
-schema YAML plus 12 singular tests). If that repo changes, this file is wrong
-until it is updated with it. Count rather than guess:
+schema YAML plus 12 singular tests). The page shows those counts as floors
+("20+ models", "150+ tests"), so growth does not make it wrong, but a floor
+must stay true and the cron string must match exactly. Count rather than guess:
 
 ```bash
 find transform/models -name '*.sql' | wc -l    # models

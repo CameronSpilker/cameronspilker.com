@@ -10,16 +10,20 @@
  * The numbers below are read off the `full-data-stack-lab` repo: 23 model files
  * under `transform/models`, 142 generic tests declared in the schema YAML plus
  * 12 singular tests under `transform/tests`, and the cron string is the literal
- * `cron_schedule` from `orchestration/full_data_stack_lab/jobs.py`. If that repo
- * changes, this file is wrong and should change with it.
+ * `cron_schedule` from `orchestration/full_data_stack_lab/jobs.py`.
+ *
+ * The model and test counts are shown as floors ("20+", "150+") rather than
+ * exact figures, so the lab can add a model or a test without this page going
+ * wrong. A floor still has to be true: if the repo ever drops below one, lower
+ * it. The cron string has no such slack and must match the repo exactly.
  */
 
 import { lab } from "./site";
 
-/** Headline counts, each one countable in the lab repo. */
+/** Headline counts, each one a floor on what is countable in the lab repo. */
 export const stats = [
-  { value: "23", label: "dbt models" },
-  { value: "154", label: "tests" },
+  { value: "20+", label: "dbt models" },
+  { value: "150+", label: "tests" },
   { value: "20,000", label: "simulated brackets" },
   { value: "365", label: "teams tracked" },
 ];
@@ -45,7 +49,7 @@ export const intro = {
   label: "Analytics engineering",
   title: "The Full Data Stack Lab is live",
   lede:
-    "One repository holding every stage of an analytics stack: the extractors, the warehouse, 23 models and their tests, the orchestrator, and the two dashboards those models exist to serve. The landing page opens onto both.",
+    "One repository holding every stage of an analytics stack: the extractors, the warehouse, 20+ models and their tests, the orchestrator, and the two dashboards those models exist to serve. The landing page opens onto both.",
   countdownLabel: "Next rebuild in",
   /**
    * The button lands on the lab's own landing page, which is a page rather than
