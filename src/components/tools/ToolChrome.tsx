@@ -8,7 +8,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
  * anchors into a page that is not this one. What a tool page needs instead is a
  * way back and the same appearance control.
  */
-export function ToolChrome() {
+export function ToolChrome({ crumb = { href: "/tools", label: "tools" } }: { crumb?: { href: string; label: string } }) {
   return (
     <header className="sticky top-0 z-50 border-b border-line/60 bg-ink/85 backdrop-blur-md">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-6 px-6 py-3.5">
@@ -22,8 +22,8 @@ export function ToolChrome() {
           <span aria-hidden="true" className="font-mono text-xs text-body/40">
             /
           </span>
-          <Link href="/tools" className="font-mono text-xs text-body/70 transition-colors hover:text-accent">
-            tools
+          <Link href={crumb.href} className="font-mono text-xs text-body/70 transition-colors hover:text-accent">
+            {crumb.label}
           </Link>
         </div>
         <ThemeToggle />
