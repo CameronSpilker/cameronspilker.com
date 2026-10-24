@@ -2,7 +2,7 @@ export const site = {
   name: "Cameron Spilker",
   title: "Senior Analytics Engineer",
   tagline:
-    "I build data systems end to end, from raw API to trusted model to dashboard, and I build them in public.",
+    "Analytics engineer building data that people and AI agents can rely on, plus a few side projects.",
   location: "Utah",
   email: "cameron.spilker@outlook.com",
   github: "https://github.com/CameronSpilker",

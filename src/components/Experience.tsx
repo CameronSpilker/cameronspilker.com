@@ -1,112 +1,106 @@
+import { workIntro } from "@/content/home";
 import { earlier, experience } from "@/content/experience";
 import { site } from "@/content/site";
+import { Section } from "./Section";
 import { Tag } from "./Tag";
 
 /**
- * Deliberately not a takeover. This is the section a hiring manager skims, so
- * the heading pins and the roles scroll past it at their own pace.
- *
- * Three roles carry bullets and everything before them is a name and a date.
- * The projects above already argue the case; this exists to show the arc and
- * the scale of the systems behind it.
+ * The section a hiring manager skims. Each role leads with three short hits,
+ * so the impact reads at a glance, and keeps the full bullets one tap away so
+ * the page stays short on a phone.
  */
 export function Experience() {
-  const [current, ...rest] = experience;
-
   return (
-    <section id="work" className="relative border-t border-line/60">
-      <div className="mx-auto grid w-full max-w-5xl gap-12 px-6 py-24 sm:py-32 lg:grid-cols-[18rem_1fr] lg:gap-16">
-        <div className="lg:sticky lg:top-24 lg:h-fit">
-          <p className="font-mono text-xs tracking-[0.2em] text-accent uppercase">Experience</p>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-balance text-bright sm:text-4xl">
-            Nine years of making numbers defensible.
-          </h2>
-          <p className="mt-5 text-sm leading-relaxed">
-            Analytics engineering at Typeform, Apollo.io, and Gopuff, with data
-            engineering and audit analytics before that. The through line is
-            migrations, cost, and trust: the work that makes a dashboard, or an
-            AI answer, worth relying on.
-          </p>
-          <a
-            href={site.linkedin}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-6 inline-block font-mono text-sm text-accent underline decoration-accent/40 underline-offset-4 hover:decoration-accent"
-          >
-            Full history on LinkedIn →
-          </a>
-        </div>
+    <Section id="work" label={workIntro.label} title={workIntro.title} lede={workIntro.lede}>
+      <ol className="space-y-4">
+        {experience.map((role) => (
+          <Role key={`${role.company}-${role.title}`} role={role} />
+        ))}
+      </ol>
 
-        <div>
-          <ol className="space-y-14">
-            <Role role={current} highlight />
-            {rest.map((role) => (
-              <Role key={`${role.company}-${role.title}`} role={role} />
-            ))}
-          </ol>
-
-          <div className="mt-16 border-t border-line/70 pt-8">
-            <p className="font-mono text-xs tracking-[0.2em] text-body/60 uppercase">
-              Before that
-            </p>
-            <ul className="mt-5 space-y-2.5">
-              {earlier.map((role) => (
-                <li
-                  key={`${role.company}-${role.title}`}
-                  className="grid gap-x-4 gap-y-0.5 text-sm sm:grid-cols-[8rem_1fr]"
-                >
-                  <span className="font-mono text-xs text-body/50 sm:pt-0.5">{role.years}</span>
-                  <span>
-                    <span className="text-bright">{role.company}</span>
-                    <span className="text-body/70"> · {role.title}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+      <div className="glass mt-4 rounded-[28px] p-5 sm:p-7">
+        <p className="text-sm font-semibold text-bright">{workIntro.earlier}</p>
+        <ul className="mt-4 space-y-2.5">
+          {earlier.map((role) => (
+            <li
+              key={`${role.company}-${role.title}`}
+              className="grid gap-x-4 gap-y-0.5 text-sm sm:grid-cols-[8rem_1fr]"
+            >
+              <span className="text-xs text-body/80 sm:pt-0.5">{role.years}</span>
+              <span>
+                <span className="text-bright">{role.company}</span>
+                <span className="text-body"> · {role.title}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
-    </section>
+
+      <a
+        href={site.linkedin}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-accent transition-colors hover:text-bright"
+      >
+        {workIntro.linkedin} <span aria-hidden="true">&rarr;</span>
+      </a>
+    </Section>
   );
 }
 
-function Role({
-  role,
-  highlight = false,
-}: {
-  role: (typeof experience)[number];
-  highlight?: boolean;
-}) {
+function Role({ role }: { role: (typeof experience)[number] }) {
   return (
-    <li className="relative border-l border-line/70 pl-6">
-      <span
-        aria-hidden="true"
-        className={`absolute top-2 -left-[3px] h-1.5 w-1.5 rounded-full ${
-          highlight ? "bg-accent" : "bg-line"
-        }`}
-      />
-      <p className="font-mono text-xs text-body/60">
-        {role.start} to {role.end}
-      </p>
-      <h3 className="mt-2 text-lg font-medium text-bright">{role.company}</h3>
-      <p className="mt-0.5 text-sm text-body">{role.title}</p>
+    <li className="glass rounded-[28px] p-5 sm:p-7">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+        <div>
+          <h3 className="text-xl font-bold tracking-tight text-bright">{role.company}</h3>
+          <p className="text-sm text-body">{role.title}</p>
+        </div>
+        <p className="text-xs text-body/80">
+          {role.start} to {role.end}
+        </p>
+      </div>
 
-      <ul className="mt-4 space-y-2">
-        {role.highlights.map((point) => (
-          <li key={point} className="flex gap-3 text-sm leading-relaxed">
+      {/* The hits: what a skimming reader takes away without opening anything. */}
+      <ul className="mt-4 grid gap-2 sm:grid-cols-3">
+        {role.hits.map((hit) => (
+          <li
+            key={hit}
+            className="flex gap-2 rounded-2xl border border-line/70 bg-surface/60 px-3.5 py-2.5 text-sm leading-snug font-medium text-bright"
+          >
             <span aria-hidden="true" className="text-accent">
-              ·
+              ✓
             </span>
-            <span>{point}</span>
+            {hit}
           </li>
         ))}
       </ul>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        {role.tags.map((tag) => (
-          <Tag key={tag}>{tag}</Tag>
-        ))}
-      </div>
+      <details className="group mt-4">
+        <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-accent transition-colors hover:text-bright [&::-webkit-details-marker]:hidden">
+          <span className="group-open:hidden">{workIntro.more}</span>
+          <span className="hidden group-open:inline">{workIntro.less}</span>
+          <span aria-hidden="true" className="inline-block transition-transform group-open:rotate-180">
+            ↓
+          </span>
+        </summary>
+
+        <ul className="mt-4 space-y-2">
+          {role.highlights.map((point) => (
+            <li key={point} className="flex gap-3 text-sm leading-relaxed">
+              <span aria-hidden="true" className="text-accent">
+                ·
+              </span>
+              <span>{point}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {role.tags.map((tag) => (
+            <Tag key={tag}>{tag}</Tag>
+          ))}
+        </div>
+      </details>
     </li>
   );
 }

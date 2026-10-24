@@ -10,19 +10,19 @@ import { ThemeToggle } from "@/components/ThemeToggle";
  */
 export function ToolChrome() {
   return (
-    <header className="sticky top-0 z-50 border-b border-line/60 bg-ink/85 backdrop-blur-md">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-6 px-6 py-3.5">
-        <div className="flex items-baseline gap-3">
+    <header className="sticky top-0 z-50 px-3 pt-3 sm:px-6 sm:pt-4">
+      <div className="glass mx-auto flex w-full max-w-6xl items-center justify-between gap-6 rounded-full py-2 pr-2 pl-5">
+        <div className="flex items-baseline gap-2.5">
           <Link
             href="/"
-            className="font-mono text-xs whitespace-nowrap text-bright transition-colors hover:text-accent sm:text-sm"
+            className="text-sm font-bold whitespace-nowrap text-bright transition-colors hover:text-accent sm:text-base"
           >
             {site.name}
           </Link>
-          <span aria-hidden="true" className="font-mono text-xs text-body/40">
+          <span aria-hidden="true" className="text-sm text-body/50">
             /
           </span>
-          <Link href="/tools" className="font-mono text-xs text-body/70 transition-colors hover:text-accent">
+          <Link href="/tools" className="text-sm text-body transition-colors hover:text-accent">
             tools
           </Link>
         </div>

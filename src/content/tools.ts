@@ -5,26 +5,14 @@
  * same rule the homepage sections follow.
  */
 
-/**
- * The framing shared by the homepage section and the `/tools` index.
- *
- * One headline in one place, so the section a reader clicks and the page they
- * land on say the same thing. The homepage adds a sentence of its own, because
- * a reader scrolling a portfolio needs a different reason to stop than a reader
- * who already asked for the tools.
- */
+/** The framing for the `/tools` index. Matches the homepage section's. */
 export const toolsIndex = {
   label: "Tools",
-  title: "Things I needed, so I built them",
+  title: "Little tools",
   lede:
-    "Every one of these runs entirely in your browser. Nothing you load is uploaded anywhere, which is the only way a tool that reads a work artifact is worth using at work.",
+    "Small things I made because I needed them. Everything runs in your browser, and nothing you load gets uploaded.",
   /** Description metadata for `/tools`. */
   metaDescription: "Small client-side tools: a dbt run results visualizer and a PDF form filler and signer.",
-  home: {
-    lede:
-      "The same rule as everything else here: if it reads a file you would not hand to a stranger, it has no server to hand it to. These parse in the page and forget it when you close the tab.",
-    all: "All tools",
-  },
 } as const;
 
 export const runResultsTool = {

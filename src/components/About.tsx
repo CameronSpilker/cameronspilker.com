@@ -1,49 +1,53 @@
+import { about, contact } from "@/content/home";
 import { site } from "@/content/site";
 import { Section } from "./Section";
 
-const facts = [
-  { k: "Based in", v: site.location },
-  { k: "Studied", v: "Information Systems, BYU (BS + MS)" },
-  { k: "Taught", v: "IS 515, Advanced Spreadsheets, at BYU" },
-  { k: "Tools", v: "dbt · Snowflake · Looker · Omni · Python" },
+const links = [
+  { label: "Email", href: `mailto:${site.email}`, text: site.email },
+  { label: "LinkedIn", href: site.linkedin, text: "in/cameronspilker" },
+  { label: "GitHub", href: site.github, text: "CameronSpilker" },
 ];
 
+/** About and contact side by side: who I am, then how to reach me. */
 export function About() {
   return (
-    <Section id="about" label="About" title="Who I am">
-      <div className="grid gap-12 lg:grid-cols-[1fr_18rem] lg:gap-16">
-        <div className="max-w-2xl space-y-4 text-base leading-relaxed">
-          <p>
-            I am an analytics engineer based in {site.location}. I work across
-            the whole stack: pulling from raw APIs, modeling in dbt,
-            orchestrating the runs, and shipping the dashboard people actually
-            open. The parts I care most about are the unglamorous ones. Tests,
-            lineage, and documentation are what make a number defensible.
-          </p>
-          <p>
-            I work AI-forward. I treat models as a way to move faster through
-            the mechanical parts so more of my attention goes to the judgment
-            calls: what to measure, what to trust, and what to throw away.
-          </p>
-          <p>
-            I studied information systems at BYU and taught spreadsheets there.
-            Mostly I like building things with AI and working with data, and I
-            am always happy to talk with people doing either. If something here
-            is useful to you, or you want to compare notes on any of it, get in
-            touch.
-          </p>
+    <Section id="about" label={about.label} title={about.title}>
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <div className="glass rounded-[28px] p-6 sm:p-8">
+          <div className="max-w-2xl space-y-4 text-base leading-relaxed">
+            {about.paragraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
+          <p className="mt-6 border-t border-line/70 pt-6 text-sm font-semibold text-bright">{about.factsTitle}</p>
+          <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+            {about.facts.map((fact) => (
+              <div key={fact.k}>
+                <dt className="text-xs text-body/80">{fact.k}</dt>
+                <dd className="mt-0.5 text-sm font-medium text-bright">{fact.v}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
 
-        <dl className="h-fit space-y-5 border-t border-line/70 pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8">
-          {facts.map((fact) => (
-            <div key={fact.k}>
-              <dt className="font-mono text-xs tracking-wider text-body/60 uppercase">
-                {fact.k}
-              </dt>
-              <dd className="mt-1 text-sm text-bright">{fact.v}</dd>
-            </div>
-          ))}
-        </dl>
+        <div id="contact" className="glass scroll-mt-28 rounded-[28px] p-6 sm:p-8">
+          <p className="text-sm font-semibold text-accent">{contact.label}</p>
+          <h3 className="mt-2 text-2xl font-extrabold tracking-tight text-bright sm:text-3xl">{contact.title}</h3>
+          <p className="mt-3 leading-relaxed">{contact.lede}</p>
+          <ul className="mt-6 space-y-2">
+            {links.map((link) => (
+              <li key={link.label}>
+                <a
+                  href={link.href}
+                  className="flex items-center justify-between gap-4 rounded-2xl border border-line/70 bg-surface/60 px-4 py-3 transition-colors hover:border-accent"
+                >
+                  <span className="text-xs text-body">{link.label}</span>
+                  <span className="truncate text-sm font-medium text-bright">{link.text}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </Section>
   );
