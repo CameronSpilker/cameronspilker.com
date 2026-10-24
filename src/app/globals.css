@@ -78,6 +78,136 @@
   color-scheme: dark;
 }
 
+/*
+ * Candidate palettes, previewed on the real pages before one replaces the
+ * default set above. Temporary: picked with `?palette=` or the corner picker,
+ * and removed, with `src/lib/palette.ts`, once a choice is made. Each one
+ * redefines the same seven tokens and two glows, light and dark, under the
+ * same rules as the default.
+ */
+
+:root[data-palette="indigo"] {
+    --ink: #fafafe;
+    --surface: #f2f2fa;
+    --raised: #e8e8f4;
+    --line: #d6d6e8;
+    --body: #4b4d66;
+    --bright: #0f1028;
+    --accent: #4f46e5;
+    --glow-accent: rgba(79,70,229,0.12);
+    --glow-cool: rgba(236,72,153,0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-palette="indigo"]:not([data-theme="light"]) {
+      --ink: #0b0b14;
+      --surface: #11121d;
+      --raised: #181a29;
+      --line: #262840;
+      --body: #a3a6c4;
+      --bright: #eceefb;
+      --accent: #8b8cf8;
+      --glow-accent: rgba(139,140,248,0.16);
+      --glow-cool: rgba(236,72,153,0.10);
+  }
+}
+
+:root[data-palette="indigo"][data-theme="dark"] {
+    --ink: #0b0b14;
+    --surface: #11121d;
+    --raised: #181a29;
+    --line: #262840;
+    --body: #a3a6c4;
+    --bright: #eceefb;
+    --accent: #8b8cf8;
+    --glow-accent: rgba(139,140,248,0.16);
+    --glow-cool: rgba(236,72,153,0.10);
+}
+
+:root[data-palette="paper"] {
+    --ink: #faf7f2;
+    --surface: #f3eee5;
+    --raised: #ebe4d8;
+    --line: #ddd3c3;
+    --body: #5c5246;
+    --bright: #1f1a14;
+    --accent: #b4441f;
+    --glow-accent: rgba(180,68,31,0.10);
+    --glow-cool: rgba(212,160,60,0.10);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-palette="paper"]:not([data-theme="light"]) {
+      --ink: #141210;
+      --surface: #1b1815;
+      --raised: #24201c;
+      --line: #35302a;
+      --body: #b8ad9f;
+      --bright: #f3ece2;
+      --accent: #f08a5d;
+      --glow-accent: rgba(240,138,93,0.12);
+      --glow-cool: rgba(212,160,60,0.08);
+  }
+}
+
+:root[data-palette="paper"][data-theme="dark"] {
+    --ink: #141210;
+    --surface: #1b1815;
+    --raised: #24201c;
+    --line: #35302a;
+    --body: #b8ad9f;
+    --bright: #f3ece2;
+    --accent: #f08a5d;
+    --glow-accent: rgba(240,138,93,0.12);
+    --glow-cool: rgba(212,160,60,0.08);
+}
+
+:root[data-palette="graphite"] {
+    --ink: #ffffff;
+    --surface: #f6f7f9;
+    --raised: #eef0f3;
+    --line: #dfe2e7;
+    --body: #52575f;
+    --bright: #0a0b0d;
+    --accent: #2563eb;
+    --glow-accent: rgba(37,99,235,0.10);
+    --glow-cool: rgba(6,182,212,0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-palette="graphite"]:not([data-theme="light"]) {
+      --ink: #000000;
+      --surface: #0a0a0b;
+      --raised: #131316;
+      --line: #232328;
+      --body: #a1a1aa;
+      --bright: #fafafa;
+      --accent: #60a5fa;
+      --glow-accent: rgba(96,165,250,0.14);
+      --glow-cool: rgba(6,182,212,0.08);
+  }
+}
+
+:root[data-palette="graphite"][data-theme="dark"] {
+    --ink: #000000;
+    --surface: #0a0a0b;
+    --raised: #131316;
+    --line: #232328;
+    --body: #a1a1aa;
+    --bright: #fafafa;
+    --accent: #60a5fa;
+    --glow-accent: rgba(96,165,250,0.14);
+    --glow-cool: rgba(6,182,212,0.08);
+}
+
+/* Warm Paper sets its headings in a serif; the body stays in Geist. */
+:root[data-palette="paper"] :is(h1, h2) {
+  font-family: var(--font-serif), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+
 @layer base {
   html {
     scroll-behavior: smooth;
