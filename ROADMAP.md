@@ -5,8 +5,8 @@ Where the site stands and what comes next.
 ## Done
 
 - Next.js 16 App Router + TypeScript + Tailwind v4, dark technical theme
-- Homepage sections: hero, projects, lab, experience, about, contact, in that
-  order, so the work someone can click into comes before the resume
+- Homepage sections: hero, projects (the lab included), tools, experience,
+  then about beside contact, so the work someone can click into comes first
 - "Aurora Ocean" look: frosted glass cards over soft sky, aqua and
   periwinkle light, with a matching dark mode. Projects as cards, Cardtacular
   featured first, the Full Data Stack Lab in a card with its live countdown
