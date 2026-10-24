@@ -19,7 +19,7 @@ export const toolsIndex = {
   lede:
     "Every one of these runs entirely in your browser. Nothing you load is uploaded anywhere, which is the only way a tool that reads a work artifact is worth using at work.",
   /** Description metadata for `/tools`. */
-  metaDescription: "Small client-side tools for working with dbt artifacts.",
+  metaDescription: "Small client-side tools: a dbt run results visualizer and a PDF form filler and signer.",
   home: {
     lede:
       "The same rule as everything else here: if it reads a file you would not hand to a stranger, it has no server to hand it to. These parse in the page and forget it when you close the tab.",
@@ -121,6 +121,90 @@ export const runResultsTool = {
   },
 } as const;
 
+export const pdfSignerTool = {
+  slug: "pdf-signer",
+  name: "PDF signer",
+  title: "Sign a PDF",
+  description: "Fill in and sign a PDF in your browser. Nothing is uploaded.",
+  lede: "Fill in and sign any PDF right here in your browser, without uploading it anywhere.",
+  steps: {
+    upload: "Upload your PDF",
+    signature: "Create your signature",
+    place: "Fill in the page",
+    download: "Download the signed PDF",
+  },
+  upload: {
+    drop: "Drop a PDF here, or choose one from your device",
+    choose: "Choose a PDF",
+    replace: "Upload a different PDF",
+    active: "Release to open it",
+    note: "Nothing is uploaded.",
+    loading: "Preparing the sample",
+    opening: "Opening your PDF",
+    pages: (count: number) => `${count} page${count === 1 ? "" : "s"}`,
+    page: (index: number, count: number) => `Page ${index} of ${count}`,
+  },
+  samples: {
+    label: "No PDF handy? Practise on a sample:",
+    showing: "Sample",
+    options: [
+      { id: "form", label: "General form", fileName: "Sample form.pdf" },
+      { id: "resolution", label: "Board resolution", fileName: "Sample resolution.pdf" },
+    ],
+  },
+  signature: {
+    name: "Full name",
+    namePlaceholder: "e.g. Cameron Spilker",
+    draw: "Draw",
+    type: "Type",
+    padLabel: "Signature drawing area",
+    padHint: "Sign here with a mouse, finger or stylus",
+    clear: "Clear",
+    inkLabel: "Ink colour",
+    inks: { blue: "Blue ink", black: "Black ink" },
+    stylePrefix: "Signature style",
+    namePreview: "Your Name",
+  },
+  add: {
+    kinds: {
+      signature: "Signature",
+      initials: "Initials",
+      name: "Printed name",
+      date: "Date",
+      text: "Text",
+      check: "Check mark",
+    },
+    armed: (kind: string) => `Tap the page where the ${kind.toLowerCase()} goes`,
+    cancel: "Cancel",
+    hint: "Pick an item, then tap the page.",
+    textPlaceholder: "Type here",
+    move: "Move",
+    resize: "Resize",
+    remove: "Remove",
+  },
+  finish: {
+    save: "Download signed PDF",
+    /** The pinned bar on a phone has room for two words. */
+    saveShort: "Download PDF",
+    saving: "Preparing your PDF",
+    savesAs: (name: string) => `Saves as ${name}`,
+    count: (n: number) => `${n} item${n === 1 ? "" : "s"} placed`,
+    none: "Nothing placed yet",
+    noDocument: "Upload a PDF to start",
+    saved: (name: string) => `Downloaded ${name}. Look in your downloads folder.`,
+  },
+  errors: {
+    notPdf: "Choose a PDF file.",
+    password: "This PDF is password protected. Remove the password and upload it again.",
+    unreadable: "That file could not be read as a PDF. Try exporting it again, or choose another file.",
+    noMarks: "Place a signature or another item on the page before downloading.",
+    noDrawing: "Draw your signature in step 2 first.",
+    noName: "Enter your full name in step 2 first.",
+    noInitials: "Enter your full name in step 2 first, so the initials can be made from it.",
+    build: "The signed PDF could not be built. The file may be damaged or protected.",
+  },
+} as const;
+
 /**
  * The tools with a page behind them, in the order they are shown.
  *
@@ -128,4 +212,4 @@ export const runResultsTool = {
  * `/tools` index both read this list, so an entry with no page is a dead card
  * in two places rather than one.
  */
-export const liveTools = [runResultsTool];
+export const liveTools = [runResultsTool, pdfSignerTool];
