@@ -22,6 +22,7 @@ is what the mono labels across the site already use.
 Other conventions that hold throughout:
 
 - Copy is plain and specific. Say the number, name the tool, skip the adjective.
+- The voice is relaxed: a portfolio of things I made, not a pitch.
 - Buttons say what the reader gets, never "Visit site" or "Learn more".
 - Nothing on the site claims a result the repos cannot back up. If a link is not
   live yet, the page says so rather than linking to a placeholder.
@@ -40,7 +41,8 @@ src/
 │   └── dbt/        # Parser, metrics and colour rules for the run results tool
 └── content/
     ├── site.ts        # name, tagline, contact links, Full Data Stack Lab URLs
-    ├── projects.ts    # the four showcase panels and their calls to action
+    ├── home.ts        # homepage copy: nav, hero, section intros, about, contact
+    ├── projects.ts    # the four project cards and their calls to action
     ├── experience.ts  # three detailed roles plus the compact earlier list
     ├── lab.ts         # the Lab section: stats, the nightly countdown, links out
     └── tools.ts       # copy for everything under /tools

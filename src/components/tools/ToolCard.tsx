@@ -12,11 +12,14 @@ export function ToolCard({ tool }: { tool: (typeof liveTools)[number] }) {
   return (
     <Link
       href={`/tools/${tool.slug}`}
-      className="block rounded-xl border border-line bg-raised/40 p-6 transition-colors hover:border-accent"
+      className="glass group block h-full rounded-[28px] p-6 transition-transform hover:-translate-y-0.5"
     >
-      <p className="font-mono text-xs text-accent">{tool.name}</p>
-      <p className="mt-3 text-lg font-semibold text-bright">{tool.title}</p>
-      <p className="mt-2 text-sm leading-relaxed text-body/80">{tool.description}</p>
+      <p className="text-xs font-semibold text-accent">{tool.name}</p>
+      <p className="mt-2 text-xl font-bold tracking-tight text-bright">{tool.title}</p>
+      <p className="mt-2 text-sm leading-relaxed">{tool.description}</p>
+      <p className="mt-4 text-sm font-semibold text-accent">
+        Open <span aria-hidden="true" className="inline-block transition-transform group-hover:translate-x-0.5">&rarr;</span>
+      </p>
     </Link>
   );
 }

@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { site } from "@/content/site";
 import { THEME_SCRIPT } from "@/lib/theme";
-import { PALETTE_SCRIPT } from "@/lib/palette";
-import { PalettePicker } from "@/components/PalettePicker";
 import "./globals.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+const jakarta = Plus_Jakarta_Sans({ variable: "--font-jakarta", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
-const instrumentSerif = Instrument_Serif({ variable: "--font-serif", weight: "400", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -35,11 +32,11 @@ export default function RootLayout({
           document, rather than arriving after a frame of the wrong one.
         */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
-        <script dangerouslySetInnerHTML={{ __html: PALETTE_SCRIPT }} />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} antialiased`}>
+      <body className={`${jakarta.variable} ${geistMono.variable} font-sans antialiased`}>
+        {/* The lights behind every page, fixed so the cards drift over them. */}
+        <div aria-hidden="true" className="aurora pointer-events-none fixed inset-0 -z-10" />
         {children}
-        <PalettePicker />
         <Analytics />
       </body>
     </html>

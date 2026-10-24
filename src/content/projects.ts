@@ -1,28 +1,7 @@
 export type ProjectState = "live" | "repo";
 
 /**
- * How a project renders inside the full-screen showcase.
- *
- * `image` is a path under `public/`, set automatically by the server component
- * when a capture exists (see `scripts/capture-shots.mjs`). Until a real
- * screenshot lands, the showcase draws a wireframe in `tint`. The tints and nav
- * labels below are taken from each product's own repo, not invented.
- */
-export type Preview = {
-  /** Wordmark drawn on the wireframe. */
-  brand: string;
-  /** Nav items drawn on the wireframe, real section names where known. */
-  nav: string[];
-  /** Two-stop gradient, dark to light, that carries the product's identity. */
-  tint: [string, string];
-  /** Accent used for the section rail while this project is on screen. */
-  accent: string;
-  /** Shape of the page below the fold, sketched behind the copy. */
-  shape: "chart" | "grid" | "feed";
-};
-
-/**
- * The button on a project panel.
+ * The button on a project card.
  *
  * Never "Visit site". A visitor decides whether to click on what they get for
  * clicking, so `label` names the thing they walk away with and `note` says what
@@ -38,141 +17,95 @@ export type Project = {
   slug: string;
   name: string;
   state: ProjectState;
-  /** One line under the project name in the showcase. */
+  /** A short line above the name: who it is for, or who it was made with. */
   kicker: string;
-  /** The plain-language what-it-is, in a sentence. */
+  /** What it is, in a sentence. */
   summary: string;
-  /** The how-it-works paragraph under the summary. */
+  /** How it works, for the reader who wants a little more. */
   blurb: string;
   href?: string;
   repo?: string;
   cta: Cta;
   tags: string[];
-  /** Present on the projects that get a full-screen panel. */
-  preview?: Preview;
 };
 
 /**
- * Scroll order for the showcase. The lab leads: it is the only one of the four
- * where every layer of the work is open, which is the thing this site is
- * actually arguing.
+ * Display order. Cardtacular leads and gets the big card. The lab is last
+ * because it has a card of its own, with its live countdown, under the rest.
+ *
+ * Every claim here is one the product's own repo or site backs up. Plainstocks
+ * says "simulated" or "no real money" up front, because a portfolio newsletter
+ * that leaves the reader guessing whether the money is real has misled them.
  */
 export const projects: Project[] = [
   {
-    slug: "full-data-stack-lab",
-    name: "Full Data Stack Lab",
+    slug: "cardtacular",
+    name: "Cardtacular",
     state: "live",
-    kicker: "NCAA basketball, ingestion to dashboard, all in the open",
-    summary:
-      "Every NCAA Division I men's basketball team tracked through the season, the tournament simulated 20,000 times, and a page grading how well the model's own predictions did.",
+    kicker: "Made with my brother Ethan",
+    summary: "Digital greeting cards you make in the browser and send with a link.",
     blurb:
-      "Python pulls a public API into a DuckDB warehouse, dbt builds 20+ models behind 150+ tests, Dagster schedules the whole graph, and Evidence renders the dashboard from the same file dbt writes. The self-grading page is the part most bracket models leave out: forecasts that used only prior games are scored separately from ones that saw the future.",
-    href: "https://lab.cameronspilker.com",
-    repo: "https://github.com/CameronSpilker/full-data-stack-lab",
-    // The dashboard is the product. Sending a visitor to an explanation of the
-    // pipeline first asks them to take the interesting part on trust.
-    //
-    // Both links land on the lab's landing page, which is where the two
-    // dashboards are named and described. They used to land on one page inside
-    // the Evidence build, which was the better door while the root was an
-    // index, and which now skips past the dbt Charts boards entirely.
+      "Pick a template, then add text, photos, GIFs and voice messages across a four page card. You don't need an account to make one. Built with React and Supabase.",
+    href: "https://cardtacular.com",
     cta: {
-      label: "Open the lab",
-      href: "https://lab.cameronspilker.com",
-      note: "Two dashboards over one set of models: the Evidence pages, where you pick a team and the page answers, and the dbt Charts boards, each of them one YAML file. Start wherever the landing page points you.",
+      label: "Make a card",
+      href: "https://cardtacular.com",
+      // Only what the repo establishes. Whether the recipient needs an account
+      // is unconfirmed, so the note does not claim either way.
+      note: "No account needed to make one.",
     },
-    tags: ["dbt", "DuckDB", "Dagster", "Evidence.dev", "Python"],
-    preview: {
-      brand: "Full Data Stack Lab",
-      nav: ["Season", "Bracket", "Accuracy"],
-      tint: ["#070D18", "#1D3768"],
-      accent: "#7CA9FF",
-      shape: "chart",
-    },
+    tags: ["React", "Supabase"],
   },
   {
     slug: "plainstocks",
     name: "Plainstocks",
     state: "live",
-    kicker: "A weekly newsletter written by AI agents",
+    kicker: "A weekly newsletter",
     summary:
-      "Every week, a team of AI agents manages one simulated portfolio and writes up what it changed, trying to beat the S&P 500 in public.",
-    // Say "simulated" in the first sentence and again in the detail. A
-    // portfolio newsletter that leaves the reader guessing whether the money
-    // is real has misled them, whatever the small print says.
+      "A few AI agents run a simulated portfolio and try to beat the S&P 500. Every week they write up what they changed.",
     blurb:
-      "No real money is at stake. A multi-agent research desk holds 8 to 15 paper positions continuously and publishes every trade. Python gathers the data with no model involved; two Claude Code steps propose adds and exits; a judge step can only lower confidence, never invent a pick. Every position is marked daily against the S&P 500, and every issue stops at a human review gate before it sends.",
+      "No real money involved. Python gathers the data, a couple of Claude Code steps suggest what to add and drop, a judge step can only lower their confidence, and every issue gets a human read before it sends.",
     href: "https://plainstocks.com",
     cta: {
       // The issues go out by email and are not posted on the site, so a button
       // promising this week's issue promises something the link cannot deliver.
-      label: "Sign up for the newsletter",
+      label: "Get the newsletter",
       href: "https://plainstocks.com",
-      note: "Free weekly email. Every trade and the running score against the S&P 500.",
+      note: "Free weekly email.",
     },
-    tags: ["Python", "Multi-agent", "Supabase", "GitHub Actions"],
-    preview: {
-      brand: "Plainstocks",
-      nav: ["The desk", "Scorecard", "Subscribe"],
-      // "The Ledger": the product's own ink panel and brass accent.
-      tint: ["#14130E", "#3B3218"],
-      accent: "#E7A93C",
-      shape: "feed",
-    },
-  },
-  {
-    slug: "cardtacular",
-    name: "Cardtacular",
-    state: "live",
-    kicker: "Co-founded with my brother Ethan",
-    summary:
-      "Make a digital greeting card in the browser and send it with a link.",
-    blurb:
-      "Pick a template, then lay out text, photos, GIFs, and voice messages across a four-page card. Nobody has to make an account to build one or to open one. React and Supabase, deployed as a static SPA.",
-    href: "https://cardtacular.com",
-    cta: {
-      label: "Make a card in five minutes",
-      href: "https://cardtacular.com",
-      // Only what the repo actually establishes. Whether the recipient needs
-      // an account is unconfirmed, so the note does not claim either way.
-      note: "No account needed to make one. Text, photos, GIFs, and voice.",
-    },
-    tags: ["Founder", "React", "Supabase"],
-    preview: {
-      brand: "Cardtacular",
-      nav: ["Editor", "Templates", "Dashboard"],
-      // The app's own navy ground and cyan accent.
-      tint: ["#0D1520", "#123A44"],
-      accent: "#22E4DB",
-      shape: "grid",
-    },
+    tags: ["Python", "Multi-agent", "Supabase"],
   },
   {
     slug: "hoapulse",
     name: "HOApulse",
     state: "live",
-    kicker: "AI financial analysis for HOA boards",
-    summary:
-      "Upload your HOA's financial statements and find out whether its books are healthy.",
+    kicker: "For HOA boards",
+    summary: "Upload your HOA's financial statements and see whether the books look healthy.",
     blurb:
-      "Drop in an income statement and a balance sheet; get parsed line items, a dashboard, and a read on reserve health, budget against actual, and delinquency. The parser tries deterministic strategies first and only falls back to a model when they fail validation, so a normal month costs compute rather than tokens.",
+      "It reads an income statement and a balance sheet, then shows reserve health, budget against actual, and delinquency on a dashboard. Plain parsing rules go first, and an AI model only steps in when they can't make sense of a file.",
     href: "https://hoapulse.net",
     cta: {
-      label: "Score your HOA's books",
+      label: "Check your HOA's books",
       href: "https://hoapulse.net",
-      note: "Upload a statement, get reserve health and budget variance back.",
+      note: "Upload a statement to start.",
     },
-    tags: ["Next.js", "Supabase", "PDF parsing", "AI"],
-    preview: {
-      brand: "HOApulse",
-      nav: ["Upload", "Documents", "Dashboard"],
-      // Dark reading of the product's own blue-and-teal palette.
-      tint: ["#061627", "#0C4C5C"],
-      accent: "#5B9DF9",
-      shape: "chart",
+    tags: ["Next.js", "Supabase", "AI"],
+  },
+  {
+    slug: "full-data-stack-lab",
+    name: "Full Data Stack Lab",
+    state: "live",
+    kicker: "College basketball, from raw data to dashboard",
+    summary:
+      "A college basketball model I run in the open. It tracks every Division I men's team, simulates the tournament 20,000 times, and keeps score on how its own picks did.",
+    blurb:
+      "Python pulls a public API into DuckDB, dbt builds 20+ models behind 150+ tests, Dagster runs it every night, and Evidence draws the dashboard.",
+    href: "https://lab.cameronspilker.com",
+    repo: "https://github.com/CameronSpilker/full-data-stack-lab",
+    cta: {
+      label: "Open the lab",
+      href: "https://lab.cameronspilker.com",
     },
+    tags: ["dbt", "DuckDB", "Dagster", "Evidence", "Python"],
   },
 ];
-
-/** Projects that get a full-screen panel, in scroll order. */
-export const showcased = projects.filter((p) => p.preview);

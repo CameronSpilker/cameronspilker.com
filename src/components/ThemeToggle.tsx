@@ -15,11 +15,25 @@ const LABELS: Record<Appearance, string> = {
 };
 
 /** Sun, moon, and the half-filled circle that means "whatever the OS says". */
-const GLYPHS: Record<Appearance, string> = {
-  system: "◐",
-  light: "☀",
-  dark: "☾",
-};
+function Glyph({ setting }: { setting: Appearance }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+      {setting === "light" && (
+        <>
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+        </>
+      )}
+      {setting === "dark" && <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />}
+      {setting === "system" && (
+        <>
+          <circle cx="12" cy="12" r="8" />
+          <path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" />
+        </>
+      )}
+    </svg>
+  );
+}
 
 /**
  * The stored setting is an external system, not component state: it outlives
@@ -89,7 +103,7 @@ function next(setting: Appearance): Appearance {
  * The appearance control, one button wide.
  *
  * It cycles rather than opening a menu: three settings is short enough to click
- * through, and the chrome rail has room for a glyph and a word, not a popover.
+ * through, and the floating nav has room for a glyph, not a popover.
  */
 export function ThemeToggle() {
   const setting = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
@@ -120,10 +134,10 @@ export function ThemeToggle() {
       onClick={advance}
       aria-label={`Appearance: ${LABELS[setting]}. Switch to ${LABELS[next(setting)]}.`}
       title={`Appearance: ${LABELS[setting]}`}
-      className="inline-flex items-center gap-1.5 rounded border border-line/70 px-2 py-1 font-mono text-[11px] text-body/70 transition-colors hover:border-accent/40 hover:text-accent sm:text-xs"
+      className="inline-flex h-9 min-w-9 items-center justify-center gap-1.5 rounded-full px-2.5 text-sm text-body transition-colors hover:bg-bright/5 hover:text-accent"
     >
-      <span aria-hidden="true">{GLYPHS[setting]}</span>
-      <span className="hidden sm:inline">{LABELS[setting]}</span>
+      <Glyph setting={setting} />
+      <span className="hidden text-xs xl:inline">{LABELS[setting]}</span>
     </button>
   );
 }

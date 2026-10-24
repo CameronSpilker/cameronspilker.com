@@ -46,67 +46,25 @@ export const nightly = {
 };
 
 export const intro = {
-  label: "Analytics engineering",
-  title: "The Full Data Stack Lab is live",
-  lede:
-    "One repository holding every stage of an analytics stack: the extractors, the warehouse, 20+ models and their tests, the orchestrator, and the two dashboards those models exist to serve. The landing page opens onto both.",
-  countdownLabel: "Next rebuild in",
-  /**
-   * The button lands on the lab's own landing page, which is a page rather than
-   * an index: it names the two dashboards, says what each one is for, and lets
-   * the reader pick. Deep-linking past it used to be worth it when the root was
-   * a bare file listing. It is not now, and picking for the reader hid the dbt
-   * Charts boards from anyone arriving here.
-   */
+  label: "Side project",
+  countdownLabel: "Next update in",
   primary: {
     label: "Open the lab",
     detail:
-      "Two ways in, both reading the same models: the Evidence dashboard, where you pick a team and the page answers, and the dbt Charts boards, where each page is one YAML file. The landing page says what each one is for.",
+      "Two dashboards read the same models: one where you pick a team and dig in, and a set of chart boards. The landing page has both.",
   },
 };
 
 export type Elsewhere = {
   title: string;
   href: string | null;
-  detail: string;
 };
 
-/** The rest of the project, for a reader who wants more than the numbers. */
+/** The rest of the project, as quick links under the card. */
 export const elsewhere: Elsewhere[] = [
-  {
-    title: "What the model likes next",
-    href: lab.picks,
-    detail:
-      "The games that have not been played yet, priced every morning against the betting market. Ranked on disagreement rather than on confidence, because a 95% favourite is 95% on every screen in the country.",
-  },
-  {
-    title: "The rest of the dashboard",
-    href: lab.dashboard,
-    detail:
-      "The national table, the projected bracket, conference strength, and a page that grades how well the model's own forecasts did.",
-  },
-  {
-    title: "How the pipeline is built",
-    href: lab.dashboard ? `${lab.dashboard}/how-it-works` : null,
-    detail:
-      "Each layer, the tool it uses, and the reason it is that tool. Plus the real Dagster schedules and what each one rebuilds.",
-  },
-  {
-    title: "The same marts, in dbt Charts",
-    href: lab.charts,
-    detail:
-      "A second presentation layer over the same models, built with dbt Charts. Every board is one YAML file holding its queries, its charts and its layout, rendered to a static page by the pipeline that built the warehouse.",
-  },
-  {
-    title: "The dbt docs and lineage",
-    href: lab.docs,
-    detail:
-      "Every model, its columns, its tests, and the graph connecting them, generated from the project itself.",
-  },
-  {
-    title: "Every line of the source",
-    href: lab.repo,
-    detail:
-      "Ingestion, warehouse, models, orchestration and dashboard, in one repository with the CI that runs them.",
-  },
+  { title: "Upcoming picks", href: lab.picks },
+  { title: "How it's built", href: lab.dashboard ? `${lab.dashboard}/how-it-works` : null },
+  { title: "dbt Charts boards", href: lab.charts },
+  { title: "dbt docs", href: lab.docs },
+  { title: "Source code", href: lab.repo },
 ];

@@ -1,109 +1,92 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { nav } from "@/content/home";
 import { site } from "@/content/site";
 import { ThemeToggle } from "./ThemeToggle";
 
-// Same order as the page. The active-section logic below walks this list and
-// takes the last match, so it has to stay in document order.
-const sections = [
-  { id: "projects", label: "Projects" },
-  { id: "stack", label: "Lab" },
-  { id: "tools", label: "Tools" },
-  { id: "work", label: "Experience" },
-  { id: "about", label: "About" },
-  { id: "contact", label: "Contact" },
-];
-
 /**
- * The one piece of the page that never leaves: a name, the section you are in,
- * and how far through you are. It is what keeps the full-screen project
- * takeovers feeling like this site rather than a redirect.
+ * The floating nav: a frosted pill that stays put while the page scrolls.
+ *
+ * On a phone the section links fold into a menu, so the pill only ever holds
+ * the name, the appearance toggle and two buttons.
  */
 export function Chrome() {
-  const [progress, setProgress] = useState(0);
-  const [active, setActive] = useState<string | null>(null);
-  const [lifted, setLifted] = useState(false);
+  const [open, setOpen] = useState(false);
 
+  // Escape closes the menu, the way it closes anything else that opened.
   useEffect(() => {
-    let frame = 0;
-
-    const paint = () => {
-      frame = 0;
-      const doc = document.documentElement;
-      const scrollable = doc.scrollHeight - window.innerHeight;
-      setProgress(scrollable > 0 ? window.scrollY / scrollable : 0);
-      setLifted(window.scrollY > 24);
-
-      // The section whose top has most recently crossed a third of the screen.
-      const line = window.innerHeight / 3;
-      let current: string | null = null;
-      for (const section of sections) {
-        const el = document.getElementById(section.id);
-        if (el && el.getBoundingClientRect().top <= line) current = section.id;
-      }
-      setActive(current);
-    };
-
-    const schedule = () => {
-      if (!frame) frame = window.requestAnimationFrame(paint);
-    };
-
-    paint();
-    window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule);
-
-    return () => {
-      window.removeEventListener("scroll", schedule);
-      window.removeEventListener("resize", schedule);
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, []);
+    if (!open) return;
+    const close = (event: KeyboardEvent) => event.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [open]);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50">
-      <div
-        className={`transition-colors duration-300 ${
-          lifted ? "border-b border-line/60 bg-ink/80 backdrop-blur-md" : "border-b border-transparent"
-        }`}
-      >
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-6 px-6 py-3.5">
-          <a
-            href="#top"
-            className="font-mono text-xs whitespace-nowrap text-bright transition-colors hover:text-accent sm:text-sm"
+    <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-6 sm:pt-4">
+      <div className="glass mx-auto flex w-full max-w-6xl items-center justify-between gap-3 rounded-full py-2 pr-2 pl-5">
+        <a href="#top" className="text-sm font-bold whitespace-nowrap text-bright sm:text-base">
+          {site.name}
+        </a>
+
+        <div className="flex items-center gap-1 sm:gap-2">
+          <nav aria-label="Sections" className="hidden md:block">
+            <ul className="flex items-center gap-1">
+              {nav.sections.map((section) => (
+                <li key={section.id}>
+                  <a
+                    href={`#${section.id}`}
+                    className="rounded-full px-3 py-2 text-sm text-body transition-colors hover:bg-bright/5 hover:text-bright"
+                  >
+                    {section.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <ThemeToggle />
+
+          <button
+            type="button"
+            onClick={() => setOpen((value) => !value)}
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+            className="rounded-full px-3 py-2 text-sm font-medium text-bright transition-colors hover:bg-bright/5 md:hidden"
           >
-            {site.name}
+            {open ? nav.close : nav.menu}
+          </button>
+
+          <a
+            href="#contact"
+            className="hidden rounded-full bg-bright px-4 py-2 text-sm font-semibold text-ink transition-opacity hover:opacity-90 sm:inline-block"
+          >
+            {nav.contact}
           </a>
-
-          <div className="flex items-center gap-3 sm:gap-6">
-            <nav aria-label="Sections">
-              <ul className="flex items-center gap-3 font-mono text-[11px] sm:gap-6 sm:text-xs">
-                {sections.map((section) => (
-                  <li key={section.id}>
-                    <a
-                      href={`#${section.id}`}
-                      aria-current={active === section.id ? "true" : undefined}
-                      className={`transition-colors hover:text-accent ${
-                        active === section.id ? "text-accent" : "text-body/70"
-                      }`}
-                    >
-                      {section.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-
-            <ThemeToggle />
-          </div>
         </div>
       </div>
 
-      <div
-        aria-hidden="true"
-        className="h-px origin-left bg-accent transition-transform duration-150 ease-out"
-        style={{ transform: `scaleX(${progress})` }}
-      />
+      {open && (
+        <nav
+          id="mobile-menu"
+          aria-label="Sections"
+          className="glass mx-auto mt-2 w-full max-w-6xl rounded-3xl p-2 md:hidden"
+        >
+          <ul>
+            {[...nav.sections, { id: "contact", label: nav.contact }].map((section) => (
+              <li key={section.id}>
+                <a
+                  href={`#${section.id}`}
+                  onClick={() => setOpen(false)}
+                  className="block rounded-2xl px-4 py-3 text-base font-medium text-bright transition-colors hover:bg-bright/5"
+                >
+                  {section.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
     </header>
   );
 }
