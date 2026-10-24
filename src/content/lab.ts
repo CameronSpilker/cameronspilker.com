@@ -48,11 +48,6 @@ export const nightly = {
 export const intro = {
   label: "Side project",
   countdownLabel: "Next update in",
-  primary: {
-    label: "Open the lab",
-    detail:
-      "Two dashboards read the same models: one where you pick a team and dig in, and a set of chart boards. The landing page has both.",
-  },
 };
 
 export type Elsewhere = {
