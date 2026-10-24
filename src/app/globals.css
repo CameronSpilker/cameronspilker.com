@@ -164,6 +164,48 @@
 }
 
 /*
+ * Wheel spinner. The slices keep one fixed set (white labels need the same
+ * contrast in both appearances); what changes is the hardware around them:
+ * a pale polished rim with a blue shadow by day, a dark bezel with a cyan glow
+ * by night. The hub and pointer stay deep enough for white text in both.
+ */
+:root {
+  --wheel-rim-a: #ffffff;
+  --wheel-rim-b: #cfe1ec;
+  --wheel-shadow: rgba(10, 105, 192, 0.3);
+  --wheel-seam: rgba(255, 255, 255, 0.6);
+  --wheel-hub-a: #0a7bd6;
+  --wheel-hub-b: #5f6bff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --wheel-rim-a: #1c3150;
+    --wheel-rim-b: #07111e;
+    --wheel-shadow: rgba(92, 200, 240, 0.28);
+    --wheel-seam: rgba(6, 16, 28, 0.55);
+    --wheel-hub-a: #1468b8;
+    --wheel-hub-b: #4a52d6;
+  }
+}
+
+:root[data-theme="dark"] {
+  --wheel-rim-a: #1c3150;
+  --wheel-rim-b: #07111e;
+  --wheel-shadow: rgba(92, 200, 240, 0.28);
+  --wheel-seam: rgba(6, 16, 28, 0.55);
+  --wheel-hub-a: #1468b8;
+  --wheel-hub-b: #4a52d6;
+}
+
+/* The wheel's own call to action: the hub gradient, white text, a soft glow. */
+@utility wheel-cta {
+  background-image: linear-gradient(135deg, var(--wheel-hub-a), var(--wheel-hub-b));
+  color: #ffffff;
+  box-shadow: 0 10px 28px var(--wheel-shadow);
+}
+
+/*
  * Chart palette.
  *
  * Separate from the site palette on purpose. The site theme is one accent and a

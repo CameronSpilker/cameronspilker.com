@@ -27,6 +27,9 @@ Where the site stands and what comes next.
       sign it, and download the finished copy, in four numbered steps. Two
       practice documents (a general form and a board resolution). Read and
       written in the page; nothing is uploaded or stored
+- [x] `/tools/wheel-spinner`: add options, spin, confetti for the winner,
+      spin again or remove the winner and spin. Remembers the list in the
+      browser only
 - [ ] Optional `manifest.json`, for the critical path and counterfactual savings
 - [ ] Two-run comparison, so a regression is visible without reading two charts
 - [ ] Cron explainer, reusing the tested `src/lib/cron.ts`
