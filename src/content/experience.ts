@@ -3,6 +3,11 @@ export type Role = {
   title: string;
   start: string;
   end: string;
+  /**
+   * Three short wins shown on the card before anyone expands it. Each one is
+   * lifted from a bullet below, so it never claims more than the bullet does.
+   */
+  hits: string[];
   highlights: string[];
   tags: string[];
 };
@@ -24,6 +29,11 @@ export const experience: Role[] = [
     title: "Senior Analytics Engineer",
     start: "Oct 2024",
     end: "Present",
+    hits: [
+      "Launched conversational analytics on governed metrics",
+      "650+ dbt models moved to Snowflake, zero downtime",
+      "Feature reporting from 7 features to 145",
+    ],
     highlights: [
       "Launched conversational analytics on the Omni semantic layer, giving stakeholders natural language access to governed metrics. Built reusable components into the dbt repo and run evals on the context behind them to keep answers accurate.",
       "Co-led a zero-downtime migration of 650+ dbt models and 600+ Looker assets, seven years of reporting and operational data, from Redshift to Snowflake.",
@@ -38,6 +48,11 @@ export const experience: Role[] = [
     title: "Senior Analytics Engineer",
     start: "Sep 2023",
     end: "Oct 2024",
+    hits: [
+      "CI/CD runtime from 60 minutes to 6",
+      "Reverse ETL syncs from 30+ hours to under 1",
+      "dbt docs coverage from 46% to 85%",
+    ],
     highlights: [
       "Cut CI/CD runtime from 60 minutes to 6 through code diffing and smart caching, accelerating PR feedback for 10+ analytics engineers.",
       "Re-engineered 50+ dbt models and 150+ Looker assets after major Salesforce architecture changes, restoring accuracy across 20+ dashboards used by Sales, Finance, Customer Success, and Marketing.",
@@ -51,6 +66,11 @@ export const experience: Role[] = [
     title: "Analytics Engineer",
     start: "Mar 2022",
     end: "Sep 2023",
+    hits: [
+      "$300K+ a year saved on Snowflake",
+      "Shared models behind 10+ core metrics",
+      "~25% fewer ad hoc report requests",
+    ],
     highlights: [
       "Achieved $300K+ in annualized savings by optimizing Snowflake queries and pipelines across core analytics workloads.",
       "Designed centralized subject area models for the Growth and Product Analytics teams covering search, ads, impressions, marketing performance, and competitive pricing, increasing consistency across 10+ core metrics.",

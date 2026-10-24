@@ -19,10 +19,10 @@ export const nav = {
 };
 
 export const hero = {
-  chip: "Analytics engineer · side project builder",
+  chip: "Analytics engineer · building with AI",
   hello: "Hi, I'm Cameron.",
   line: "I like building things.",
-  lede: "I work with data at Typeform. In my spare time I make side projects, a couple of them with my brother. Here's what I've been working on.",
+  lede: "At Typeform I build the data that people and AI agents rely on. In my spare time I make side projects, one of them with my brother. Here's what I've been working on.",
   primary: "See my projects",
   secondary: "Say hi",
 };
@@ -41,30 +41,35 @@ export const toolsIntro = {
 export const workIntro = {
   label: "Experience",
   title: "Where I've worked",
-  lede: "I've been doing analytics engineering at Typeform, Apollo.io and Gopuff, with data engineering and analytics roles before that. Most of it comes down to data models, migrations, and dashboards people can rely on.",
+  lede: "Analytics engineering at Typeform, Apollo.io and Gopuff, with data engineering and analytics before that. The common thread is building sources of truth: data that a dashboard, a person asking a question, and an AI agent can all rely on.",
   linkedin: "Full history on LinkedIn",
   earlier: "Before that",
-  more: "Show highlights",
+  more: "Show details",
+  less: "Hide details",
 };
 
 export const about = {
   label: "About",
   title: "A bit about me",
   paragraphs: [
-    "I'm an analytics engineer in Utah. Day to day that means pulling data in, modeling it with dbt, and building the dashboards people actually open.",
-    "Outside of work I like building small products, usually with a lot of help from AI, and seeing if anyone finds them useful. I studied information systems at BYU and later taught a spreadsheets class there.",
+    "I'm an analytics engineer in Utah. The way I see the job, it's building sources of truth: well modeled data with clear definitions, so a dashboard, a person with a question, and an AI agent all get the same answer.",
+    "AI is a big part of how I work. I use it to build faster, and more of what I build is for it now, like the semantic layer and the evals behind conversational analytics at Typeform.",
+    "Outside of work I make side projects, one of them with my brother Ethan, and I run a college basketball model in public. I studied information systems at BYU and later went back to teach a spreadsheets class there.",
   ],
+  factsTitle: "A few other things",
   facts: [
     { k: "Based in", v: "Utah" },
+    { k: "Started out in", v: "Audit analytics, at BYU" },
     { k: "Studied", v: "Information Systems, BYU (BS + MS)" },
     { k: "Taught", v: "IS 515, Advanced Spreadsheets, at BYU" },
-    { k: "Usually using", v: "dbt · Snowflake · Looker · Omni · Python" },
+    { k: "Side projects", v: "Four live, one with my brother" },
+    { k: "Usually using", v: "dbt · Snowflake · Omni · Claude Code · Python" },
   ],
 };
 
 export const contact = {
   label: "Contact",
   title: "Say hi",
-  lede: "Happy to chat about data, side projects, or anything on this page.",
+  lede: "Happy to chat about data, AI, side projects, or anything on this page.",
   footer: "Built with Next.js, hosted on Vercel.",
 };

@@ -19,7 +19,8 @@ export function About() {
               <p key={paragraph}>{paragraph}</p>
             ))}
           </div>
-          <dl className="mt-6 grid gap-4 border-t border-line/70 pt-6 sm:grid-cols-2">
+          <p className="mt-6 border-t border-line/70 pt-6 text-sm font-semibold text-bright">{about.factsTitle}</p>
+          <dl className="mt-4 grid gap-4 sm:grid-cols-2">
             {about.facts.map((fact) => (
               <div key={fact.k}>
                 <dt className="text-xs text-body/80">{fact.k}</dt>
