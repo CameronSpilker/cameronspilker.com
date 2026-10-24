@@ -34,7 +34,8 @@ Content and presentation are separate on purpose. Copy changes belong in
 
 ```
 src/
-├── app/            # App Router entry: layout, page, global styles, /tools routes
+├── app/            # App Router entry: layout, page, global styles, /tools routes,
+│                   # and opengraph-image.png (from `npm run share-card`)
 ├── components/     # Section components (Hero, Projects, Lab, Experience, ...)
 │   └── tools/      # The tool pages, which are apps rather than sections
 ├── lib/            # Framework-free helpers (cron.ts drives the Lab countdown)
