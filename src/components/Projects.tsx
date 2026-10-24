@@ -4,7 +4,6 @@ import { projectsIntro } from "@/content/home";
 import { projects, type Project } from "@/content/projects";
 import { Lab } from "./Lab";
 import { Section } from "./Section";
-import { Tag } from "./Tag";
 
 const SHOT_DIR = path.join(process.cwd(), "public", "shots");
 const EXTENSIONS = [".webp", ".png", ".jpg"];
@@ -24,7 +23,9 @@ function findShot(slug: string): string | undefined {
 
 /**
  * The first project gets the big card. The rest share a row, and the lab sits
- * underneath in a card of its own, because it carries a live countdown.
+ * underneath in a card of its own, with its numbers and live countdown. Every
+ * card is a label, a one line headline and a button; the detail lives on the
+ * product's own site.
  */
 export function Projects() {
   const [featured, ...rest] = projects.filter((project) => project.slug !== LAB);
@@ -42,7 +43,7 @@ export function Projects() {
 
       {lab && (
         <div className="mt-5">
-          <Lab project={lab} />
+          <Lab project={lab} image={findShot(lab.slug)} />
         </div>
       )}
     </Section>
@@ -71,23 +72,16 @@ function Shot({ project, image }: { project: Project; image?: string }) {
   );
 }
 
-function Cta({ project, solid = false }: { project: Project; solid?: boolean }) {
+function Cta({ project }: { project: Project }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-      <a
-        href={project.cta.href}
-        target="_blank"
-        rel="noreferrer"
-        className={
-          solid
-            ? "rounded-full bg-bright px-5 py-2.5 text-sm font-semibold text-ink transition-opacity hover:opacity-90"
-            : "text-sm font-semibold text-accent transition-colors hover:text-bright"
-        }
-      >
-        {project.cta.label} <span aria-hidden="true">→</span>
-      </a>
-      {project.cta.note && <span className="text-xs text-body/80">{project.cta.note}</span>}
-    </div>
+    <a
+      href={project.cta.href}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-block rounded-full bg-bright px-5 py-2.5 text-sm font-semibold text-ink transition-opacity hover:opacity-90"
+    >
+      {project.cta.label} <span aria-hidden="true">→</span>
+    </a>
   );
 }
 
@@ -99,15 +93,9 @@ function FeaturedCard({ project, image }: { project: Project; image?: string }) 
           {project.kicker}
         </span>
         <h3 className="mt-4 text-3xl font-extrabold tracking-tight text-bright sm:text-4xl">{project.name}</h3>
-        <p className="mt-3 text-lg leading-relaxed text-bright/90">{project.summary}</p>
-        <p className="mt-3 text-sm leading-relaxed">{project.blurb}</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {project.tags.map((tag) => (
-            <Tag key={tag}>{tag}</Tag>
-          ))}
-        </div>
+        <p className="mt-3 text-lg leading-relaxed text-bright/90 sm:text-xl">{project.summary}</p>
         <div className="mt-6">
-          <Cta project={project} solid />
+          <Cta project={project} />
         </div>
       </div>
       <div className="order-1 lg:order-2">
@@ -124,8 +112,7 @@ function ProjectCard({ project, image }: { project: Project; image?: string }) {
       <div className="flex flex-1 flex-col px-2 pt-5 pb-2">
         <p className="text-xs font-semibold text-accent">{project.kicker}</p>
         <h3 className="mt-1.5 text-2xl font-bold tracking-tight text-bright">{project.name}</h3>
-        <p className="mt-2 leading-relaxed">{project.summary}</p>
-        <p className="mt-2 text-sm leading-relaxed text-body/85">{project.blurb}</p>
+        <p className="mt-2 text-base leading-relaxed text-bright/90">{project.summary}</p>
         <div className="mt-auto pt-5">
           <Cta project={project} />
         </div>
