@@ -6,6 +6,7 @@ import { pdfSignerTool as copy } from "@/content/tools";
 import { clampBox, initialsOf, signedFileName, type Box } from "@/lib/pdf/geometry";
 import {
   canvasToPng,
+  checkMark,
   drawnSignature,
   INKS,
   TEXT_SIZE,
@@ -14,6 +15,7 @@ import {
   type Ink,
   type Stroke,
 } from "@/lib/pdf/ink";
+import type { SampleId } from "@/lib/pdf/sample";
 import { SIGNATURE_FONTS } from "./signatureFonts";
 import { SignaturePad } from "./SignaturePad";
 
@@ -27,7 +29,7 @@ type Doc = {
   pdf: PDFDocumentProxy;
   bytes: Uint8Array;
   name: string;
-  sample: boolean;
+  sample: SampleId | null;
   /** Each page's displayed size in points, rotation already applied. */
   pages: { width: number; height: number }[];
 };
@@ -36,7 +38,9 @@ type Doc = {
 const TEXT_HEIGHT = 0.022;
 
 const button =
-  "rounded-md border border-line px-3 py-1.5 text-sm text-bright transition-colors hover:border-accent hover:text-accent disabled:opacity-50";
+  "rounded-md border border-line bg-ink px-3 py-2 text-sm text-bright transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50";
+const primary =
+  "inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-ink transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50";
 
 function dataUrlBytes(url: string): Uint8Array {
   const binary = atob(url.split(",")[1]);
@@ -70,6 +74,7 @@ export function PdfSigner() {
   const [focusId, setFocusId] = useState<number | null>(null);
   const [dragging, setDragging] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   // Held in memory only. Nothing about the signer is written to storage.
@@ -94,12 +99,13 @@ export function PdfSigner() {
   const say = useCallback((message: string) => {
     setToast(message);
     clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), 3600);
+    toastTimer.current = setTimeout(() => setToast(null), 4000);
   }, []);
 
-  const load = useCallback(async (bytes: Uint8Array, fileName: string, sample: boolean) => {
+  const load = useCallback(async (bytes: Uint8Array, fileName: string, sample: SampleId | null) => {
     setStatus(sample ? "loading" : "opening");
     setError(null);
+    setSaved(null);
     setMarks([]);
     setSelected(null);
     setArmed(null);
@@ -123,7 +129,6 @@ export function PdfSigner() {
       setDoc({ pdf: opened, bytes, name: fileName, sample, pages });
       setStatus("ready");
     } catch (thrown) {
-      setDoc(null);
       setStatus("failed");
       setError(
         thrown instanceof Error && thrown.name === "PasswordException"
@@ -133,19 +138,25 @@ export function PdfSigner() {
     }
   }, []);
 
+  const loadSample = useCallback(
+    async (id: SampleId) => {
+      const option = copy.samples.options.find((sample) => sample.id === id);
+      const { makeSamplePdf } = await import("@/lib/pdf/sample");
+      await load(await makeSamplePdf(id), option?.fileName ?? "Sample.pdf", id);
+    },
+    [load],
+  );
+
   /**
-   * Open on the sample, for the same reason the run results tool does: a
-   * reader can see what the thing does before deciding to find a file for it.
+   * Open on a sample, for the same reason the run results tool does: a reader
+   * can see what the thing does before deciding to find a file for it.
    */
   const greeted = useRef(false);
   useEffect(() => {
     if (greeted.current) return;
     greeted.current = true;
-    void (async () => {
-      const { makeSamplePdf } = await import("@/lib/pdf/sample");
-      await load(await makeSamplePdf(), copy.sample.fileName, true);
-    })();
-  }, [load]);
+    void loadSample(copy.samples.options[0].id);
+  }, [loadSample]);
 
   useEffect(() => () => void task.current?.destroy(), []);
 
@@ -153,13 +164,29 @@ export function PdfSigner() {
     async (file: File | null | undefined) => {
       if (!file) return;
       if (!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)) {
-        say(copy.errors.notPdf);
+        setError(copy.errors.notPdf);
         return;
       }
-      await load(new Uint8Array(await file.arrayBuffer()), file.name, false);
+      await load(new Uint8Array(await file.arrayBuffer()), file.name, null);
     },
-    [load, say],
+    [load],
   );
+
+  /** Drop handling, shared by the upload card and the document itself. */
+  const dropTarget = {
+    onDragOver: (event: React.DragEvent) => {
+      event.preventDefault();
+      setDragging(true);
+    },
+    onDragLeave: (event: React.DragEvent) => {
+      if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false);
+    },
+    onDrop: (event: React.DragEvent) => {
+      event.preventDefault();
+      setDragging(false);
+      void openFile(event.dataTransfer.files?.[0]);
+    },
+  };
 
   /** Fit a text mark's width to what it says, at its current height. */
   const fitText = useCallback((mark: Mark): Mark => {
@@ -176,6 +203,7 @@ export function PdfSigner() {
   const signatureImage = useCallback(
     async (kind: Kind): Promise<HTMLCanvasElement | null> => {
       const family = SIGNATURE_FONTS[font].family;
+      if (kind === "check") return checkMark(ink);
       if (kind === "initials") {
         const initials = initialsOf(name);
         if (!initials) {
@@ -203,14 +231,15 @@ export function PdfSigner() {
       const kind = armed;
       if (!kind || !doc) return;
       setArmed(null);
+      setSaved(null);
       const size = doc.pages[page];
       const id = nextId.current++;
       let mark: Mark;
 
-      if (kind === "signature" || kind === "initials") {
+      if (kind === "signature" || kind === "initials" || kind === "check") {
         const canvas = await signatureImage(kind);
         if (!canvas) return;
-        const w = kind === "signature" ? 0.28 : 0.09;
+        const w = kind === "signature" ? 0.28 : kind === "initials" ? 0.09 : 0.025;
         const h = (w * (canvas.height / canvas.width) * size.width) / size.height;
         mark = { id, page, kind, src: canvas.toDataURL("image/png"), x: u - w / 2, y: v - h / 2, w, h };
       } else {
@@ -252,8 +281,10 @@ export function PdfSigner() {
   }, [remove, selected]);
 
   const arm = (kind: Kind) => {
-    setArmed((current) => (current === kind ? null : kind));
-    if (window.matchMedia("(max-width: 1023px)").matches) {
+    const next = armed === kind ? null : kind;
+    setArmed(next);
+    // On a phone the page is below the controls, so take the reader to it.
+    if (next && window.matchMedia("(max-width: 1023px)").matches) {
       stage.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
@@ -277,7 +308,7 @@ export function PdfSigner() {
       let next: Mark;
       if (mode === "move") next = { ...origin, x: origin.x + dx, y: origin.y + dy };
       else if (origin.src) {
-        const w = Math.max(0.03, origin.w + dx);
+        const w = Math.max(0.015, origin.w + dx);
         next = { ...origin, w, h: w * (origin.h / origin.w) };
       } else next = fitText({ ...origin, h: Math.max(0.008, origin.h + dy) });
       const box = clampBox(next);
@@ -293,12 +324,10 @@ export function PdfSigner() {
     handle.addEventListener("pointercancel", end);
   };
 
+  const filled = marks.filter((mark) => mark.src || mark.value?.trim());
+
   const save = async () => {
-    if (!doc) {
-      say(copy.errors.noDocument);
-      return;
-    }
-    const filled = marks.filter((mark) => mark.src || mark.value?.trim());
+    if (!doc) return;
     if (filled.length === 0) {
       say(copy.errors.noMarks);
       return;
@@ -321,7 +350,8 @@ export function PdfSigner() {
       const out = await stampPdf(doc.bytes, stamped);
       const fileName = signedFileName(doc.name);
       download(out, fileName);
-      say(copy.saved(fileName));
+      setSaved(fileName);
+      say(copy.finish.saved(fileName));
     } catch {
       say(copy.errors.build);
     } finally {
@@ -330,90 +360,139 @@ export function PdfSigner() {
   };
 
   const busy = status === "loading" || status === "opening";
+  const own = doc !== null && doc.sample === null;
+  const outName = doc ? signedFileName(doc.name) : null;
+
+  const downloadButton = (label: string) => (
+    <button type="button" onClick={() => void save()} disabled={saving || !doc} className={`${primary} w-full whitespace-nowrap`}>
+      <DownloadIcon />
+      {saving ? copy.finish.saving : label}
+    </button>
+  );
 
   return (
-    <div className="space-y-6">
-      {doc?.sample && (
-        <section className="rounded-lg border border-[color:var(--viz-warning)]/50 bg-raised/40 p-4">
-          <p className="font-mono text-xs tracking-widest text-[color:var(--viz-warning)] uppercase">
-            {copy.sample.banner}
-          </p>
-          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-body">{copy.sample.bannerDetail}</p>
-        </section>
-      )}
+    <div className="space-y-6 pb-28 lg:pb-0">
+      {/* Step 1. The way in, and the first thing on the page. */}
+      <section
+        {...dropTarget}
+        aria-labelledby="step-upload"
+        className="rounded-xl border border-line bg-raised/40 p-5 sm:p-6"
+      >
+        <StepHeading id="step-upload" n={1} title={copy.steps.upload} />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+        {own && !dragging ? (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-ink p-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <FileIcon />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-bright">{doc.name}</p>
+                <p className="font-mono text-[11px] text-body/70">{copy.upload.pages(doc.pages.length)}</p>
+              </div>
+            </div>
+            <button type="button" onClick={() => input.current?.click()} className={button}>
+              {copy.upload.replace}
+            </button>
+          </div>
+        ) : (
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => input.current?.click()}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                input.current?.click();
+              }
+            }}
+            className={`mt-4 flex cursor-pointer flex-col items-center gap-3 rounded-lg border-2 border-dashed px-4 py-6 text-center transition-colors sm:flex-row sm:gap-5 sm:px-6 sm:text-left ${
+              dragging ? "border-accent bg-accent/10" : "border-line bg-ink hover:border-accent"
+            }`}
+          >
+            <UploadIcon />
+            <div className="min-w-0 flex-1">
+              <p className="text-base font-semibold text-bright">
+                {dragging ? copy.upload.active : status === "opening" ? copy.upload.opening : copy.upload.drop}
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-body/70">{copy.upload.note}</p>
+            </div>
+            <span className={`${primary} shrink-0`}>{copy.upload.choose}</span>
+          </div>
+        )}
+
+        <input
+          ref={input}
+          type="file"
+          accept="application/pdf,.pdf"
+          className="sr-only"
+          tabIndex={-1}
+          aria-label={copy.upload.choose}
+          onChange={(event) => {
+            void openFile(event.target.files?.[0]);
+            event.target.value = "";
+          }}
+        />
+
+        {error && (
+          <p role="alert" className="mt-4 rounded-md border border-[color:var(--viz-critical)] bg-ink p-3 text-sm text-bright">
+            {error}
+          </p>
+        )}
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-xs text-body/80">{copy.samples.label}</span>
+          {copy.samples.options.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              aria-pressed={doc?.sample === option.id}
+              onClick={() => void loadSample(option.id)}
+              className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                doc?.sample === option.id
+                  ? "border-accent bg-accent/10 text-accent"
+                  : "border-line text-bright hover:border-accent hover:text-accent"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
         <section
           ref={stage}
-          onDragOver={(event) => {
-            event.preventDefault();
-            setDragging(true);
-          }}
-          onDragLeave={(event) => {
-            if (event.currentTarget === event.target) setDragging(false);
-          }}
-          onDrop={(event) => {
-            event.preventDefault();
-            setDragging(false);
-            void openFile(event.dataTransfer.files?.[0]);
-          }}
-          className={`order-2 min-w-0 scroll-mt-20 rounded-xl border-2 bg-surface p-3 transition-colors sm:p-6 lg:order-1 ${
-            dragging ? "border-dashed border-accent" : "border-line"
-          }`}
+          {...dropTarget}
+          aria-label={doc?.name ?? copy.steps.upload}
+          className="order-2 min-w-0 scroll-mt-20 rounded-xl border border-line bg-surface p-3 sm:p-6 lg:order-1"
         >
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-3">
-            <p className="min-w-0 truncate font-mono text-xs text-bright">
-              {dragging
-                ? copy.file.dropActive
-                : doc
-                  ? `${doc.name}  ·  ${copy.file.pages(doc.pages.length)}`
-                  : busy
-                    ? status === "loading"
-                      ? copy.file.loading
-                      : copy.file.opening
-                    : copy.file.none}
-            </p>
-            <button
-              type="button"
-              onClick={() => input.current?.click()}
-              className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-ink transition-opacity hover:opacity-90"
-            >
-              {copy.open}
-            </button>
-            <input
-              ref={input}
-              type="file"
-              accept="application/pdf,.pdf"
-              className="sr-only"
-              onChange={(event) => {
-                void openFile(event.target.files?.[0]);
-                event.target.value = "";
-              }}
-            />
-          </div>
+          {doc && (
+            <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <p className="min-w-0 truncate font-mono text-xs text-bright">{doc.name}</p>
+              {doc.sample && (
+                <span className="rounded-full border border-[color:var(--viz-warning)]/60 px-2 py-0.5 font-mono text-[10px] tracking-wider text-[color:var(--viz-warning)] uppercase">
+                  {copy.samples.showing}
+                </span>
+              )}
+              {doc.sample && <p className="w-full text-xs text-body/80">{copy.samples.showingDetail}</p>}
+            </div>
+          )}
 
           {armed && (
-            <div className="sticky top-16 z-20 mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-ink">
+            <div className="sticky top-16 z-20 mb-4 flex items-center justify-between gap-3 rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-ink shadow-md">
               <span>{copy.add.armed(copy.add.kinds[armed])}</span>
               <button
                 type="button"
                 onClick={() => setArmed(null)}
-                className="rounded border border-current px-2 py-0.5 text-xs"
+                className="shrink-0 rounded border border-current px-2 py-0.5 text-xs"
               >
                 {copy.add.cancel}
               </button>
             </div>
           )}
 
-          {error && (
-            <div className="mt-4 rounded-lg border border-[color:var(--viz-critical)] bg-raised/40 p-4">
-              <p className="text-sm text-bright">{error}</p>
-            </div>
-          )}
-
-          <div className="mx-auto mt-8 flex max-w-[880px] flex-col gap-8">
+          <div className="mx-auto flex max-w-[880px] flex-col gap-6">
             {busy && !doc && (
-              <p className="py-16 text-center font-mono text-xs text-body/70">{copy.file.loading}</p>
+              <p className="py-24 text-center font-mono text-xs text-body/70">{copy.upload.loading}</p>
             )}
             {doc &&
               doc.pages.map((size, index) => (
@@ -433,6 +512,9 @@ export function PdfSigner() {
                       setSelected(null);
                       return;
                     }
+                    // Without this the press goes on to focus the page itself,
+                    // which takes focus straight back off a new text box.
+                    event.preventDefault();
                     const rect = event.currentTarget.getBoundingClientRect();
                     void placeAt(
                       index,
@@ -443,34 +525,34 @@ export function PdfSigner() {
                 >
                   {(heightPx) =>
                     marks
-                    .filter((mark) => mark.page === index)
-                    .map((mark) => (
-                      <MarkView
-                        key={mark.id}
-                        mark={mark}
-                        selected={selected === mark.id}
-                        autoFocus={focusId === mark.id}
-                        fontPx={mark.h * heightPx * TEXT_SIZE}
-                        onSelect={() => setSelected(mark.id)}
-                        onRemove={() => remove(mark.id)}
-                        onDrag={(event, mode) => startDrag(event, mark, mode)}
-                        onText={(value) =>
-                          setMarks((all) => all.map((m) => (m.id === mark.id ? fitText({ ...m, value }) : m)))
-                        }
-                      />
-                    ))
+                      .filter((mark) => mark.page === index)
+                      .map((mark) => (
+                        <MarkView
+                          key={mark.id}
+                          mark={mark}
+                          selected={selected === mark.id}
+                          autoFocus={focusId === mark.id}
+                          fontPx={mark.h * heightPx * TEXT_SIZE}
+                          onSelect={() => setSelected(mark.id)}
+                          onRemove={() => remove(mark.id)}
+                          onDrag={(event, mode) => startDrag(event, mark, mode)}
+                          onText={(value) =>
+                            setMarks((all) => all.map((m) => (m.id === mark.id ? fitText({ ...m, value }) : m)))
+                          }
+                        />
+                      ))
                   }
                 </PdfPage>
               ))}
           </div>
         </section>
 
-        <aside className="order-1 space-y-7 rounded-xl border border-line bg-raised/40 p-5 lg:sticky lg:top-20 lg:order-2">
-          <section>
-            <h2 className="font-mono text-[11px] tracking-[0.15em] text-body/70 uppercase">
-              {copy.signature.title}
-            </h2>
-            <label htmlFor="signer-name" className="mt-3 block text-sm font-medium text-bright">
+        {/* Capped at the window's height so step 4 is always reachable while the
+            document scrolls past. */}
+        <aside className="order-1 space-y-4 lg:sticky lg:top-20 lg:order-2 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:overscroll-contain lg:pb-1">
+          <section aria-labelledby="step-signature" className="rounded-xl border border-line bg-raised/40 p-5">
+            <StepHeading id="step-signature" n={2} title={copy.steps.signature} />
+            <label htmlFor="signer-name" className="mt-4 block text-sm font-medium text-bright">
               {copy.signature.name}
             </label>
             <input
@@ -480,10 +562,11 @@ export function PdfSigner() {
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder={copy.signature.namePlaceholder}
-              className="mt-1.5 w-full rounded-md border border-line bg-ink px-3 py-2 text-sm text-bright placeholder:text-body/50 focus:border-accent focus:outline-none"
+              className="mt-1.5 w-full rounded-md border border-line bg-ink px-3 py-2 text-base text-bright placeholder:text-body/50 focus:border-accent focus:outline-none sm:text-sm"
             />
+            <p className="mt-1.5 text-xs text-body/70">{copy.signature.nameHint}</p>
 
-            <div role="tablist" className="mt-4 grid grid-cols-2 rounded-md border border-line p-0.5">
+            <div role="tablist" className="mt-4 grid grid-cols-2 rounded-md border border-line bg-ink p-0.5">
               {(["draw", "type"] as const).map((key) => (
                 <button
                   key={key}
@@ -492,7 +575,7 @@ export function PdfSigner() {
                   aria-selected={tab === key}
                   onClick={() => setTab(key)}
                   className={`rounded px-2 py-1.5 text-sm transition-colors ${
-                    tab === key ? "bg-accent text-ink" : "text-body hover:text-accent"
+                    tab === key ? "bg-accent font-medium text-ink" : "text-body hover:text-accent"
                   }`}
                 >
                   {copy.signature[key]}
@@ -514,7 +597,7 @@ export function PdfSigner() {
                       onClick={() => setFont(index)}
                       style={{ fontFamily: option.family, color: INKS[ink] }}
                       className={`min-h-13 truncate rounded-md border bg-white px-3 py-1.5 text-left text-2xl leading-normal ${
-                        font === index ? "border-accent ring-1 ring-accent" : "border-line"
+                        font === index ? "border-accent ring-2 ring-accent" : "border-line"
                       }`}
                     >
                       {name.trim() || copy.signature.namePreview}
@@ -534,7 +617,7 @@ export function PdfSigner() {
                     aria-label={copy.signature.inks[key]}
                     onClick={() => setInk(key)}
                     style={{ backgroundColor: INKS[key] }}
-                    className={`h-6 w-6 rounded-full border-2 border-surface ${
+                    className={`h-7 w-7 rounded-full border-2 border-surface ${
                       ink === key ? "ring-2 ring-accent" : "ring-1 ring-line"
                     }`}
                   />
@@ -548,9 +631,9 @@ export function PdfSigner() {
             </div>
           </section>
 
-          <section>
-            <h2 className="font-mono text-[11px] tracking-[0.15em] text-body/70 uppercase">{copy.add.title}</h2>
-            <div className="mt-3 grid grid-cols-2 gap-2">
+          <section aria-labelledby="step-place" className="rounded-xl border border-line bg-raised/40 p-5">
+            <StepHeading id="step-place" n={3} title={copy.steps.place} />
+            <div className="mt-4 grid grid-cols-2 gap-2">
               {KINDS.map((kind) => (
                 <button
                   key={kind}
@@ -558,9 +641,7 @@ export function PdfSigner() {
                   aria-pressed={armed === kind}
                   onClick={() => arm(kind)}
                   disabled={!doc}
-                  className={`${button} text-left ${kind === "text" ? "col-span-2" : ""} ${
-                    armed === kind ? "border-accent text-accent" : ""
-                  }`}
+                  className={`${button} text-left ${armed === kind ? "border-accent text-accent ring-1 ring-accent" : ""}`}
                 >
                   {copy.add.kinds[kind]}
                 </button>
@@ -569,24 +650,31 @@ export function PdfSigner() {
             <p className="mt-3 text-xs leading-relaxed text-body/70">{copy.add.hint}</p>
           </section>
 
-          <section>
-            <h2 className="font-mono text-[11px] tracking-[0.15em] text-body/70 uppercase">
-              {copy.finish.title}
-            </h2>
-            <button
-              type="button"
-              onClick={() => void save()}
-              disabled={saving || !doc}
-              className="mt-3 w-full rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-ink transition-opacity hover:opacity-90 disabled:opacity-50"
-            >
-              {saving ? copy.finish.saving : copy.finish.save}
-            </button>
-            <p className="mt-2 font-mono text-[11px] text-body/70 tabular-nums">
-              {copy.finish.count(marks.length)}
-            </p>
+          {/* On a phone this step lives in the bar pinned to the bottom. */}
+          <section aria-labelledby="step-download" className="hidden rounded-xl border border-accent/50 bg-raised/40 p-5 lg:block">
+            <StepHeading id="step-download" n={4} title={copy.steps.download} />
+            <div className="mt-4">{downloadButton(copy.finish.save)}</div>
+            <FinishNote doc={doc} outName={outName} count={filled.length} saved={saved} />
           </section>
         </aside>
       </div>
+
+      {doc && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden">
+          <div className="mx-auto flex max-w-xl items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-bright">
+                <span className="mr-1.5 font-mono text-accent">4</span>
+                {copy.steps.download}
+              </p>
+              <p className="truncate font-mono text-[11px] text-body/70">
+                {filled.length ? copy.finish.count(filled.length) : copy.finish.none}
+              </p>
+            </div>
+            <div className="shrink-0">{downloadButton(copy.finish.saveShort)}</div>
+          </div>
+        </div>
+      )}
 
       <p role="status" aria-live="polite" className="sr-only">
         {toast}
@@ -594,12 +682,78 @@ export function PdfSigner() {
       {toast && (
         <div
           aria-hidden="true"
-          className="fixed bottom-6 left-1/2 z-50 max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-md bg-bright px-4 py-2.5 text-sm font-medium text-ink shadow-lg"
+          className="fixed bottom-28 left-1/2 z-50 w-max max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-md bg-bright px-4 py-2.5 text-center text-sm font-medium text-ink shadow-lg lg:bottom-6"
         >
           {toast}
         </div>
       )}
     </div>
+  );
+}
+
+function StepHeading({ id, n, title }: { id: string; n: number; title: string }) {
+  return (
+    <h2 id={id} className="flex items-center gap-2.5 text-base font-semibold text-bright">
+      <span
+        aria-hidden="true"
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent font-mono text-xs text-ink"
+      >
+        {n}
+      </span>
+      {title}
+    </h2>
+  );
+}
+
+function FinishNote({
+  doc,
+  outName,
+  count,
+  saved,
+}: {
+  doc: Doc | null;
+  outName: string | null;
+  count: number;
+  saved: string | null;
+}) {
+  if (!doc || !outName) return <p className="mt-3 text-xs text-body/70">{copy.finish.noDocument}</p>;
+  return (
+    <div className="mt-3 space-y-1">
+      <p className="font-mono text-[11px] text-body/70 tabular-nums">
+        {count ? copy.finish.count(count) : copy.finish.none}
+      </p>
+      <p className="truncate font-mono text-[11px] text-body/70">{copy.finish.savesAs(outName)}</p>
+      {saved && <p className="pt-1 text-xs text-accent">{copy.finish.saved(saved)}</p>}
+    </div>
+  );
+}
+
+function UploadIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-9 w-9 shrink-0 text-accent" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 15V4" />
+      <path d="m7 9 5-5 5 5" />
+      <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+    </svg>
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 4v11" />
+      <path d="m7 10 5 5 5-5" />
+      <path d="M4 20h16" />
+    </svg>
+  );
+}
+
+function FileIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8 shrink-0 text-accent" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+      <path d="M14 3v5h5" />
+    </svg>
   );
 }
 
@@ -668,7 +822,9 @@ function PdfPage({
 
   return (
     <div className="relative">
-      <p className="mb-1.5 font-mono text-[11px] text-body/60 uppercase">{`page ${index + 1} / ${count}`}</p>
+      {count > 1 && (
+        <p className="mb-1.5 font-mono text-[11px] text-body/60">{copy.upload.page(index + 1, count)}</p>
+      )}
       <div
         ref={(el) => {
           wrap.current = el;
@@ -677,7 +833,7 @@ function PdfPage({
         onPointerDown={onPointerDown}
         style={{ aspectRatio: `${size.width} / ${size.height}` }}
         className={`relative w-full bg-white leading-none shadow-[0_1px_3px_rgba(0,0,0,0.18),0_8px_24px_rgba(0,0,0,0.08)] ${
-          armed ? "cursor-crosshair" : ""
+          armed ? "cursor-crosshair ring-2 ring-accent/60" : ""
         }`}
       >
         <canvas ref={canvas} className="block h-auto w-full" />
@@ -688,7 +844,7 @@ function PdfPage({
 }
 
 const handle =
-  "absolute z-10 h-5.5 w-5.5 items-center justify-center rounded-full bg-[#1d3f9e] p-0 text-[13px] leading-none text-white";
+  "absolute z-10 h-6 w-6 items-center justify-center rounded-full bg-[#1d3f9e] p-0 text-[13px] leading-none text-white shadow";
 
 function MarkView({
   mark,
@@ -710,6 +866,10 @@ function MarkView({
   onText: (value: string) => void;
 }) {
   const shown = selected ? "flex" : "hidden group-hover:flex";
+  const field = useRef<HTMLInputElement | null>(null);
+  useEffect(() => {
+    if (autoFocus) field.current?.focus();
+  }, [autoFocus]);
   return (
     <div
       data-mark
@@ -747,14 +907,14 @@ function MarkView({
           </button>
           <input
             type="text"
+            ref={field}
             value={mark.value}
-            autoFocus={autoFocus}
             placeholder={copy.add.textPlaceholder}
             aria-label={copy.add.kinds[mark.kind]}
             onFocus={onSelect}
             onChange={(event) => onText(event.target.value)}
             style={{ fontSize: `${fontPx}px`, color: "#111111" }}
-            className="h-full w-full overflow-hidden border-0 bg-transparent p-0 whitespace-nowrap outline-none placeholder:text-[#9aa2ae]"
+            className="h-full w-full overflow-hidden border-0 bg-[#1d3f9e]/5 p-0 whitespace-nowrap outline-none placeholder:text-[#9aa2ae]"
           />
         </>
       )}

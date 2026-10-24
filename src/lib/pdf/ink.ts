@@ -152,3 +152,24 @@ export async function canvasToPng(canvas: HTMLCanvasElement): Promise<Uint8Array
   if (!blob) throw new Error("The canvas could not be encoded.");
   return new Uint8Array(await blob.arrayBuffer());
 }
+
+/** A hand-drawn tick for checkboxes, in the signature's ink. */
+export function checkMark(ink: Ink): HTMLCanvasElement {
+  const size = 200;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (ctx) {
+    ctx.strokeStyle = INKS[ink];
+    ctx.lineWidth = size * 0.13;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(size * 0.15, size * 0.55);
+    ctx.lineTo(size * 0.4, size * 0.8);
+    ctx.lineTo(size * 0.87, size * 0.2);
+    ctx.stroke();
+  }
+  return canvas;
+}

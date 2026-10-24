@@ -22,9 +22,10 @@ Where the site stands and what comes next.
 
 - [x] `/tools/dbt-run-results`: drop in a `run_results.json`, get the timeline,
       the thread utilization, the long poles and every node in a sortable table
-- [x] `/tools/pdf-signer`: open a PDF, draw or type a signature, place it with
-      initials, a printed name, a date or free text, and download the signed
-      copy. Read and written in the page; nothing is uploaded or stored
+- [x] `/tools/pdf-signer`: upload a PDF, fill in its blanks, tick its boxes,
+      sign it, and download the finished copy, in four numbered steps. Two
+      practice documents (a general form and a board resolution). Read and
+      written in the page; nothing is uploaded or stored
 - [ ] Optional `manifest.json`, for the critical path and counterfactual savings
 - [ ] Two-run comparison, so a regression is visible without reading two charts
 - [ ] Cron explainer, reusing the tested `src/lib/cron.ts`

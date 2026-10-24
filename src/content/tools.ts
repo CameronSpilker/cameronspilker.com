@@ -19,7 +19,7 @@ export const toolsIndex = {
   lede:
     "Every one of these runs entirely in your browser. Nothing you load is uploaded anywhere, which is the only way a tool that reads a work artifact is worth using at work.",
   /** Description metadata for `/tools`. */
-  metaDescription: "Small client-side tools: a dbt run results visualizer and a PDF signer.",
+  metaDescription: "Small client-side tools: a dbt run results visualizer and a PDF form filler and signer.",
   home: {
     lede:
       "The same rule as everything else here: if it reads a file you would not hand to a stranger, it has no server to hand it to. These parse in the page and forget it when you close the tab.",
@@ -124,38 +124,49 @@ export const runResultsTool = {
 export const pdfSignerTool = {
   slug: "pdf-signer",
   name: "PDF signer",
-  title: "Sign a PDF without sending it anywhere",
+  title: "Fill in and sign a PDF without sending it anywhere",
   description:
-    "Open a PDF, draw or type a signature, place it with a date and your printed name, and save the signed copy. The file never leaves your browser.",
+    "Upload a PDF, fill in its blanks, tick its boxes, sign it, and download the finished copy. The file never leaves your browser.",
   lede:
-    "Most signing sites want the document on their server before they let you put a name on it. This one reads the PDF in the page, draws your marks onto it in the page, and hands the signed copy straight back as a download.",
+    "Most signing sites want the document on their server before they let you put a name on it. This one opens the PDF in the page, writes your marks onto it in the page, and hands the finished copy straight back as a download.",
   privacy:
-    "Read and written in the page with JavaScript. There is no upload, no account, and nothing kept: your signature and name live in memory and are gone when you close the tab.",
+    "There is no server behind this page. Your PDF, your signature and your name stay on this device, in memory, and are gone when you close the tab.",
   /**
    * Said plainly, because a reader handed a typed name in a cursive font may
    * assume it carries more weight than it does.
    */
   caveat:
     "This stamps an image of your signature onto the page, the same as signing a printout and scanning it. It does not add a cryptographic digital signature, so use the sender's own system when one is required.",
-  open: "Open PDF",
-  file: {
-    loading: "Preparing the sample document",
-    opening: "Opening the document",
-    none: "No document",
-    pages: (count: number) => `${count} page${count === 1 ? "" : "s"}`,
-    page: (index: number, count: number) => `page ${index} / ${count}`,
-    dropActive: "Release to open it",
+  steps: {
+    upload: "Upload your PDF",
+    signature: "Create your signature",
+    place: "Fill in the page",
+    download: "Download the signed PDF",
   },
-  sample: {
-    banner: "This is a sample, not your document",
-    bannerDetail:
-      "An invented board resolution with signature, name and date lines to practise on. Open your own PDF, or drop one on the page, to replace it.",
-    fileName: "Sample resolution.pdf",
+  upload: {
+    drop: "Drop a PDF here, or choose one from your device",
+    choose: "Choose a PDF",
+    replace: "Upload a different PDF",
+    active: "Release to open it",
+    note: "It opens right here in your browser. Nothing is sent to a server.",
+    loading: "Preparing the sample",
+    opening: "Opening your PDF",
+    pages: (count: number) => `${count} page${count === 1 ? "" : "s"}`,
+    page: (index: number, count: number) => `Page ${index} of ${count}`,
+  },
+  samples: {
+    label: "No PDF handy? Practise on a sample:",
+    showing: "Sample",
+    showingDetail: "You are practising on an invented document. Upload your own PDF above when you are ready.",
+    options: [
+      { id: "form", label: "General form", fileName: "Sample form.pdf" },
+      { id: "resolution", label: "Board resolution", fileName: "Sample resolution.pdf" },
+    ],
   },
   signature: {
-    title: "Your signature",
     name: "Full name",
     namePlaceholder: "e.g. Cameron Spilker",
+    nameHint: "Used for typed signatures, initials and the printed name.",
     draw: "Draw",
     type: "Type",
     padLabel: "Signature drawing area",
@@ -167,40 +178,43 @@ export const pdfSignerTool = {
     namePreview: "Your Name",
   },
   add: {
-    title: "Add to the page",
     kinds: {
       signature: "Signature",
       initials: "Initials",
       name: "Printed name",
       date: "Date",
-      text: "Text box",
+      text: "Text",
+      check: "Check mark",
     },
-    armed: (kind: string) => `Click the page where the ${kind.toLowerCase()} goes`,
+    armed: (kind: string) => `Tap the page where the ${kind.toLowerCase()} goes`,
     cancel: "Cancel",
-    hint: "Pick one, then click the spot on the page. Drag a mark to move it, and use its corner handle to resize. Delete removes the selected mark.",
+    hint: "Pick an item, then tap the spot on the page. Drag to move it, use the corner handle to resize, and the cross to remove it.",
     textPlaceholder: "Type here",
     move: "Move",
     resize: "Resize",
     remove: "Remove",
   },
   finish: {
-    title: "Finish",
     save: "Download signed PDF",
-    saving: "Preparing the PDF",
-    count: (n: number) => `${n} mark${n === 1 ? "" : "s"} placed`,
+    /** The pinned bar on a phone has room for two words. */
+    saveShort: "Download PDF",
+    saving: "Preparing your PDF",
+    savesAs: (name: string) => `Saves as ${name}`,
+    count: (n: number) => `${n} item${n === 1 ? "" : "s"} placed`,
+    none: "Nothing placed yet",
+    noDocument: "Upload a PDF to start",
+    saved: (name: string) => `Downloaded ${name}. Look in your downloads folder.`,
   },
   errors: {
     notPdf: "Choose a PDF file.",
-    password: "This PDF is password protected. Remove the password and open it again.",
+    password: "This PDF is password protected. Remove the password and upload it again.",
     unreadable: "That file could not be read as a PDF. Try exporting it again, or choose another file.",
-    noDocument: "Open a PDF first.",
-    noMarks: "Place a signature or another mark before saving.",
-    noDrawing: "Draw your signature in the panel first.",
-    noName: "Enter your full name in the panel first.",
-    noInitials: "Enter your full name first so the initials can be made from it.",
+    noMarks: "Place a signature or another item on the page before downloading.",
+    noDrawing: "Draw your signature in step 2 first.",
+    noName: "Enter your full name in step 2 first.",
+    noInitials: "Enter your full name in step 2 first, so the initials can be made from it.",
     build: "The signed PDF could not be built. The file may be damaged or protected.",
   },
-  saved: (name: string) => `Saved ${name}`,
 } as const;
 
 /**
