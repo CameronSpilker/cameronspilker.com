@@ -30,9 +30,11 @@ const targets = [
   { slug: "hoapulse", url: "https://hoapulse.net" },
   { slug: "cardtacular", url: "https://cardtacular.com" },
   { slug: "plainstocks", url: "https://plainstocks.com" },
-  // The dashboard, not the repo. The repo was the stand-in while the Evidence
-  // build had nowhere to live; a showcase panel should show the product.
-  { slug: "full-data-stack-lab", url: "https://lab.cameronspilker.com" },
+  // The dbt Charts home board, not the repo or the landing page. The landing
+  // page is two tiles; the boards are the product, so they are what the card
+  // shows. They are redrawn by every pipeline run, so rerun this after a
+  // change to how they look rather than letting the capture go stale.
+  { slug: "full-data-stack-lab", url: "https://lab.cameronspilker.com/charts/" },
 ];
 
 const only = process.argv.slice(2);
