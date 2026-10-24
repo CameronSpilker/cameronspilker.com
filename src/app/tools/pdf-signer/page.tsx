@@ -26,16 +26,10 @@ export default function PdfSignerPage() {
           {copy.title}
         </h1>
         <p className="mt-5 max-w-2xl text-base leading-relaxed sm:text-lg">{copy.lede}</p>
-        {/* On a phone the upload step says the same thing one screen sooner. */}
-        <p className="mt-4 hidden max-w-2xl text-xs leading-relaxed text-body/70 sm:block">{copy.privacy}</p>
 
         <div className="mt-8 sm:mt-12">
           <PdfSigner />
         </div>
-
-        <section className="mt-16 border-t border-line pt-8">
-          <p className="max-w-2xl text-sm leading-relaxed">{copy.caveat}</p>
-        </section>
       </main>
     </>
   );

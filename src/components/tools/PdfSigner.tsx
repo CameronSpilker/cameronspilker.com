@@ -473,7 +473,6 @@ export function PdfSigner() {
                   {copy.samples.showing}
                 </span>
               )}
-              {doc.sample && <p className="w-full text-xs text-body/80">{copy.samples.showingDetail}</p>}
             </div>
           )}
 
@@ -564,7 +563,6 @@ export function PdfSigner() {
               placeholder={copy.signature.namePlaceholder}
               className="mt-1.5 w-full rounded-md border border-line bg-ink px-3 py-2 text-base text-bright placeholder:text-body/50 focus:border-accent focus:outline-none sm:text-sm"
             />
-            <p className="mt-1.5 text-xs text-body/70">{copy.signature.nameHint}</p>
 
             <div role="tablist" className="mt-4 grid grid-cols-2 rounded-md border border-line bg-ink p-0.5">
               {(["draw", "type"] as const).map((key) => (

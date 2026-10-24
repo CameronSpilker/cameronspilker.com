@@ -124,19 +124,9 @@ export const runResultsTool = {
 export const pdfSignerTool = {
   slug: "pdf-signer",
   name: "PDF signer",
-  title: "Fill in and sign a PDF without sending it anywhere",
-  description:
-    "Upload a PDF, fill in its blanks, tick its boxes, sign it, and download the finished copy. The file never leaves your browser.",
-  lede:
-    "Most signing sites want the document on their server before they let you put a name on it. This one opens the PDF in the page, writes your marks onto it in the page, and hands the finished copy straight back as a download.",
-  privacy:
-    "There is no server behind this page. Your PDF, your signature and your name stay on this device, in memory, and are gone when you close the tab.",
-  /**
-   * Said plainly, because a reader handed a typed name in a cursive font may
-   * assume it carries more weight than it does.
-   */
-  caveat:
-    "This stamps an image of your signature onto the page, the same as signing a printout and scanning it. It does not add a cryptographic digital signature, so use the sender's own system when one is required.",
+  title: "Sign a PDF",
+  description: "Fill in and sign a PDF in your browser. Nothing is uploaded.",
+  lede: "Fill in and sign any PDF right here in your browser, without uploading it anywhere.",
   steps: {
     upload: "Upload your PDF",
     signature: "Create your signature",
@@ -148,7 +138,7 @@ export const pdfSignerTool = {
     choose: "Choose a PDF",
     replace: "Upload a different PDF",
     active: "Release to open it",
-    note: "It opens right here in your browser. Nothing is sent to a server.",
+    note: "Nothing is uploaded.",
     loading: "Preparing the sample",
     opening: "Opening your PDF",
     pages: (count: number) => `${count} page${count === 1 ? "" : "s"}`,
@@ -157,7 +147,6 @@ export const pdfSignerTool = {
   samples: {
     label: "No PDF handy? Practise on a sample:",
     showing: "Sample",
-    showingDetail: "You are practising on an invented document. Upload your own PDF above when you are ready.",
     options: [
       { id: "form", label: "General form", fileName: "Sample form.pdf" },
       { id: "resolution", label: "Board resolution", fileName: "Sample resolution.pdf" },
@@ -166,7 +155,6 @@ export const pdfSignerTool = {
   signature: {
     name: "Full name",
     namePlaceholder: "e.g. Cameron Spilker",
-    nameHint: "Used for typed signatures, initials and the printed name.",
     draw: "Draw",
     type: "Type",
     padLabel: "Signature drawing area",
@@ -188,7 +176,7 @@ export const pdfSignerTool = {
     },
     armed: (kind: string) => `Tap the page where the ${kind.toLowerCase()} goes`,
     cancel: "Cancel",
-    hint: "Pick an item, then tap the spot on the page. Drag to move it, use the corner handle to resize, and the cross to remove it.",
+    hint: "Pick an item, then tap the page.",
     textPlaceholder: "Type here",
     move: "Move",
     resize: "Resize",
