@@ -160,14 +160,29 @@ export function WheelSpinner() {
           <svg
             aria-hidden="true"
             viewBox="0 0 40 44"
-            className="absolute top-[-6px] left-1/2 z-10 w-9 -translate-x-1/2 drop-shadow-[0_0_10px_var(--accent)] sm:w-11"
+            className="absolute top-[-6px] left-1/2 z-10 w-9 -translate-x-1/2 drop-shadow-[0_4px_10px_var(--wheel-shadow)] sm:w-11"
           >
-            <path d="M20 42 L4 6 Q20 0 36 6 Z" fill="var(--accent)" stroke="var(--ink)" strokeWidth="2.5" />
-            <circle cx="20" cy="10" r="3.5" fill="var(--ink)" />
+            <defs>
+              <linearGradient id="wheel-pointer" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="var(--wheel-hub-a)" />
+                <stop offset="100%" stopColor="var(--wheel-hub-b)" />
+              </linearGradient>
+            </defs>
+            <path d="M20 42 L4 6 Q20 0 36 6 Z" fill="url(#wheel-pointer)" stroke="var(--surface)" strokeWidth="2.5" strokeLinejoin="round" />
+            <circle cx="20" cy="11" r="3.5" fill="var(--surface)" />
           </svg>
 
-          <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="block w-full" role="img" aria-label={copy.count(n)}>
+          <svg
+            viewBox={`0 0 ${SIZE} ${SIZE}`}
+            className="block w-full drop-shadow-[0_18px_40px_var(--wheel-shadow)]"
+            role="img"
+            aria-label={copy.count(n)}
+          >
             <defs>
+              <linearGradient id="wheel-rim" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--wheel-rim-a)" />
+                <stop offset="100%" stopColor="var(--wheel-rim-b)" />
+              </linearGradient>
               <radialGradient id="wheel-sheen" cx="50%" cy="35%" r="65%">
                 <stop offset="0%" stopColor="#ffffff" stopOpacity="0.22" />
                 <stop offset="60%" stopColor="#ffffff" stopOpacity="0" />
@@ -175,7 +190,8 @@ export function WheelSpinner() {
             </defs>
 
             {/* Outer ring and its ticks, the techy part. */}
-            <circle cx={C} cy={C} r={R + 18} fill="var(--surface)" stroke="var(--line)" strokeWidth="2" />
+            <circle cx={C} cy={C} r={R + 19} fill="url(#wheel-rim)" stroke="var(--accent)" strokeOpacity="0.35" strokeWidth="1.5" />
+            <circle cx={C} cy={C} r={R + 2} fill="none" stroke="var(--wheel-seam)" strokeWidth="3" />
             {Array.from({ length: 72 }, (_, i) => {
               const a = (i * 5 * Math.PI) / 180;
               const long = i % 6 === 0;
@@ -211,7 +227,7 @@ export function WheelSpinner() {
                 const flip = mid > 180;
                 return (
                   <g key={`${label}-${i}`}>
-                    <path d={slicePath(i, n, R, C)} fill={colourFor(i, n)} stroke="var(--ink)" strokeOpacity="0.35" strokeWidth="1.5" />
+                    <path d={slicePath(i, n, R, C)} fill={colourFor(i, n)} stroke="var(--wheel-seam)" strokeWidth="2" />
                     <text
                       x={flip ? C - R + 16 : C + R - 16}
                       y={C}
@@ -233,7 +249,7 @@ export function WheelSpinner() {
             </g>
 
             {/* Hub ring, drawn over the slices; the button sits on top of it. */}
-            <circle cx={C} cy={C} r="52" fill="var(--ink)" stroke="var(--accent)" strokeOpacity="0.6" strokeWidth="2" />
+            <circle cx={C} cy={C} r="54" fill="url(#wheel-rim)" stroke="var(--accent)" strokeOpacity="0.45" strokeWidth="1.5" />
           </svg>
 
           <button
@@ -241,7 +257,7 @@ export function WheelSpinner() {
             onClick={() => spin()}
             disabled={!canSpin}
             aria-label={n < 2 ? copy.needMore : copy.spin}
-            className="absolute top-1/2 left-1/2 flex h-[22%] w-[22%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-bright font-mono text-sm font-bold tracking-widest text-ink uppercase shadow-[0_0_24px_var(--accent)] transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none sm:text-base"
+            className="wheel-cta absolute top-1/2 left-1/2 flex h-[22%] w-[22%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full font-mono text-sm font-bold tracking-widest uppercase ring-2 ring-white/25 transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-70 sm:text-base"
           >
             {spinning ? "···" : copy.spin}
           </button>
@@ -251,7 +267,7 @@ export function WheelSpinner() {
           type="button"
           onClick={() => spin()}
           disabled={!canSpin}
-          className="mt-8 rounded-full bg-bright px-10 py-3.5 text-base font-bold text-ink transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="wheel-cta mt-8 rounded-full px-10 py-3.5 text-base font-bold transition-transform hover:scale-[1.03] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
         >
           {spinning ? copy.spinning : n < 2 ? copy.needMore : copy.spin}
         </button>
@@ -279,8 +295,9 @@ export function WheelSpinner() {
               role="dialog"
               aria-modal="true"
               aria-labelledby="wheel-winner"
-              className="w-full max-w-sm rounded-[28px] border border-line bg-surface p-6 text-center shadow-[0_24px_60px_var(--glass-shadow)] sm:p-8"
+              className="w-full max-w-sm rounded-[28px] bg-[linear-gradient(135deg,var(--wheel-hub-a),var(--grad-2),var(--wheel-hub-b))] p-[2px] shadow-[0_24px_60px_var(--wheel-shadow)]"
             >
+              <div className="rounded-[26px] bg-surface p-6 text-center sm:p-8">
               <p className="font-mono text-xs tracking-[0.25em] text-accent uppercase">{copy.winner}</p>
               <p
                 id="wheel-winner"
@@ -294,7 +311,7 @@ export function WheelSpinner() {
                   ref={againRef}
                   type="button"
                   onClick={() => spin()}
-                  className="rounded-full bg-bright px-6 py-3 text-sm font-bold text-ink transition-opacity hover:opacity-90"
+                  className="wheel-cta rounded-full px-6 py-3 text-sm font-bold transition-transform hover:scale-[1.02] active:scale-95"
                 >
                   {copy.again}
                 </button>
@@ -314,6 +331,7 @@ export function WheelSpinner() {
                 >
                   {copy.close}
                 </button>
+              </div>
               </div>
             </div>
           </div>
@@ -348,7 +366,7 @@ export function WheelSpinner() {
           <button
             type="submit"
             disabled={spinning || !draft.trim()}
-            className="rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-ink transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="wheel-cta rounded-full px-5 py-2.5 text-sm font-bold transition-opacity hover:opacity-90 disabled:opacity-50 disabled:shadow-none"
           >
             {copy.add}
           </button>
