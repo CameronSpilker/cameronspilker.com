@@ -70,7 +70,7 @@ const html = `<!doctype html>
     <span class="chip">Analytics engineer · building with AI</span>
     <h1>Cameron Spilker</h1>
     <h1 class="grad" style="margin-top:6px; font-size:60px; letter-spacing:-1.5px">I like building things.</h1>
-    <p>Data people and AI agents can rely on, plus four live side projects.</p>
+    <p>Data people and AI agents can rely on, plus a few side projects.</p>
     <span class="url">cameronspilker.com</span>
   </div>
 </body></html>`;
