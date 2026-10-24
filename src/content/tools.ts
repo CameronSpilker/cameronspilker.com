@@ -12,7 +12,7 @@ export const toolsIndex = {
   lede:
     "Small things I made because I needed them. Everything runs in your browser, and nothing you load gets uploaded.",
   /** Description metadata for `/tools`. */
-  metaDescription: "Small client-side tools: a dbt run results visualizer and a PDF form filler and signer.",
+  metaDescription: "Small client-side tools: a wheel spinner, a PDF signer, and a dbt run results visualizer.",
 } as const;
 
 export const runResultsTool = {
@@ -193,6 +193,31 @@ export const pdfSignerTool = {
   },
 } as const;
 
+export const wheelTool = {
+  slug: "wheel-spinner",
+  name: "Wheel spinner",
+  title: "Spin the wheel",
+  description: "Add your options, spin, and let the wheel decide. No ads, nothing uploaded.",
+  lede: "Add options, hit spin. Runs in your browser, nothing is uploaded.",
+  /** A starting set, so the wheel is spinnable the moment the page opens. */
+  starter: ["Pizza", "Tacos", "Sushi", "Burgers", "Ramen", "Curry"],
+  add: "Add",
+  placeholder: "Add an option, or paste a list",
+  spin: "Spin",
+  spinning: "Spinning",
+  needMore: "Add at least two options",
+  shuffle: "Shuffle",
+  clear: "Clear",
+  remove: "Remove",
+  count: (n: number) => `${n} option${n === 1 ? "" : "s"}`,
+  winner: "Winner",
+  again: "Spin again",
+  removeAndSpin: "Remove and spin",
+  close: "Close",
+  history: "Recent",
+  full: (max: number) => `The wheel holds up to ${max} options.`,
+} as const;
+
 /**
  * The tools with a page behind them, in the order they are shown.
  *
@@ -200,4 +225,4 @@ export const pdfSignerTool = {
  * `/tools` index both read this list, so an entry with no page is a dead card
  * in two places rather than one.
  */
-export const liveTools = [runResultsTool, pdfSignerTool];
+export const liveTools = [wheelTool, pdfSignerTool, runResultsTool];
