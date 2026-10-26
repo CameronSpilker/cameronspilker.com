@@ -69,7 +69,8 @@ only changes when the generator does.
 `src/content/lab.ts` mirrors the `full-data-stack-lab` repository: the cron
 string is copied from its Dagster schedules and the model and test counts are
 countable in it (23 files under `transform/models`, 135 generic tests in the
-schema YAML plus 12 singular tests). The page shows those counts as floors
+schema YAML plus 12 singular tests, and five finished seasons in
+`ingestion/seasons.yml`). The page shows the model and test counts as floors
 ("20+ models", "150+ tests"), so growth does not make it wrong, but a floor
 must stay true and the cron string must match exactly. Count rather than guess:
 

@@ -74,7 +74,7 @@ export const projects: Project[] = [
     state: "live",
     kicker: "College basketball, from raw data to dashboard",
     summary:
-      "A college basketball model I run in the open. It tracks every Division I men's team, simulates the tournament 20,000 times, and keeps score on how its own picks did.",
+      "Every Division I men's basketball season since 2021-22, in two dashboards. Pick a season, then one team or several, and see how they rated, who they beat and how their conference stacked up.",
     href: "https://lab.cameronspilker.com",
     repo: "https://github.com/CameronSpilker/full-data-stack-lab",
     cta: { label: "Open the lab", href: "https://lab.cameronspilker.com" },

@@ -9,8 +9,10 @@
  *
  * The numbers below are read off the `full-data-stack-lab` repo: 23 model files
  * under `transform/models`, 142 generic tests declared in the schema YAML plus
- * 12 singular tests under `transform/tests`, and the cron string is the literal
- * `cron_schedule` from `orchestration/full_data_stack_lab/jobs.py`.
+ * 12 singular tests under `transform/tests`, five finished seasons in
+ * `ingestion/seasons.yml` (2022 to 2026, with 2027 under way), and the cron
+ * string is the literal `cron_schedule` from
+ * `orchestration/full_data_stack_lab/jobs.py`.
  *
  * The model and test counts are shown as floors ("20+", "150+") rather than
  * exact figures, so the lab can add a model or a test without this page going
@@ -24,7 +26,7 @@ import { lab } from "./site";
 export const stats = [
   { value: "20+", label: "dbt models" },
   { value: "150+", label: "tests" },
-  { value: "20,000", label: "simulated brackets" },
+  { value: "5", label: "seasons to pick from" },
   { value: "365", label: "teams tracked" },
 ];
 
@@ -55,9 +57,14 @@ export type Elsewhere = {
   href: string | null;
 };
 
-/** The rest of the project, as quick links under the card. */
+/**
+ * The rest of the project, as quick links under the card. Teams leads because
+ * picking a season and a team is what the dashboards are for. The tournament
+ * simulations sit on their own March Madness tab rather than leading.
+ */
 export const elsewhere: Elsewhere[] = [
-  { title: "Upcoming picks", href: lab.picks },
+  { title: "Pick a team", href: lab.teams },
+  { title: "March Madness odds", href: lab.marchMadness },
   { title: "How it's built", href: lab.dashboard ? `${lab.dashboard}/how-it-works` : null },
   { title: "dbt Charts boards", href: lab.charts },
   { title: "dbt docs", href: lab.docs },
