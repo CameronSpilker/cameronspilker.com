@@ -30,6 +30,14 @@ Where the site stands and what comes next.
 - [x] `/tools/wheel-spinner`: add options, spin, confetti for the winner,
       spin again or remove the winner and spin. Remembers the list in the
       browser only
+- [x] `/tools/gift-list`: one ongoing list, shared by link. Paste a store
+      link and the picture, title and price fill in where the store allows
+      it; drag to rank; set how many (or no limit, for gift cards). Guests
+      mark what they're getting and it strikes through once it's covered.
+      The owner never sees claims. The one tool that stores data (Postgres)
+- [ ] Gift list: switch it on in production (Supabase project, run
+      `db/gift-list.sql`, set `DATABASE_URL` in Vercel), then check link
+      previews against real Amazon, Walmart and Target pages
 - [ ] Optional `manifest.json`, for the critical path and counterfactual savings
 - [ ] Two-run comparison, so a regression is visible without reading two charts
 - [ ] Cron explainer, reusing the tested `src/lib/cron.ts`
