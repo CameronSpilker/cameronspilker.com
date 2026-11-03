@@ -38,7 +38,8 @@ src/
 ├── components/     # Section components (Hero, Projects, Lab, Experience, ...)
 │   └── tools/      # The tool pages, which are apps rather than sections
 ├── lib/            # Framework-free helpers (cron.ts drives the Lab countdown)
-│   └── dbt/        # Parser, metrics and colour rules for the run results tool
+│   ├── dbt/        # Parser, metrics and colour rules for the run results tool
+│   └── gifts/      # Gift list: ids, prices, page reader, input checks; server/ holds the DB
 └── content/
     ├── site.ts        # name, tagline, contact links, Full Data Stack Lab URLs
     ├── home.ts        # homepage copy: nav, hero, section intros, about, contact
@@ -54,6 +55,37 @@ src/
 makes them worth using is that nothing is uploaded: a person should be able to
 drop a work artifact into one without asking anyone's permission first, so no
 tool may gain a server round trip, and the pages say so in as many words.
+
+### The one exception: the gift list
+
+`/tools/gift-list` stores data, on purpose. A list that other people open from
+a link and claim gifts from has to live somewhere they can all reach, so it is
+kept in Postgres (Supabase in production) and its page says so plainly.
+
+It is the only tool allowed to store anything. **Before adding storage, an
+API route or any other server round trip to another tool, push back and ask
+Cameron first**, even if the request sounds like it needs one. Name what would
+be stored, who could read it, and whether a browser-only version (the URL
+fragment, `localStorage`, a downloaded file) would do. Cameron asked for that
+challenge explicitly.
+
+How the gift list stays safe without accounts:
+
+- A share link is `/tools/gift-list/<name>-<8 random chars>`; the random part
+  is what keeps lists unguessable and apart (`src/lib/gifts/ids.ts`).
+- The owner's edit key rides in the URL fragment (`/edit#key=...`), so it never
+  reaches a request log, and the database keeps only its SHA-256.
+- A guest's undo token works the same way and lives in their `localStorage`.
+- The owner's view never receives claims, so the surprise holds.
+- Claims lock the item row while counting, so two guests cannot both take the
+  last one.
+- The link preview fetches pages a person pasted. It goes through
+  `src/lib/gifts/server/fetch.ts`, which refuses private and link-local
+  addresses at connect time and on every redirect. Keep it that way.
+
+Setup: `DATABASE_URL` (Supabase's transaction pooler, port 6543), and the
+schema in `db/gift-list.sql`, which is safe to run twice. Without the variable
+the pages say gift lists are not switched on, rather than erroring.
 
 Everything under `src/lib/dbt` is pure and tested with `node --test`. Rendering
 lives in `src/components/tools`. Chart colours come from the `--viz-*` tokens in

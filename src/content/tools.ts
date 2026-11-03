@@ -10,9 +10,10 @@ export const toolsIndex = {
   label: "Tools",
   title: "Little tools",
   lede:
-    "Small things I made because I needed them. Everything runs in your browser, and nothing you load gets uploaded.",
+    "Small things I made because I needed them. Most run entirely in your browser and upload nothing. The gift list is the exception, because sharing a list means saving it somewhere.",
   /** Description metadata for `/tools`. */
-  metaDescription: "Small client-side tools: a wheel spinner, a PDF signer, and a dbt run results visualizer.",
+  metaDescription:
+    "Small tools: a gift list you share with a link, a wheel spinner, a PDF signer, and a dbt run results visualizer.",
 } as const;
 
 export const runResultsTool = {
@@ -219,10 +220,148 @@ export const wheelTool = {
 } as const;
 
 /**
+ * The gift list. The one tool that stores anything, because a list that other
+ * people can see and claim from has to live somewhere they can all reach.
+ */
+export const giftListTool = {
+  slug: "gift-list",
+  name: "Gift list",
+  title: "One gift list, shared with a link",
+  description:
+    "Paste links to things you'd like, rank them, and share one link. People mark what they're getting so nobody doubles up.",
+  lede: "Paste links, put the best first, share one link. No accounts.",
+  defaults: {
+    title: (name: string) => `${name}'s gift list`,
+    note: "No need to get me anything. If you'd like to, these are the things I'd love most, best first.",
+  },
+  start: {
+    nameLabel: "Your name",
+    namePlaceholder: "e.g. Cameron",
+    create: "Make my list",
+    creating: "Making your list",
+    yours: "Your lists",
+    edit: "Edit",
+    view: "View",
+    how: [
+      { title: "Add what you'd like", body: "Paste a link from any store. The picture and price fill in where the store allows it." },
+      { title: "Put the best first", body: "Drag to rank. Keep one list and add to it all year." },
+      { title: "Share one link", body: "People see the list and mark what they're getting. You don't see what's been claimed." },
+    ],
+    stored:
+      "Lists are saved on this site so the people you share with can see them. No accounts or email addresses, just the list.",
+  },
+  owner: {
+    shareTitle: "Share your list",
+    shareHint: "Anyone with this link can see the list and mark what they're getting.",
+    copy: "Copy link",
+    copied: "Copied",
+    share: "Share",
+    preview: "See what they see",
+    editTitle: "Your edit link",
+    editHint:
+      "This link is the only way back in to change your list. Bookmark it or save it somewhere. Don't share it.",
+    copyEdit: "Copy edit link",
+    titleLabel: "List name",
+    nameLabel: "Your name",
+    noteLabel: "Note at the top",
+    save: "Save",
+    saved: "Saved",
+    addTitle: "Add something",
+    pastePlaceholder: "Paste a link",
+    fetch: "Add",
+    fetching: "Looking it up",
+    manual: "Add without a link",
+    noLink: "No link? Type what it is instead.",
+    empty: "Nothing here yet. Paste a link above to add your first idea.",
+    count: (n: number) => `${n} idea${n === 1 ? "" : "s"}`,
+    dragHint: "Drag to rank. The top is what you want most.",
+    moveUp: "Move up",
+    moveDown: "Move down",
+    dragLabel: (title: string) => `Reorder ${title}. Use the arrow keys to move it.`,
+    editItem: "Edit",
+    remove: "Remove",
+    removeConfirm: "Remove this from your list?",
+    fresh: {
+      title: "After the occasion",
+      body: "Every claim stays put until you clear it. Once gifts are opened, clear them so the list is ready for next time. Remove anything you got first.",
+      action: "Clear all claims",
+      confirm: "Clear every claim on this list? People will be able to claim everything again.",
+      done: "Claims cleared",
+    },
+    lost: "This browser doesn't have the edit key for this list. Open the edit link you saved.",
+  },
+  form: {
+    title: "What is it",
+    titlePlaceholder: "e.g. Kindle Paperwhite",
+    link: "Link",
+    linkPlaceholder: "https://",
+    price: "Price",
+    pricePlaceholder: "25",
+    image: "Image link",
+    imagePlaceholder: "https://",
+    imageHint: "Picture didn't come through? Right click the photo on the store page, copy the image address, paste it here.",
+    note: "Note",
+    notePlaceholder: "Size, colour, anything that helps",
+    quantity: "How many",
+    one: "Just one",
+    several: "A few",
+    unlimited: "No limit",
+    unlimitedHint: "For gift cards and things where more is fine.",
+    fewer: "Fewer",
+    more: "More",
+    add: "Add to list",
+    save: "Save",
+    cancel: "Cancel",
+    partial: "The store didn't share everything. Fill in what's missing.",
+  },
+  guest: {
+    top: "Top pick",
+    claim: "I'm getting this",
+    claimOneMore: "I'm getting one",
+    confirm: "Mark it",
+    namePlaceholder: "Your name (optional)",
+    nameHint: "Other people can see this, the list owner can't.",
+    cancel: "Cancel",
+    yours: "You're getting this",
+    undo: "Undo",
+    taken: "Someone's getting this",
+    takenBy: (name: string) => `${name} is getting this`,
+    progress: (claimed: number, total: number) => `${claimed} of ${total} claimed`,
+    openEnded: (n: number) => (n === 0 ? "" : `${n} ${n === 1 ? "person is" : "people are"} getting this`),
+    wants: (n: number) => `Wants ${n}`,
+    noLimit: "No limit",
+    buy: (store: string | null) => (store ? `Buy at ${store}` : "Buy it"),
+    just: "Someone just claimed the last one.",
+    empty: "Nothing on this list yet.",
+    ownerBanner: "This is your list. What's been claimed is hidden so you're not spoiled.",
+    peek: "Show anyway",
+    hide: "Hide claims",
+    editYours: "Edit list",
+    makeYours: "Make your own list",
+  },
+  errors: {
+    generic: "That didn't work. Try again.",
+    not_found: "This list doesn't exist. Check the link.",
+    forbidden: "That edit link doesn't match this list.",
+    not_configured: "Gift lists aren't switched on here yet.",
+    too_many_items: "A list holds up to 100 ideas.",
+    title_required: "Give it a name.",
+    name_required: "Add your name.",
+    bad_url: "That link doesn't look right.",
+    bad_price: "That price doesn't look right.",
+    full: "Someone just claimed the last one.",
+  } as Record<string, string>,
+  share: {
+    label: "Gift list",
+    ideas: (n: number) => `${n} idea${n === 1 ? "" : "s"}`,
+  },
+} as const;
+
+/**
  * The tools with a page behind them, in the order they are shown.
  *
  * Only what is built and live belongs here: the homepage section and the
  * `/tools` index both read this list, so an entry with no page is a dead card
  * in two places rather than one.
  */
-export const liveTools = [wheelTool, pdfSignerTool, runResultsTool];
+export const liveTools = [giftListTool, wheelTool, pdfSignerTool, runResultsTool];
