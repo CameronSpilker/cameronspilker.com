@@ -29,18 +29,23 @@ const safeLookup: LookupFunction = (hostname, options, callback) => {
 };
 
 /**
- * Retailers answer a plain bot with a captcha page. A browser's headers get the
- * same page a person would see, which is what a link preview is meant to show.
+ * The preview says what it is. Some shops (Amazon) serve it the product page;
+ * others (Walmart) answer with a bot check, and the preview falls back to
+ * what the link itself says rather than pretending to be something else.
  */
 const HEADERS = {
-  "user-agent":
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+  "user-agent": "Mozilla/5.0 (compatible; GiftListPreview/1.0; +https://cameronspilker.com/tools/gift-list)",
   accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
   "accept-language": "en-US,en;q=0.9",
   "accept-encoding": "gzip, deflate, br",
 };
 
-type Fetched = { url: string; contentType: string; body: Buffer };
+/**
+ * `hops` is every address visited, first to last. A shop that redirects a bare
+ * item number to its full product URL and then blocks the request has still
+ * said what the product is called, in that middle address.
+ */
+type Fetched = { url: string; hops: string[]; contentType: string; body: Buffer };
 
 function once(url: URL, accept: string | undefined, maxBytes: number, timeoutMs: number) {
   return new Promise<{ status: number; location?: string; contentType: string; body: Buffer }>((resolve, reject) => {
@@ -103,14 +108,16 @@ export async function safeFetch(
   } = {},
 ): Promise<Fetched | null> {
   let url = fetchableUrl(input);
+  const hops: string[] = [];
   for (let hop = 0; url && hop <= maxRedirects; hop++) {
+    hops.push(url.toString());
     const res = await once(url, accept, maxBytes, timeoutMs);
     if (res.location) {
       url = fetchableUrl(new URL(res.location, url).toString());
       continue;
     }
-    if (res.status < 200 || res.status >= 300) return null;
-    return { url: url.toString(), contentType: res.contentType, body: res.body };
+    if (res.status < 200 || res.status >= 300) return { url: url.toString(), hops, contentType: "", body: Buffer.alloc(0) };
+    return { url: url.toString(), hops, contentType: res.contentType, body: res.body };
   }
   return null;
 }
