@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { SLUG_PATTERN, hashSecret, makeSlug, newSecret, randomCode, secretMatches, slugifyName } from "./ids.ts";
 import { formatPrice, parsePrice, priceInputValue } from "./price.ts";
 import { storeName } from "./stores.ts";
-import { cleanTitle, extractProductMeta } from "./meta.ts";
+import { cleanTitle, extractProductMeta, isBlockedPage, titleFromUrl } from "./meta.ts";
 import { fetchableUrl, isPublicAddress } from "./address.ts";
 import { readItem, readListDetails } from "./input.ts";
 import { claimState, wouldOverClaim } from "./claims.ts";
@@ -151,4 +151,46 @@ test("an item strikes through only when every one wanted is claimed", () => {
   assert.deepEqual(claimState({ quantity: null, claims: claims(40) }), { claimed: 40, remaining: null, full: false });
   assert.equal(wouldOverClaim(2, 2), true);
   assert.equal(wouldOverClaim(null, 1000), false);
+});
+
+test("a name comes from the link when the page gives nothing", () => {
+  assert.equal(
+    titleFromUrl("https://www.walmart.com/ip/Hershey-s-Symphony-Chocolate-Almond-Toffee-Giant-Candy-Bar-7-37-oz-25-Pieces/793288688"),
+    "Hershey's Symphony Chocolate Almond Toffee Giant Candy Bar 7.37 oz 25 Pieces",
+  );
+  assert.equal(titleFromUrl("https://www.amazon.com/Kindle-Paperwhite-16GB/dp/B0CFPJYX7P?ref=x"), "Kindle Paperwhite 16GB");
+  assert.equal(
+    titleFromUrl("https://www.target.com/p/stanley-40oz-quencher-tumbler/-/A-87553478"),
+    "Stanley 40oz Quencher Tumbler",
+  );
+  assert.equal(titleFromUrl("https://www.amazon.com/dp/B0CFPJYX7P"), null, "an id alone is not a name");
+  assert.equal(titleFromUrl("not a url"), null);
+});
+
+test("a bot check is recognised, not read as the product", () => {
+  assert.ok(isBlockedPage("Robot or human?", "https://www.walmart.com/ip/x/1"));
+  assert.ok(isBlockedPage(null, "https://www.walmart.com/blocked?url=abc"));
+  assert.ok(isBlockedPage("Product not found", "https://www.target.com/p/x/-/A-1"));
+  assert.ok(!isBlockedPage("Kindle Paperwhite", "https://www.amazon.com/dp/B0CFPJYX7P"));
+});
+
+test("Walmart's page, as it serves it, gives title, picture and price", () => {
+  const html = `<title>Hershey&#x27;s, Symphony Chocolate Almond Toffee Giant Candy Bar, 7.37 oz - Walmart.com</title>
+    <meta property="og:title" content="Hershey&#x27;s Symphony Chocolate Almond Toffee Giant Candy, Bar 7.37 oz, 25 Pieces - Walmart.com"/>
+    <meta property="og:image" content="https://i5.walmartimages.com/seo/Hershey-s-Symphony_d3e70bfa.jpeg"/>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"Hershey's Symphony","offers":[{"@type":"Offer","priceCurrency":"USD","price":3.97}]}</script>`;
+  assert.deepEqual(extractProductMeta(html, "https://www.walmart.com/ip/x/793288688"), {
+    title: "Hershey's Symphony Chocolate Almond Toffee Giant Candy, Bar 7.37 oz, 25 Pieces",
+    imageUrl: "https://i5.walmartimages.com/seo/Hershey-s-Symphony_d3e70bfa.jpeg",
+    priceCents: 397,
+  });
+});
+
+test("Amazon's own price is the one in its main price box, not the first on the page", () => {
+  const html = `<title>Kindle Paperwhite 16 GB | Fastest Kindle E-Reader | Amazon</title>
+    <div><span class="a-offscreen">$18.21</span></div>
+    <div id="corePrice_feature_div"><span class="a-price"><span class="a-offscreen">$121.49</span></span></div>`;
+  const meta = extractProductMeta(html, "https://www.amazon.com/dp/B0CFPJYX7P");
+  assert.equal(meta.priceCents, 12149);
+  assert.equal(meta.title, "Kindle Paperwhite 16 GB | Fastest Kindle E-Reader");
 });

@@ -29,12 +29,12 @@ const safeLookup: LookupFunction = (hostname, options, callback) => {
 };
 
 /**
- * Retailers answer a plain bot with a captcha page. A browser's headers get the
- * same page a person would see, which is what a link preview is meant to show.
+ * The preview says what it is. Some shops (Amazon) serve it the product page;
+ * others (Walmart) answer with a bot check, and the preview falls back to
+ * what the link itself says rather than pretending to be something else.
  */
 const HEADERS = {
-  "user-agent":
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+  "user-agent": "Mozilla/5.0 (compatible; GiftListPreview/1.0; +https://cameronspilker.com/tools/gift-list)",
   accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
   "accept-language": "en-US,en;q=0.9",
   "accept-encoding": "gzip, deflate, br",

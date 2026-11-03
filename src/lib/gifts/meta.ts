@@ -124,8 +124,92 @@ export function cleanTitle(raw: string): string {
   let title = decodeEntities(raw).replace(/\s+/g, " ").trim();
   title = title.replace(/^amazon\.[a-z.]+\s*:\s*/i, "");
   title = title.replace(/\s+:\s+[^:]+$/, (tail) => (/amazon/i.test(tail) || title.length > 60 ? "" : tail));
-  title = title.replace(/\s+[-|:–]\s+(walmart\.com|target|best buy|etsy|ebay|costco|amazon\.com|rei co-op)\s*$/i, "");
+  title = title.replace(/\s+[-|:–]\s+(walmart\.com|walmart|target|best buy|etsy|ebay|costco|amazon\.com|amazon|rei co-op)\s*$/i, "");
   return title.slice(0, 200).trim();
+}
+
+/**
+ * Pages a shop sends instead of the product: bot checks, captchas, "not
+ * found". Reading a title off one of these would put "Robot or human?" on
+ * someone's list, so the preview treats them as if nothing came back.
+ */
+export function isBlockedPage(title: string | null, finalUrl: string): boolean {
+  if (/\/(blocked|captcha|errors\/validatecaptcha)\b/i.test(new URL(finalUrl).pathname)) return true;
+  return /robot or human|robot check|captcha|access denied|are you a human|verify you are|pardon our interruption|just a moment|attention required|product not found|page not found|^404\b/i.test(
+    title ?? "",
+  );
+}
+
+/** Words that stay as they are when a slug is turned back into a name. */
+const KEEP_CASE = /\d|^[A-Z]{2,}$/;
+const UNIT = /^(oz|fl|lb|lbs|in|ft|ml|l|g|kg|qt|gal|pack|pk|ct|count|mm|cm)$/i;
+
+/**
+ * A readable name from the link itself, for when the page gives nothing.
+ * Most shops put the product name in the path:
+ *
+ *   walmart.com/ip/Hershey-s-Symphony-Giant-Candy-Bar/793288688
+ *   amazon.com/Kindle-Paperwhite-16GB/dp/B0CFPJYX7P
+ *   target.com/p/stanley-40oz-quencher-tumbler/-/A-87553478
+ *
+ * The longest hyphenated segment with real words in it wins.
+ */
+export function titleFromUrl(input: string): string | null {
+  let url: URL;
+  try {
+    url = new URL(input);
+  } catch {
+    return null;
+  }
+  const segments = url.pathname
+    .split("/")
+    .map((s) => {
+      try {
+        return decodeURIComponent(s);
+      } catch {
+        return s;
+      }
+    })
+    .map((s) => s.replace(/\.(html?|aspx?|php|p)$/i, ""))
+    .filter((s) => /[a-z]{3,}/i.test(s) && (s.match(/[-_+]/g) ?? []).length >= 2);
+  if (!segments.length) return null;
+  const best = segments.reduce((a, b) => (b.length > a.length ? b : a));
+
+  // A slug the shop already capitalised keeps its casing; an all-lowercase one
+  // gets its words capitalised so it reads as a name.
+  const lowercaseSlug = best === best.toLowerCase();
+  const tokens = best.split(/[-_+\s]+/).filter(Boolean);
+  const words: string[] = [];
+  tokens.forEach((word, i) => {
+    // "Hershey-s" was "Hershey's" before the shop flattened it.
+    if (word.toLowerCase() === "s" && words.length) {
+      words[words.length - 1] += "'s";
+      return;
+    }
+    // "7-37-oz" was "7.37 oz".
+    const prev = words[words.length - 1];
+    if (/^\d{1,2}$/.test(word) && prev && /^\d+$/.test(prev) && UNIT.test(tokens[i + 1] ?? "")) {
+      words[words.length - 1] = `${prev}.${word}`;
+      return;
+    }
+    words.push(lowercaseSlug && !KEEP_CASE.test(word) && !UNIT.test(word) ? word[0].toUpperCase() + word.slice(1) : word);
+  });
+  const title = words.join(" ").slice(0, 200).trim();
+  return title.length >= 3 ? title : null;
+}
+
+/**
+ * Amazon prints many prices on a product page (bundles, other sellers, related
+ * items). The product's own is the first one inside its main price box.
+ */
+function amazonPrice(html: string): string | undefined {
+  for (const marker of ['id="corePrice_feature_div"', 'id="corePriceDisplay_desktop_feature_div"', 'id="apex_desktop"']) {
+    const at = html.indexOf(marker);
+    if (at < 0) continue;
+    const price = html.slice(at, at + 20000).match(/<span class="a-offscreen">\s*\$([\d,]+(?:\.\d{2})?)\s*<\/span>/)?.[1];
+    if (price) return price;
+  }
+  return html.match(/<span class="a-offscreen">\s*\$([\d,]+(?:\.\d{2})?)\s*<\/span>/)?.[1];
 }
 
 function absolute(url: string | undefined, base: string): string | null {
@@ -161,7 +245,7 @@ export function extractProductMeta(html: string, pageUrl: string): ProductMeta {
     product?.price ??
     meta.get("price") ??
     // Amazon prints the price for screen readers in an offscreen span.
-    html.match(/<span class="a-offscreen">\s*\$([\d,]+(?:\.\d{2})?)\s*<\/span>/)?.[1];
+    amazonPrice(html);
 
   return {
     title: rawTitle ? cleanTitle(rawTitle) || null : null,
