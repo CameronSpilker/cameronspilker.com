@@ -199,6 +199,44 @@ export function titleFromUrl(input: string): string | null {
 }
 
 /**
+ * A block page sometimes carries the address it blocked: Walmart sends
+ * `/blocked?url=<base64 of the product path>`. Returns that address, if any.
+ */
+export function blockedOriginal(input: string): string | null {
+  let url: URL;
+  try {
+    url = new URL(input);
+  } catch {
+    return null;
+  }
+  const encoded = url.searchParams.get("url");
+  if (!encoded) return null;
+  let decoded = "";
+  try {
+    decoded = atob(encoded);
+  } catch {
+    // Not base64; the plain value is still checked below.
+  }
+  for (const candidate of [encoded, decoded]) {
+    if (candidate.startsWith("/") && /^[\x20-\x7e]+$/.test(candidate)) return new URL(candidate, url.origin).toString();
+    if (/^https?:\/\//.test(candidate)) return candidate;
+  }
+  return null;
+}
+
+/**
+ * The best name from any address a request passed through, in order: what the
+ * person pasted, where it redirected, and what a block page says it blocked.
+ */
+export function titleFromUrls(urls: string[]): string | null {
+  for (const url of urls) {
+    const title = titleFromUrl(url) ?? titleFromUrl(blockedOriginal(url) ?? "");
+    if (title) return title;
+  }
+  return null;
+}
+
+/**
  * Amazon prints many prices on a product page (bundles, other sellers, related
  * items). The product's own is the first one inside its main price box.
  */

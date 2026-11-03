@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { SLUG_PATTERN, hashSecret, makeSlug, newSecret, randomCode, secretMatches, slugifyName } from "./ids.ts";
 import { formatPrice, parsePrice, priceInputValue } from "./price.ts";
 import { storeName } from "./stores.ts";
-import { cleanTitle, extractProductMeta, isBlockedPage, titleFromUrl } from "./meta.ts";
+import { blockedOriginal, cleanTitle, extractProductMeta, isBlockedPage, titleFromUrl, titleFromUrls } from "./meta.ts";
 import { fetchableUrl, isPublicAddress } from "./address.ts";
 import { readItem, readListDetails } from "./input.ts";
 import { claimState, wouldOverClaim } from "./claims.ts";
@@ -193,4 +193,23 @@ test("Amazon's own price is the one in its main price box, not the first on the 
   const meta = extractProductMeta(html, "https://www.amazon.com/dp/B0CFPJYX7P");
   assert.equal(meta.priceCents, 12149);
   assert.equal(meta.title, "Kindle Paperwhite 16 GB | Fastest Kindle E-Reader");
+});
+
+test("a bare item number gets its name from where it redirected, or from the block page", () => {
+  const bare = "https://www.walmart.com/ip/793288688?sid=52DF5884-D091-4D56-B7F4-2B135B9E060B";
+  const named = "https://www.walmart.com/ip/Hershey-s-Symphony-Chocolate-Almond-Toffee-Giant-Candy-Bar-7-37-oz-25-Pieces/793288688?sid=52DF5884";
+  // The real block page Walmart served from Vercel's network for the named link.
+  const blocked =
+    "https://www.walmart.com/blocked?url=L2lwL0hlcnNoZXktcy1TeW1waG9ueS1DaG9jb2xhdGUtQWxtb25kLVRvZmZlZS1HaWFudC1DYW5keS1CYXItNy0zNy1vei0yNS1QaWVjZXMvNzkzMjg4Njg4&uuid=0305f423&vid=&g=b";
+  const name = "Hershey's Symphony Chocolate Almond Toffee Giant Candy Bar 7.37 oz 25 Pieces";
+
+  assert.equal(titleFromUrl(bare), null, "an item number alone is not a name");
+  assert.equal(titleFromUrls([bare, named, blocked]), name, "the redirect names it");
+  assert.equal(titleFromUrls([bare, blocked]), name, "the block page names it");
+  assert.equal(
+    blockedOriginal(blocked),
+    "https://www.walmart.com/ip/Hershey-s-Symphony-Chocolate-Almond-Toffee-Giant-Candy-Bar-7-37-oz-25-Pieces/793288688",
+  );
+  assert.equal(blockedOriginal("https://www.walmart.com/blocked?url=%%%"), null);
+  assert.equal(titleFromUrls([bare]), null);
 });

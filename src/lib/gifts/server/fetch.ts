@@ -40,7 +40,12 @@ const HEADERS = {
   "accept-encoding": "gzip, deflate, br",
 };
 
-type Fetched = { url: string; contentType: string; body: Buffer };
+/**
+ * `hops` is every address visited, first to last. A shop that redirects a bare
+ * item number to its full product URL and then blocks the request has still
+ * said what the product is called, in that middle address.
+ */
+type Fetched = { url: string; hops: string[]; contentType: string; body: Buffer };
 
 function once(url: URL, accept: string | undefined, maxBytes: number, timeoutMs: number) {
   return new Promise<{ status: number; location?: string; contentType: string; body: Buffer }>((resolve, reject) => {
@@ -103,14 +108,16 @@ export async function safeFetch(
   } = {},
 ): Promise<Fetched | null> {
   let url = fetchableUrl(input);
+  const hops: string[] = [];
   for (let hop = 0; url && hop <= maxRedirects; hop++) {
+    hops.push(url.toString());
     const res = await once(url, accept, maxBytes, timeoutMs);
     if (res.location) {
       url = fetchableUrl(new URL(res.location, url).toString());
       continue;
     }
-    if (res.status < 200 || res.status >= 300) return null;
-    return { url: url.toString(), contentType: res.contentType, body: res.body };
+    if (res.status < 200 || res.status >= 300) return { url: url.toString(), hops, contentType: "", body: Buffer.alloc(0) };
+    return { url: url.toString(), hops, contentType: res.contentType, body: res.body };
   }
   return null;
 }
