@@ -13,7 +13,7 @@ export const toolsIndex = {
     "Small things I made because I needed them. Most run entirely in your browser and upload nothing. The gift list is the exception, because sharing a list means saving it somewhere.",
   /** Description metadata for `/tools`. */
   metaDescription:
-    "Small tools: a gift list you share with a link, a wheel spinner, a PDF signer, and a dbt run results visualizer.",
+    "Small tools: a gift list you share with a link, a debt payoff calculator, a wheel spinner, a PDF signer, and a dbt run results visualizer.",
 } as const;
 
 export const runResultsTool = {
@@ -358,10 +358,134 @@ export const giftListTool = {
 } as const;
 
 /**
+ * The debt payoff calculator. Browser-only like the rest: what someone owes is
+ * about as private as a work file, so the numbers never leave the page.
+ */
+export const debtTool = {
+  slug: "debt-payoff",
+  name: "Debt payoff calculator",
+  title: "When will it all be paid off",
+  description:
+    "List your mortgage, car loan, student loans and cards, add extra each month, and see the payoff date and full schedule. Nothing leaves your browser.",
+  lede:
+    "Put in what you owe, see the date it's gone, then try paying a bit more. The numbers stay in your browser.",
+  privacy: "Worked out in this page and remembered in this browser only. Nothing is uploaded.",
+  /** The example on first visit, so there is a result to read straight away. */
+  example: {
+    debts: [
+      { name: "Mortgage", balance: 285000, apr: 6.5, minPayment: 1802 },
+      { name: "Car loan", balance: 18500, apr: 7.9, minPayment: 420 },
+      { name: "Student loan", balance: 32000, apr: 5.5, minPayment: 350 },
+      { name: "Credit card", balance: 4200, apr: 22.9, minPayment: 120 },
+    ],
+    extraMonthly: 200,
+    banner: "These are example numbers. Change them to yours.",
+  },
+  /**
+   * Quick adds. The payment is worked out from a typical term so the row is
+   * usable at once; the reader replaces it with their real one.
+   */
+  presets: [
+    { name: "Mortgage", balance: 250000, apr: 6.5, termMonths: 360 },
+    { name: "Car loan", balance: 25000, apr: 7.5, termMonths: 60 },
+    { name: "Student loan", balance: 30000, apr: 5.5, termMonths: 120 },
+    { name: "Personal loan", balance: 10000, apr: 12, termMonths: 48 },
+    { name: "Credit card", balance: 5000, apr: 22.9, termMonths: 0, minPayment: 150 },
+    { name: "Other", balance: 1000, apr: 0, termMonths: 12 },
+  ],
+  debts: {
+    title: "What you owe",
+    add: "Add",
+    name: "Name",
+    balance: "Balance",
+    apr: "Rate (APR)",
+    minPayment: "Monthly payment",
+    /** Phone widths fit about seven characters over each field. */
+    aprShort: "APR",
+    minPaymentShort: "Payment",
+    remove: "Remove",
+    moveUp: "Move up",
+    moveDown: "Move down",
+    empty: "Nothing here. Add a debt above to start.",
+    reset: "Back to the example",
+    clear: "Clear all",
+    total: "Total owed",
+    monthly: "Paying each month",
+    underwater: "This payment doesn't cover the monthly interest, so the balance never goes down on its own.",
+    max: (n: number) => `Up to ${n} debts.`,
+  },
+  plan: {
+    title: "Your plan",
+    extra: "Extra each month",
+    extraHint: "On top of the payments above.",
+    lump: "One time payment",
+    lumpHint: "A bonus or tax refund, say.",
+    lumpMonth: "In month",
+    start: "Starting",
+    strategy: "Extra goes to",
+    strategies: {
+      avalanche: { label: "Highest rate first", hint: "Avalanche. Pays the least interest." },
+      snowball: { label: "Smallest balance first", hint: "Snowball. Clears whole debts soonest." },
+      listed: { label: "In my order", hint: "Top of the list first. Use the arrows to reorder." },
+    },
+    rollover: "When a debt is paid off, put its payment toward the next one",
+  },
+  results: {
+    debtFree: "Debt free",
+    debtFreeIn: (span: string) => `in ${span}`,
+    never: "Not on this plan",
+    neverHint: "At least one payment doesn't cover its interest. Raise it or add extra.",
+    interest: "Total interest",
+    interestHint: (paid: string) => `${paid} paid in all`,
+    sooner: "Sooner than minimums",
+    soonerHint: (span: string) => `Minimums alone take ${span}`,
+    soonerNever: "Minimums alone never finish",
+    same: "No change",
+    finishes: "It finishes",
+    saved: "Interest saved",
+    savedHint: "Against paying only the minimums",
+    nothing: "Add a debt to see when it's paid off.",
+  },
+  chart: {
+    title: "Balance over time",
+    plan: "Your plan",
+    baseline: "Minimums only",
+    month: (label: string) => label,
+  },
+  order: {
+    title: "Payoff order",
+    columns: { debt: "Debt", paidOff: "Paid off", interest: "Interest", sooner: "Sooner by" },
+    never: "Never",
+  },
+  schedule: {
+    title: "Amortization schedule",
+    all: "All debts",
+    monthly: "Monthly",
+    yearly: "Yearly",
+    columns: { period: "Month", year: "Year", payment: "Payment", principal: "Principal", interest: "Interest", balance: "Balance" },
+    download: "Download as CSV",
+    file: "debt-payoff-schedule.csv",
+    paidOff: "Paid off",
+    cut: (n: number) => `Stops at ${n} years. A debt that runs past that is not being paid down.`,
+  },
+  time: {
+    span: (months: number) => {
+      const y = Math.floor(months / 12);
+      const m = months % 12;
+      const years = y ? `${y} year${y === 1 ? "" : "s"}` : "";
+      const mos = m ? `${m} month${m === 1 ? "" : "s"}` : "";
+      return [years, mos].filter(Boolean).join(" ") || "0 months";
+    },
+    month: (n: number) => `Month ${n}`,
+    year: (n: number) => `Year ${n}`,
+  },
+} as const;
+
+/**
  * The tools with a page behind them, in the order they are shown.
  *
  * Only what is built and live belongs here: the homepage section and the
  * `/tools` index both read this list, so an entry with no page is a dead card
  * in two places rather than one.
  */
-export const liveTools = [giftListTool, wheelTool, pdfSignerTool, runResultsTool];
+export const liveTools = [giftListTool, debtTool, wheelTool, pdfSignerTool, runResultsTool];
