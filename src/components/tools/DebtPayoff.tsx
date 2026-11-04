@@ -90,10 +90,10 @@ function isSaved(value: unknown): value is Saved {
 }
 
 const field =
-  "w-full min-w-0 rounded-lg border border-line bg-surface/70 px-2.5 py-2 sm:px-3 text-base text-bright tabular-nums placeholder:text-body/50 focus:border-accent focus:outline-none sm:text-sm";
+  "w-full min-w-0 rounded-lg border border-line bg-surface/70 px-2 py-2 sm:px-3 text-base text-bright tabular-nums placeholder:text-body/50 focus:border-accent focus:outline-none sm:text-sm";
 const label = "font-mono text-[11px] tracking-[0.12em] text-body/70 uppercase";
 const quiet =
-  "rounded-full px-3 py-1.5 text-xs font-semibold text-body transition-colors hover:bg-bright/5 hover:text-bright disabled:opacity-40";
+  "rounded-full px-3 py-2.5 text-xs font-semibold text-body sm:py-1.5 transition-colors hover:bg-bright/5 hover:text-bright disabled:opacity-40";
 
 function Money({ value, placeholder, onChange, ariaLabel, percent = false }: {
   value: string;
@@ -106,7 +106,7 @@ function Money({ value, placeholder, onChange, ariaLabel, percent = false }: {
     <div className="relative">
       <span
         aria-hidden="true"
-        className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-sm text-body/60 ${percent ? "right-2.5 sm:right-3" : "left-2.5 sm:left-3"}`}
+        className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-sm text-body/60 ${percent ? "right-2 sm:right-3" : "left-2 sm:left-3"}`}
       >
         {percent ? "%" : "$"}
       </span>
@@ -116,9 +116,19 @@ function Money({ value, placeholder, onChange, ariaLabel, percent = false }: {
         placeholder={placeholder}
         aria-label={ariaLabel}
         onChange={(e) => onChange(e.target.value)}
-        className={`${field} ${percent ? "pr-6 sm:pr-7" : "pl-5 sm:pl-6"}`}
+        className={`${field} ${percent ? "pr-5 sm:pr-7" : "pl-[1.1rem] sm:pl-6"}`}
       />
     </div>
+  );
+}
+
+/** Whole dollars on a phone, where the cents push the schedule off the screen; cents from sm up. */
+function Amount({ value }: { value: number }) {
+  return (
+    <>
+      <span className="sm:hidden">{money0.format(value)}</span>
+      <span className="hidden sm:inline">{money2.format(value)}</span>
+    </>
   );
 }
 
@@ -246,6 +256,27 @@ export function DebtPayoff() {
     viewIndex < 0 ? rows.length : rows.findIndex((r) => r.debts[viewIndex].balance === 0) + 1 || rows.length;
   const shown = rows.slice(0, lastActive).map((r) => (viewIndex < 0 ? { ...r } : { ...r, ...r.debts[viewIndex] }));
 
+  const listed = state.strategy === "listed";
+  const order = debts
+    .map((d, i) => ({ d, r: plan.debts[i], b: base.debts[i] }))
+    .filter(({ d }) => d.balance > 0)
+    .sort((a, b) => (a.r.payoffMonth ?? Infinity) - (b.r.payoffMonth ?? Infinity))
+    .map(({ d, r, b }) => {
+      const gain = r.payoffMonth !== null && b.payoffMonth !== null ? b.payoffMonth - r.payoffMonth : null;
+      return {
+        id: d.id,
+        name: d.name,
+        date: r.payoffMonth === null ? copy.order.never : when(r.payoffMonth),
+        interest: money0.format(r.interest),
+        sooner:
+          r.payoffMonth !== null && b.payoffMonth === null
+            ? copy.results.soonerNever
+            : gain && gain > 0
+              ? span(gain)
+              : "·",
+      };
+    });
+
   const downloadCsv = () => {
     const quote = (s: string) => `"${s.replace(/"/g, '""')}"`;
     const head = ["Month", "Date", "Payment", "Principal", "Interest", "Balance"];
@@ -267,7 +298,7 @@ export function DebtPayoff() {
   return (
     <div className="flex flex-col gap-6">
       {/* What you owe */}
-      <section className="glass rounded-[28px] p-5 sm:p-6">
+      <section className="glass rounded-[28px] p-4 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-xl font-bold tracking-tight text-bright">{copy.debts.title}</h2>
           <div className="flex gap-1">
@@ -290,7 +321,7 @@ export function DebtPayoff() {
               type="button"
               onClick={() => addPreset(p)}
               disabled={state.debts.length >= MAX_DEBTS}
-              className="rounded-full border border-line bg-surface/60 px-3 py-1 text-sm text-bright transition-colors hover:border-accent hover:text-accent disabled:opacity-40"
+              className="rounded-full border border-line bg-surface/60 px-3 py-2 text-sm text-bright transition-colors sm:py-1 hover:border-accent hover:text-accent disabled:opacity-40"
             >
               + {p.name}
             </button>
@@ -309,9 +340,9 @@ export function DebtPayoff() {
               <span className={label}>{copy.debts.minPayment}</span>
             </li>
             {state.debts.map((d, i) => (
-              <li key={d.id} className="rounded-xl border border-line/70 bg-surface/40 p-3 sm:border-0 sm:bg-transparent sm:p-0">
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))_4.5rem] sm:gap-3">
-                  <div className="order-1 col-span-2 flex gap-2 sm:order-none sm:col-span-1">
+              <li key={d.id} className="rounded-xl border border-line/70 bg-surface/40 p-2.5 sm:border-0 sm:bg-transparent sm:p-0">
+                <div className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,0.9fr)_minmax(0,1fr)] gap-2 sm:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))_4.5rem] sm:gap-3">
+                  <div className={`order-1 flex gap-2 sm:order-none sm:col-span-1 ${listed ? "col-span-3" : "col-span-2"}`}>
                     <input
                       value={d.name}
                       maxLength={40}
@@ -332,18 +363,19 @@ export function DebtPayoff() {
                     <span className={`${label} sm:hidden`}>{copy.debts.minPaymentShort}</span>
                     <Money value={d.minPayment} ariaLabel={`${d.name} ${copy.debts.minPayment}`} onChange={(v) => updateDebt(d.id, { minPayment: v })} />
                   </label>
-                  <div className="order-2 flex items-center justify-end gap-0.5 sm:order-none">
-                    {state.strategy === "listed" && (
+                  {/* Reordering adds two buttons, which a third of a phone row cannot hold, so they take their own row there. */}
+                  <div className={`flex items-center justify-end gap-0.5 sm:order-none sm:col-span-1 ${listed ? "order-4 col-span-3" : "order-2"}`}>
+                    {listed && (
                       <>
-                        <button type="button" aria-label={`${copy.debts.moveUp} ${d.name}`} disabled={i === 0} onClick={() => moveDebt(i, -1)} className={`${quiet} px-2`}>
+                        <button type="button" aria-label={`${copy.debts.moveUp} ${d.name}`} disabled={i === 0} onClick={() => moveDebt(i, -1)} className={`${quiet} h-10 w-10 shrink-0 px-0 sm:h-8 sm:w-8 sm:py-0`}>
                           ↑
                         </button>
-                        <button type="button" aria-label={`${copy.debts.moveDown} ${d.name}`} disabled={i === state.debts.length - 1} onClick={() => moveDebt(i, 1)} className={`${quiet} px-2`}>
+                        <button type="button" aria-label={`${copy.debts.moveDown} ${d.name}`} disabled={i === state.debts.length - 1} onClick={() => moveDebt(i, 1)} className={`${quiet} h-10 w-10 shrink-0 px-0 sm:h-8 sm:w-8 sm:py-0`}>
                           ↓
                         </button>
                       </>
                     )}
-                    <button type="button" aria-label={`${copy.debts.remove} ${d.name}`} onClick={() => removeDebt(d.id)} className={`${quiet} px-2.5 text-base`}>
+                    <button type="button" aria-label={`${copy.debts.remove} ${d.name}`} onClick={() => removeDebt(d.id)} className={`${quiet} flex h-10 w-10 shrink-0 items-center justify-center px-0 py-0 text-lg sm:h-8 sm:w-8 sm:py-0 sm:text-base`}>
                       ×
                     </button>
                   </div>
@@ -417,12 +449,12 @@ export function DebtPayoff() {
             <span className="text-xs text-body/70">{copy.plan.strategies[state.strategy].hint}</span>
           </label>
         </div>
-        <label className="mt-4 flex items-start gap-2 text-sm text-bright">
+        <label className="mt-4 flex cursor-pointer items-start gap-2.5 py-1 text-sm text-bright">
           <input
             type="checkbox"
             checked={state.rollover}
             onChange={(e) => update({ rollover: e.target.checked })}
-            className="mt-0.5 h-4 w-4 accent-[var(--color-accent)]"
+            className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--color-accent)] sm:h-4 sm:w-4"
           />
           {copy.plan.rollover}
         </label>
@@ -461,42 +493,46 @@ export function DebtPayoff() {
 
           <section className="glass rounded-[28px] p-5 sm:p-6">
             <h2 className="text-xl font-bold tracking-tight text-bright">{copy.order.title}</h2>
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full min-w-[28rem] text-sm">
-                <thead>
-                  <tr className="border-b border-line text-left">
-                    {Object.values(copy.order.columns).map((c, i) => (
-                      <th key={c} className={`py-2 font-mono text-[11px] font-normal tracking-[0.12em] text-body/70 uppercase ${i ? "text-right" : ""}`}>{c}</th>
-                    ))}
+            {/* A table from sm up; on a phone four columns do not fit, so each debt is a short card. */}
+            <table className="mt-4 hidden w-full text-sm sm:table">
+              <thead>
+                <tr className="border-b border-line text-left">
+                  {Object.values(copy.order.columns).map((c, i) => (
+                    <th key={c} className={`py-2 font-mono text-[11px] font-normal tracking-[0.12em] text-body/70 uppercase ${i ? "text-right" : ""}`}>{c}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {order.map((o) => (
+                  <tr key={o.id} className="border-b border-line/50">
+                    <td className="py-2 pr-3 text-bright">{o.name}</td>
+                    <td className="py-2 text-right tabular-nums">{o.date}</td>
+                    <td className="py-2 text-right tabular-nums">{o.interest}</td>
+                    <td className="py-2 text-right tabular-nums">{o.sooner}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {debts
-                    .map((d, i) => ({ d, r: plan.debts[i], b: base.debts[i] }))
-                    .filter(({ d }) => d.balance > 0)
-                    .sort((a, b) => (a.r.payoffMonth ?? Infinity) - (b.r.payoffMonth ?? Infinity))
-                    .map(({ d, r, b }) => {
-                      const gain = r.payoffMonth !== null && b.payoffMonth !== null ? b.payoffMonth - r.payoffMonth : null;
-                      return (
-                        <tr key={d.id} className="border-b border-line/50">
-                          <td className="py-2 pr-3 text-bright">{d.name}</td>
-                          <td className="py-2 text-right tabular-nums">{r.payoffMonth === null ? copy.order.never : when(r.payoffMonth)}</td>
-                          <td className="py-2 text-right tabular-nums">{money0.format(r.interest)}</td>
-                          <td className="py-2 text-right tabular-nums">
-                            {r.payoffMonth !== null && b.payoffMonth === null ? copy.results.soonerNever : gain && gain > 0 ? span(gain) : "·"}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
+            <ul className="mt-3 divide-y divide-line/50 sm:hidden">
+              {order.map((o) => (
+                <li key={o.id} className="py-2.5">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="min-w-0 truncate font-semibold text-bright">{o.name}</span>
+                    <span className="shrink-0 text-sm text-bright tabular-nums">{o.date}</span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-body/80 tabular-nums">
+                    {copy.order.columns.interest} {o.interest}
+                    {o.sooner !== "·" && ` · ${copy.order.columns.sooner.toLowerCase()} ${o.sooner}`}
+                  </p>
+                </li>
+              ))}
+            </ul>
           </section>
 
           <section className="glass rounded-[28px] p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-xl font-bold tracking-tight text-bright">{copy.schedule.title}</h2>
-              <button type="button" onClick={downloadCsv} className="wheel-cta rounded-full px-4 py-2 text-sm font-bold transition-opacity hover:opacity-90">
+              <button type="button" onClick={downloadCsv} className="wheel-cta rounded-full px-4 py-2.5 text-sm font-bold sm:py-2 transition-opacity hover:opacity-90">
                 {copy.schedule.download}
               </button>
             </div>
@@ -514,19 +550,20 @@ export function DebtPayoff() {
                     type="button"
                     aria-pressed={period === p}
                     onClick={() => setPeriod(p)}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${period === p ? "bg-accent text-surface" : "text-body hover:text-bright"}`}
+                    className={`rounded-full px-4 py-2 text-xs font-semibold transition-colors sm:px-3 sm:py-1 ${period === p ? "bg-accent text-surface" : "text-body hover:text-bright"}`}
                   >
                     {copy.schedule[p]}
                   </button>
                 ))}
               </div>
             </div>
-            <div className="mt-4 max-h-[32rem] overflow-auto rounded-lg border border-line">
-              <table className="w-full min-w-[34rem] text-sm">
+            <div className="-mx-1 mt-4 max-h-[32rem] overflow-auto rounded-lg border border-line sm:mx-0">
+              <table className="w-full text-xs sm:text-sm">
                 <thead className="sticky top-0 bg-raised">
                   <tr className="text-right">
+                    {/* Principal is payment less interest, so it is the column a phone drops. */}
                     {[period === "yearly" ? copy.schedule.columns.year : copy.schedule.columns.period, copy.schedule.columns.payment, copy.schedule.columns.principal, copy.schedule.columns.interest, copy.schedule.columns.balance].map((c, i) => (
-                      <th key={c} className={`px-3 py-2 font-mono text-[11px] font-normal tracking-[0.12em] text-body/70 uppercase ${i ? "" : "text-left"}`}>{c}</th>
+                      <th key={c} className={`px-1.5 py-2 font-mono text-[10px] font-normal tracking-[0.08em] text-body/70 uppercase sm:px-3 sm:text-[11px] sm:tracking-[0.12em] ${i ? "" : "text-left"} ${i === 2 ? "hidden sm:table-cell" : ""}`}>{c}</th>
                     ))}
                   </tr>
                 </thead>
@@ -536,14 +573,15 @@ export function DebtPayoff() {
                     const dated = dateLabel(state.start, first);
                     return (
                       <tr key={r.month} className="border-t border-line/50 text-right tabular-nums">
-                        <td className="px-3 py-1.5 text-left text-bright">
-                          {period === "yearly" ? copy.time.year(r.month) : copy.time.month(r.month)}
-                          {dated && <span className="ml-2 text-xs text-body/70">{dated}</span>}
+                        <td className="px-1.5 py-1.5 text-left text-bright sm:px-3">
+                          <span className="sm:hidden">{r.month}</span>
+                          <span className="hidden whitespace-nowrap sm:inline">{period === "yearly" ? copy.time.year(r.month) : copy.time.month(r.month)}</span>
+                          {dated && <span className="block text-[11px] text-body/70 sm:ml-2 sm:inline sm:text-xs">{dated}</span>}
                         </td>
-                        <td className="px-3 py-1.5">{money2.format(r.payment)}</td>
-                        <td className="px-3 py-1.5">{money2.format(r.principal)}</td>
-                        <td className="px-3 py-1.5">{money2.format(r.interest)}</td>
-                        <td className="px-3 py-1.5 text-bright">{r.balance === 0 ? copy.schedule.paidOff : money2.format(r.balance)}</td>
+                        <td className="px-1.5 py-1.5 sm:px-3"><Amount value={r.payment} /></td>
+                        <td className="hidden px-3 py-1.5 sm:table-cell"><Amount value={r.principal} /></td>
+                        <td className="px-1.5 py-1.5 sm:px-3"><Amount value={r.interest} /></td>
+                        <td className="px-1.5 py-1.5 text-bright sm:px-3">{r.balance === 0 ? copy.schedule.paidOff : <Amount value={r.balance} />}</td>
                       </tr>
                     );
                   })}
