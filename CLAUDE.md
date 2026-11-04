@@ -39,6 +39,7 @@ src/
 │   └── tools/      # The tool pages, which are apps rather than sections
 ├── lib/            # Framework-free helpers (cron.ts drives the Lab countdown)
 │   ├── dbt/        # Parser, metrics and colour rules for the run results tool
+│   ├── debt/       # Month by month payoff simulation, in whole cents
 │   └── gifts/      # Gift list: ids, prices, page reader, input checks; server/ holds the DB
 └── content/
     ├── site.ts        # name, tagline, contact links, Full Data Stack Lab URLs
