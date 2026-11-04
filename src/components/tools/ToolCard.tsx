@@ -16,7 +16,7 @@ export function ToolCard({ tool }: { tool: (typeof liveTools)[number] }) {
     >
       <p className="text-xs font-semibold text-accent">{tool.name}</p>
       <p className="mt-2 text-xl font-bold tracking-tight text-bright">{tool.title}</p>
-      <p className="mt-2 text-sm leading-relaxed">{tool.description}</p>
+      <p className="mt-2 text-sm leading-relaxed">{tool.card}</p>
       <p className="mt-4 text-sm font-semibold text-accent">
         Open <span aria-hidden="true" className="inline-block transition-transform group-hover:translate-x-0.5">&rarr;</span>
       </p>
