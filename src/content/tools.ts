@@ -5,12 +5,17 @@
  * same rule the homepage sections follow.
  */
 
+/**
+ * Each tool has a `description` for search results and link previews, and a
+ * shorter `card` line for the cards on the homepage and `/tools`.
+ */
+
 /** The framing for the `/tools` index. Matches the homepage section's. */
 export const toolsIndex = {
   label: "Tools",
   title: "Little tools",
   lede:
-    "Small things I made because I needed them. Most run entirely in your browser and upload nothing. The gift list is the exception, because sharing a list means saving it somewhere.",
+    "Small things I made because I needed them. They run in your browser, except the gift list, which saves lists so you can share them.",
   /** Description metadata for `/tools`. */
   metaDescription:
     "Small tools: a gift list you share with a link, a debt payoff calculator, a wheel spinner, a PDF signer, and a dbt run results visualizer.",
@@ -22,6 +27,7 @@ export const runResultsTool = {
   title: "See where a dbt run actually spent its time",
   description:
     "Drop in a run_results.json and get the timeline, the idle threads, and the models worth fixing. Nothing leaves your browser.",
+  card: "Drop in run_results.json for the timeline and the slowest models.",
   lede:
     "Every dbt invocation writes a full account of itself to target/run_results.json: what ran, on which thread, for how long, and how it ended. This reads that file and draws it. The file never leaves your browser, so you can use it on a work artifact without asking anyone.",
   privacy:
@@ -115,6 +121,7 @@ export const pdfSignerTool = {
   name: "PDF signer",
   title: "Sign a PDF",
   description: "Fill in and sign a PDF in your browser. Nothing is uploaded.",
+  card: "Fill in and sign a PDF. Nothing is uploaded.",
   lede: "Fill in and sign any PDF right here in your browser, without uploading it anywhere.",
   steps: {
     upload: "Upload your PDF",
@@ -199,6 +206,7 @@ export const wheelTool = {
   name: "Wheel spinner",
   title: "Spin the wheel",
   description: "Add your options, spin, and let the wheel decide. No ads, nothing uploaded.",
+  card: "Add your options and let the wheel decide.",
   lede: "Add options, hit spin. Runs in your browser, nothing is uploaded.",
   /** A starting set, so the wheel is spinnable the moment the page opens. */
   starter: ["Pizza", "Tacos", "Sushi", "Burgers", "Ramen", "Curry"],
@@ -229,6 +237,7 @@ export const giftListTool = {
   title: "One gift list, shared with a link",
   description:
     "Paste links to things you'd like, rank them, and share one link. People mark what they're getting so nobody doubles up.",
+  card: "Rank what you'd like, share one link, and nobody doubles up.",
   lede: "Paste links, put the best first, share one link. No accounts.",
   defaults: {
     title: (name: string) => `${name}'s gift list`,
@@ -367,6 +376,7 @@ export const debtTool = {
   title: "When will it all be paid off",
   description:
     "List your mortgage, car loan, student loans and cards, add extra each month, and see the payoff date and full schedule. Nothing leaves your browser.",
+  card: "See your payoff date, and how much sooner paying extra gets you there.",
   lede:
     "Put in what you owe, see the date it's gone, then try paying a bit more. The numbers stay in your browser.",
   privacy: "Worked out in this page and remembered in this browser only. Nothing is uploaded.",
