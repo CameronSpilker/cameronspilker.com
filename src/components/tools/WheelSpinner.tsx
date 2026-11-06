@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { wheelTool as copy } from "@/content/tools";
 import {
   MAX_LABEL,
@@ -11,6 +11,7 @@ import {
   slicePath,
   targetRotation,
 } from "@/lib/wheel/spin";
+import { layoutLabel } from "@/lib/wheel/label";
 import { burstConfetti } from "./confetti";
 
 /**
@@ -24,6 +25,10 @@ const STORAGE_KEY = "wheel-options";
 const SIZE = 400;
 const C = SIZE / 2;
 const R = 176;
+/** Labels start this far in from the rim... */
+const LABEL_OUTER = R - 16;
+/** ...and stop short of the hub ring (radius 54) by a small margin. */
+const LABEL_INNER = 62;
 
 function colourFor(i: number, n: number) {
   // With an odd remainder the last slice would match the first; skip ahead.
@@ -37,11 +42,6 @@ function labelSize(n: number) {
   if (n <= 16) return 12;
   if (n <= 28) return 9.5;
   return 7;
-}
-
-function fit(label: string, n: number) {
-  const max = n <= 10 ? 16 : n <= 28 ? 14 : 12;
-  return label.length > max ? `${label.slice(0, max - 1)}…` : label;
 }
 
 export function WheelSpinner() {
@@ -149,6 +149,13 @@ export function WheelSpinner() {
   };
 
   const n = options.length;
+  const labels = useMemo(
+    () =>
+      options.map((label) =>
+        layoutLabel(label, { n: options.length, outer: LABEL_OUTER, inner: LABEL_INNER, maxFont: labelSize(options.length) }),
+      ),
+    [options],
+  );
   const canSpin = n >= 2 && !spinning;
 
   return (
@@ -229,18 +236,26 @@ export function WheelSpinner() {
                   <g key={`${label}-${i}`}>
                     <path d={slicePath(i, n, R, C)} fill={colourFor(i, n)} stroke="var(--wheel-seam)" strokeWidth="2" />
                     <text
-                      x={flip ? C - R + 16 : C + R - 16}
+                      x={flip ? C - LABEL_OUTER : C + LABEL_OUTER}
                       y={C}
                       transform={`rotate(${flip ? mid + 90 : mid - 90} ${C} ${C})`}
                       textAnchor={flip ? "start" : "end"}
                       dominantBaseline="central"
                       fill="#ffffff"
-                      fontSize={labelSize(n)}
+                      fontSize={labels[i].fontSize}
                       fontWeight={700}
                       className="font-mono"
                       style={{ paintOrder: "stroke", stroke: "rgba(0,0,0,0.25)", strokeWidth: 2 }}
                     >
-                      {fit(label, n)}
+                      {labels[i].lines.map((line, j) => (
+                        <tspan
+                          key={j}
+                          x={flip ? C - LABEL_OUTER : C + LABEL_OUTER}
+                          dy={j === 0 ? (-(labels[i].lines.length - 1) / 2) * labels[i].lineHeight : labels[i].lineHeight}
+                        >
+                          {line}
+                        </tspan>
+                      ))}
                     </text>
                   </g>
                 );
