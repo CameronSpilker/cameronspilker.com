@@ -93,3 +93,22 @@ test("the resting grid fits the tray without overlap", () => {
     }
   }
 });
+
+test("every die turns right over, at least twice, however short its throw", () => {
+  for (const c of CASES) {
+    const height = trayHeight(c.count, c.size, c.width);
+    for (const seed of [1, 2, 3]) {
+      const t = simulateThrow({ ...c, height, fromLeft: seed % 2 === 0, random: seeded(seed) });
+      for (const track of t.tracks) {
+        // Add up the angle turned between each frame and the next.
+        let turned = 0;
+        for (let f = 1; f < t.frames; f++) {
+          let d = 0;
+          for (let k = 0; k < 4; k++) d += track.roll[(f - 1) * 4 + k] * track.roll[f * 4 + k];
+          turned += 2 * Math.acos(Math.min(1, Math.abs(d)));
+        }
+        assert.ok(turned / (2 * Math.PI) >= 2, `turned ${(turned / (2 * Math.PI)).toFixed(2)} times`);
+      }
+    }
+  }
+});

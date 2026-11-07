@@ -71,6 +71,7 @@ function restingFace(kind: SolidKind): number {
 
 const conjugate = ([w, x, y, z]: Quat): Quat => [w, -x, -y, -z];
 const IDENTITY: Quat = [1, 0, 0, 0];
+const smooth = (t: number) => t * t * (3 - 2 * t);
 
 export function Die({
   kind,
@@ -163,7 +164,7 @@ export function Die({
       }
     };
 
-    const twist = (Math.random() - 0.5) * 0.42;
+    const twist = (Math.random() - 0.5) * 0.28;
     const to = toQuat(landing(faces[target], twist));
     const thrown = throwId !== lastThrow.current;
     lastThrow.current = throwId;
@@ -177,7 +178,7 @@ export function Die({
 
     // Play the simulated throw. The die rolls as the table says it moved,
     // and the turn that brings it onto its landing face is spread over the
-    // distance it rolls, so it is complete exactly when the die stops.
+    // first two thirds of the distance it rolls, hidden in the tumble.
     const from = orientation.current;
     const last = track.x.length - 1;
     const rolledAt = (f: number): Quat => [track.roll[f * 4], track.roll[f * 4 + 1], track.roll[f * 4 + 2], track.roll[f * 4 + 3]];
@@ -195,7 +196,11 @@ export function Die({
       const px = track.x[f] + (track.x[g] - track.x[f]) * k;
       const py = track.y[f] + (track.y[g] - track.y[f]) * k;
       const lift = track.lift[f] + (track.lift[g] - track.lift[f]) * k;
-      const w = total > 0 ? track.travelled[f] / total : f / last;
+      // Steer onto the landing face while the die is moving fastest, done by
+      // two thirds of the way. The last stretch is plain rolling, which ends
+      // on that face by construction, so it never visibly flips at rest.
+      const along = total > 0 ? track.travelled[f] / total : f / last;
+      const w = smooth(Math.min(1, along / 0.66));
       const q = f >= last ? to : quatMultiply(slerp(IDENTITY, correction, w), quatMultiply(rolledAt(f), from));
       paint(q, px, py, lift);
       orientation.current = q;
@@ -229,7 +234,7 @@ export function Die({
         className="absolute bottom-[2%] left-[15%] h-[14%] w-[70%] rounded-[50%]"
         style={{ background: "radial-gradient(closest-side, rgba(0,0,0,0.6), rgba(0,0,0,0))", opacity: 0.35 }}
       />
-      <div className="absolute inset-0" style={{ perspective: `${size * 5}px` }}>
+      <div className="absolute inset-0" style={{ perspective: `${size * 9}px` }}>
         <div ref={body} className="absolute top-1/2 left-1/2 h-0 w-0" style={{ transformStyle: "preserve-3d" }}>
           {drawn.map((f, i) => (
             <div
