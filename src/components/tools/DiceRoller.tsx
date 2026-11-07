@@ -289,10 +289,9 @@ export function DiceRoller() {
         </section>
       </div>
 
-      <section className="glass rounded-[28px] p-5 sm:p-6">
-        <h2 className="text-base font-bold text-bright">{copy.fairness.title}</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-relaxed">{copy.fairness.body}</p>
-      </section>
+      <p className="text-sm text-body">
+        <span className="font-semibold text-bright">{copy.fairness.title}.</span> {copy.fairness.body}
+      </p>
     </div>
   );
 }
