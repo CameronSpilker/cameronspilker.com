@@ -206,6 +206,72 @@
 }
 
 /*
+ * Dice roller. Each die tumbles by whole turns (its --spin) so it lands
+ * upright with nothing to snap, then settles with a small bounce. The faces
+ * are already decided before any of this starts.
+ */
+@keyframes dice-tumble {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translate(var(--dx, 0%), -16%) rotate(calc(var(--spin, 360deg) * 0.4)) scale(1.08);
+  }
+  55% {
+    transform: translate(calc(var(--dx, 0%) * -0.6), 4%) rotate(calc(var(--spin, 360deg) * 0.8)) scale(0.96);
+  }
+  80% {
+    transform: translate(calc(var(--dx, 0%) * 0.25), -5%) rotate(calc(var(--spin, 360deg) * 0.95)) scale(1.02);
+  }
+  100% {
+    transform: translate(0, 0) rotate(var(--spin, 360deg)) scale(1);
+  }
+}
+
+@keyframes dice-land {
+  0% {
+    transform: scale(0.94);
+  }
+  60% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes dice-total-in {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.dice-tumbling {
+  animation: dice-tumble 560ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.dice-landed {
+  animation: dice-land 240ms ease-out;
+}
+
+.dice-total {
+  animation: dice-total-in 260ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dice-tumbling,
+  .dice-landed,
+  .dice-total {
+    animation: none;
+  }
+}
+
+/*
  * Chart palette.
  *
  * Separate from the site palette on purpose. The site theme is one accent and a

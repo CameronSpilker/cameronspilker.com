@@ -13,7 +13,7 @@ export const toolsIndex = {
     "Small things I made because I needed them. Most run entirely in your browser and upload nothing. The gift list is the exception, because sharing a list means saving it somewhere.",
   /** Description metadata for `/tools`. */
   metaDescription:
-    "Small tools: a gift list you share with a link, a debt payoff calculator, a wheel spinner, a PDF signer, and a dbt run results visualizer.",
+    "Small tools: a gift list you share with a link, a debt payoff calculator, a wheel spinner, a dice roller, a PDF signer, and a dbt run results visualizer.",
 } as const;
 
 export const runResultsTool = {
@@ -217,6 +217,44 @@ export const wheelTool = {
   close: "Close",
   history: "Recent",
   full: (max: number) => `The wheel holds up to ${max} options.`,
+} as const;
+
+export const diceTool = {
+  slug: "dice-roller",
+  name: "Dice roller",
+  title: "Roll some dice",
+  description:
+    "Pick how many dice, which kind from d4 to d100, and what colour, then roll. Fair rolls, nothing uploaded.",
+  lede: "Choose your dice, give them a colour, roll. Runs in your browser, nothing is uploaded.",
+  roll: "Roll",
+  rolling: "Rolling",
+  rollAria: (what: string) => `Roll ${what}`,
+  total: "Total",
+  ready: "Tap the dice or press Roll",
+  natural20: "Natural 20",
+  natural1: "Natural 1",
+  /** What a screen reader hears when the dice land. */
+  announce: (what: string, faces: string, total: number) => `Rolled ${what}: ${faces}. Total ${total}.`,
+  set: (n: number) => `Set ${n}`,
+  type: "Kind of die",
+  count: "How many",
+  fewer: "One fewer",
+  more: "One more",
+  colour: "Colour",
+  hex: "Hex colour",
+  pick: "Pick any colour",
+  swatch: (hex: string) => `Use ${hex}`,
+  /** Ready-made colours beside the picker. */
+  swatches: ["#ffffff", "#1f2937", "#d03b3b", "#eb6834", "#fab219", "#1baf7a", "#0a7bd6", "#7c3aed"],
+  remove: "Remove this set",
+  add: "Add another kind of die",
+  limits: (perSet: number, sets: number) => `Up to ${perSet} dice in a set, and ${sets} sets.`,
+  history: "Recent",
+  clearHistory: "Clear",
+  fairness: {
+    title: "How the rolls stay fair",
+    body: "Every face comes from crypto.getRandomValues, the random source browsers use for encryption keys, not from Math.random. A raw draw is one of about 4.3 billion numbers. For a d6, d10, d12, d20 or d100 that count does not split evenly into faces, so the few draws in the uneven top slice are thrown away and drawn again. What is left gives every face of every die exactly the same chance. The animation is for fun: the result is decided the moment you press Roll.",
+  },
 } as const;
 
 /**
@@ -488,4 +526,4 @@ export const debtTool = {
  * `/tools` index both read this list, so an entry with no page is a dead card
  * in two places rather than one.
  */
-export const liveTools = [giftListTool, debtTool, wheelTool, pdfSignerTool, runResultsTool];
+export const liveTools = [giftListTool, debtTool, wheelTool, diceTool, pdfSignerTool, runResultsTool];
