@@ -14,6 +14,7 @@ import {
   clampCount,
   contrast,
   edgeFor,
+  INK_LIGHT,
   inkFor,
   normalizeHex,
   notation,
@@ -131,13 +132,15 @@ test("normalizeHex takes three or six digits, with or without #", () => {
   }
 });
 
-test("the number on a die always has readable contrast", () => {
+test("the number on a die always clears 3:1, the bar for large text", () => {
   for (let r = 0; r < 256; r += 17) {
     for (let g = 0; g < 256; g += 17) {
       for (let b = 0; b < 256; b += 17) {
         const hex = `#${[r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("")}`;
-        assert.ok(contrast(hex, inkFor(hex)) >= 4.5, hex);
+        assert.ok(contrast(hex, inkFor(hex)) >= 3, hex);
         assert.match(edgeFor(hex), /^#[0-9a-f]{6}$/);
+        // White wherever it is good enough, as on real dice.
+        if (contrast(hex, INK_LIGHT) >= 3) assert.equal(inkFor(hex), INK_LIGHT);
       }
     }
   }
