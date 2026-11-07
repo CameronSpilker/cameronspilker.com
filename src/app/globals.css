@@ -367,8 +367,8 @@
   --pf-glass: #0b0605;
   --pf-led: #ff4a36;
   --pf-led-hot: #ffb3a3;
-  --pf-led-dim: #7c1d15;
-  --pf-led-off: #1d0907;
+  --pf-led-dim: #b02a20;
+  --pf-led-off: #1a0806;
   --pf-line: rgba(255, 61, 46, 0.1);
   --pf-goal: rgba(255, 61, 46, 0.32);
   --pf-key: #2f2d29;
@@ -390,6 +390,10 @@
 
 @utility pf-glow {
   filter: drop-shadow(0 0 3px var(--pf-led)) drop-shadow(0 0 7px color-mix(in srgb, var(--pf-led) 55%, transparent));
+}
+
+@utility pf-glow-strong {
+  filter: drop-shadow(0 0 4px var(--pf-led)) drop-shadow(0 0 12px var(--pf-led));
 }
 
 @keyframes pf-blink {

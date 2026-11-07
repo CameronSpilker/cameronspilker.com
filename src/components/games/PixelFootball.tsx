@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { pixelFootball as copy } from "@/content/games";
 import { createBeeper } from "@/lib/games/beeper";
 import {
@@ -32,6 +32,21 @@ const SCORE_SHOW_MS = 2_500;
 const MAX_FRAME_MS = 100;
 
 type Bests = { longestRun: number; mostPoints: number };
+
+/** Phones held upright get their own layout. The server renders the wide one, and a phone swaps after load. */
+const PHONE_QUERY = "(max-width: 639px)";
+
+function useMediaQuery(query: string): boolean {
+  return useSyncExternalStore(
+    (onChange) => {
+      const media = window.matchMedia(query);
+      media.addEventListener("change", onChange);
+      return () => media.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia(query).matches,
+    () => false,
+  );
+}
 
 const rng = Math.random;
 
@@ -106,6 +121,9 @@ export function PixelFootball() {
   const [sound, setSound] = useState(true);
   const [bests, setBests] = useState<Bests>({ longestRun: 0, mostPoints: 0 });
   const [announcement, setAnnouncement] = useState("");
+  const [full, setFull] = useState(false);
+  const phone = useMediaQuery(PHONE_QUERY);
+  const fullscreen = phone && full;
 
   const gameRef = useRef(game);
   const pausedRef = useRef(paused);
@@ -268,6 +286,25 @@ export function PixelFootball() {
     return () => document.removeEventListener("visibilitychange", onHide);
   }, []);
 
+  // While the phone layout fills the screen, the page underneath must not scroll or bounce.
+  useEffect(() => {
+    if (!fullscreen) return;
+    const html = document.documentElement;
+    const before = { overflow: html.style.overflow, overscroll: html.style.overscrollBehavior };
+    html.style.overflow = "hidden";
+    html.style.overscrollBehavior = "none";
+    return () => {
+      html.style.overflow = before.overflow;
+      html.style.overscrollBehavior = before.overscroll;
+    };
+  }, [fullscreen]);
+
+  const closeFull = useCallback(() => {
+    const phase = gameRef.current.phase;
+    if (phase === "live" || phase === "result") setPaused(true);
+    setFull(false);
+  }, []);
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
@@ -306,19 +343,28 @@ export function PixelFootball() {
     };
   }, []);
 
+  const handheld: HandheldProps = {
+    game,
+    paused,
+    showScore,
+    sound,
+    onInput: send,
+    onScore: pressScore,
+    onStatus: pressStatus,
+    onLevel: setLevel,
+    onSound: toggleSound,
+  };
+
   return (
     <div className="flex flex-col gap-8">
-      <Handheld
-        game={game}
-        paused={paused}
-        showScore={showScore}
-        sound={sound}
-        onInput={send}
-        onScore={pressScore}
-        onStatus={pressStatus}
-        onLevel={setLevel}
-        onSound={toggleSound}
-      />
+      {phone ? (
+        <>
+          {fullscreen && <PhoneHandheld {...handheld} onClose={closeFull} />}
+          <PhonePreview game={game} paused={paused} onPlay={() => setFull(true)} />
+        </>
+      ) : (
+        <Handheld {...handheld} />
+      )}
 
       <p aria-live="polite" className="sr-only">
         {announcement}
@@ -347,17 +393,8 @@ export function PixelFootball() {
   );
 }
 
-function Handheld({
-  game,
-  paused,
-  showScore,
-  sound,
-  onInput,
-  onScore,
-  onStatus,
-  onLevel,
-  onSound,
-}: {
+/** Everything the two layouts of the handheld share. */
+type HandheldProps = {
   game: State;
   paused: boolean;
   showScore: boolean;
@@ -367,80 +404,97 @@ function Handheld({
   onStatus: () => void;
   onLevel: (d: Difficulty) => void;
   onSound: () => void;
-}) {
+};
+
+const caseStyle = {
+  background: "linear-gradient(180deg, var(--pf-case), color-mix(in srgb, var(--pf-case) 88%, black))",
+  borderColor: "var(--pf-case-edge)",
+  color: "var(--pf-print)",
+};
+
+function TopBar({ game, sound, onLevel, onSound, children }: HandheldProps & { children?: ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-2 px-2 pb-2 sm:pb-3">
+      <p className="font-mono text-[11px] leading-none font-bold tracking-[0.3em] sm:text-sm">
+        {copy.brand} <span className="font-normal">{copy.model}</span>
+      </p>
+      <div className="flex items-center gap-2">
+        <Switch
+          label={copy.level.label}
+          options={[
+            { value: "rookie", label: copy.level.rookie },
+            { value: "pro", label: copy.level.pro },
+          ]}
+          value={game.difficulty}
+          onChange={(v) => onLevel(v as Difficulty)}
+        />
+        <button
+          type="button"
+          onClick={onSound}
+          aria-pressed={sound}
+          className="rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase sm:text-[11px]"
+          style={{
+            borderColor: "var(--pf-case-edge)",
+            background: sound ? "var(--pf-print)" : "transparent",
+            color: sound ? "var(--pf-case)" : "var(--pf-print)",
+          }}
+        >
+          {copy.buttons.sound}
+        </button>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Lamps({ game }: { game: State }) {
+  return (
+    <div className="flex items-center justify-between font-mono text-[9px] tracking-[0.2em] text-white/45 sm:text-[10px]">
+      <Lamp on={game.board === "home"} label={copy.labels.home} />
+      <div className="flex items-center gap-2">
+        <span>{copy.labels.quarter}</span>
+        {[1, 2, 3, 4].map((q) => (
+          <span
+            key={q}
+            className={`h-1.5 w-1.5 rounded-full ${game.quarter === q ? "pf-glow" : ""}`}
+            style={{ background: game.quarter === q ? "var(--pf-led)" : "var(--pf-led-off)" }}
+          />
+        ))}
+      </div>
+      <Lamp on={game.board === "away"} label={copy.labels.away} reverse />
+    </div>
+  );
+}
+
+/** The wide handheld, for a laptop or a tablet: the field runs left to right. */
+function Handheld(props: HandheldProps) {
+  const { game, paused, showScore, onInput, onScore, onStatus } = props;
   const runsRight = game.board === "home";
-  const scoreMode = showScore || game.phase === "final";
-  const message = describe(game, paused);
   const canKick = !paused && game.phase === "ready" && game.down === 4;
 
   return (
     <div className="mx-auto w-full max-w-[680px] select-none" style={{ touchAction: "manipulation" }}>
       <div
-        className="rounded-[34px] border-b-[6px] p-3 sm:rounded-[44px] sm:p-5"
-        style={{
-          background: "linear-gradient(180deg, var(--pf-case), color-mix(in srgb, var(--pf-case) 88%, black))",
-          borderColor: "var(--pf-case-edge)",
-          boxShadow: "0 30px 60px var(--pf-shadow), inset 0 2px 0 rgba(255,255,255,0.6)",
-          color: "var(--pf-print)",
-        }}
+        className="rounded-[44px] border-b-[6px] p-5"
+        style={{ ...caseStyle, boxShadow: "0 30px 60px var(--pf-shadow), inset 0 2px 0 rgba(255,255,255,0.6)" }}
       >
-        <div className="flex items-center justify-between gap-3 px-2 pb-2 sm:pb-3">
-          <p className="font-mono text-[11px] leading-none font-bold tracking-[0.3em] sm:text-sm">
-            {copy.brand} <span className="font-normal">{copy.model}</span>
-          </p>
-          <div className="flex items-center gap-2">
-            <Switch
-              label={copy.level.label}
-              options={[
-                { value: "rookie", label: copy.level.rookie },
-                { value: "pro", label: copy.level.pro },
-              ]}
-              value={game.difficulty}
-              onChange={(v) => onLevel(v as Difficulty)}
-            />
-            <button
-              type="button"
-              onClick={onSound}
-              aria-pressed={sound}
-              className="rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase sm:text-[11px]"
-              style={{ borderColor: "var(--pf-case-edge)", background: sound ? "var(--pf-print)" : "transparent", color: sound ? "var(--pf-case)" : "var(--pf-print)" }}
-            >
-              {copy.buttons.sound}
-            </button>
-          </div>
-        </div>
+        <TopBar {...props} />
 
         {/* The bezel: readout on top, the field under it. */}
-        <div className="rounded-[22px] p-2.5 sm:rounded-[28px] sm:p-4" style={{ background: "var(--pf-bezel)" }}>
-          <Readout game={game} scoreMode={scoreMode} />
-
-          <div
-            className="relative mt-2 overflow-hidden rounded-xl p-1.5 sm:mt-3 sm:p-2.5"
-            style={{ background: "var(--pf-glass)", boxShadow: "inset 0 0 18px rgba(255,61,46,0.08)" }}
-          >
+        <div className="rounded-[28px] p-4" style={{ background: "var(--pf-bezel)" }}>
+          <Readout game={game} scoreMode={showScore || game.phase === "final"} />
+          <div className="mt-3 overflow-hidden rounded-xl p-2.5" style={{ background: "var(--pf-glass)" }}>
             <Field game={game} paused={paused} />
           </div>
-
-          <div className="mt-2 flex items-center justify-between font-mono text-[9px] tracking-[0.2em] text-white/45 sm:text-[10px]">
-            <Lamp on={game.board === "home"} label={`${copy.labels.home} ▶`} />
-            <div className="flex items-center gap-2">
-              <span>{copy.labels.quarter}</span>
-              {[1, 2, 3, 4].map((q) => (
-                <span
-                  key={q}
-                  className={`h-1.5 w-1.5 rounded-full ${game.quarter === q ? "pf-glow" : ""}`}
-                  style={{ background: game.quarter === q ? "var(--pf-led)" : "var(--pf-led-off)" }}
-                />
-              ))}
-            </div>
-            <Lamp on={game.board === "away"} label={`◀ ${copy.labels.away}`} reverse />
+          <div className="mt-2">
+            <Lamps game={game} />
           </div>
         </div>
 
-        <p className="mt-3 min-h-[2.5em] px-2 text-center font-mono text-[11px] leading-snug sm:text-xs">{message}</p>
+        <p className="mt-3 min-h-[2.5em] px-2 text-center font-mono text-xs leading-snug">{describe(game, paused)}</p>
 
-        {/* Controls. Pointer down rather than click, so a tap moves the instant it lands. */}
-        <div className="mt-2 grid grid-cols-[auto_1fr_auto] items-center gap-3 px-1 sm:mt-3 sm:gap-5 sm:px-3">
+        {/* Controls. Pointer down rather than click, so a press moves the instant it lands. */}
+        <div className="mt-3 grid grid-cols-[auto_1fr_auto] items-center gap-5 px-3">
           <div className="flex flex-col gap-2">
             <PadKey label={copy.buttons.up} onPress={() => onInput("up")}>
               <Arrow dir="up" />
@@ -449,19 +503,114 @@ function Handheld({
               <Arrow dir="down" />
             </PadKey>
           </div>
-
-          {/* On a phone the small keys drop to their own row under the pad. */}
-          <div className="order-last col-span-3 flex items-center justify-center gap-3 sm:order-none sm:col-span-1">
+          <div className="flex items-center justify-center gap-3">
             <SmallKey label={copy.buttons.status} onPress={onStatus} />
             <SmallKey label={copy.buttons.score} onPress={onScore} />
             <SmallKey label={copy.buttons.kick} onPress={() => onInput("kick")} go disabled={!canKick} />
           </div>
-
           <PadKey label={copy.buttons.forward} onPress={() => onInput("forward")} big go>
             <Arrow dir={runsRight ? "right" : "left"} />
           </PadKey>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * The phone handheld: held upright, the field stands on end and every side
+ * runs up the screen. Lanes are left and right, and the buttons sit where
+ * thumbs rest: lanes on the left, Run on the right. It fills the screen, so
+ * the page cannot scroll out from under a press.
+ */
+function PhoneHandheld(props: HandheldProps & { onClose: () => void }) {
+  const { game, paused, showScore, onInput, onScore, onStatus, onClose } = props;
+  const canKick = !paused && game.phase === "ready" && game.down === 4;
+  // Turning the field upright puts the home side's top lane on the left and the away side's on the right.
+  const toLeft: Input = game.board === "home" ? "up" : "down";
+  const toRight: Input = game.board === "home" ? "down" : "up";
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex flex-col select-none"
+      style={{
+        ...caseStyle,
+        touchAction: "none",
+        overscrollBehavior: "none",
+        paddingTop: "max(10px, env(safe-area-inset-top))",
+        paddingBottom: "max(18px, env(safe-area-inset-bottom))",
+      }}
+    >
+      <div className="px-3">
+        <TopBar {...props}>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={copy.buttons.close}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-lg leading-none"
+            style={{ background: "var(--pf-print)", color: "var(--pf-case)" }}
+          >
+            &times;
+          </button>
+        </TopBar>
+      </div>
+
+      <div className="mx-3 flex min-h-0 flex-1 flex-col gap-2 rounded-[24px] p-3" style={{ background: "var(--pf-bezel)" }}>
+        <Readout game={game} scoreMode={showScore || game.phase === "final"} />
+        <div className="min-h-0 flex-1 overflow-hidden rounded-xl p-1.5" style={{ background: "var(--pf-glass)" }}>
+          <Field game={game} paused={paused} upright />
+        </div>
+        <Lamps game={game} />
+      </div>
+
+      <p className="mx-4 mt-2 min-h-[2.6em] text-center font-mono text-[11px] leading-snug">{describe(game, paused)}</p>
+
+      <div className="mt-1 flex items-center justify-center gap-4">
+        <SmallKey label={copy.buttons.status} onPress={onStatus} />
+        <SmallKey label={copy.buttons.score} onPress={onScore} />
+        <SmallKey label={copy.buttons.kick} onPress={() => onInput("kick")} go disabled={!canKick} />
+      </div>
+
+      <div className="mt-3 flex items-end justify-between px-5">
+        <div className="flex gap-3 pb-1">
+          <PadKey label={copy.buttons.left} onPress={() => onInput(toLeft)} large>
+            <Arrow dir="left" />
+          </PadKey>
+          <PadKey label={copy.buttons.right} onPress={() => onInput(toRight)} large>
+            <Arrow dir="right" />
+          </PadKey>
+        </div>
+        <PadKey label={copy.buttons.forward} onPress={() => onInput("forward")} big go>
+          <Arrow dir="up" />
+        </PadKey>
+      </div>
+    </div>
+  );
+}
+
+/** On a phone, the page shows the upright field and one big button that opens the game full screen. */
+function PhonePreview({ game, paused, onPlay }: { game: State; paused: boolean; onPlay: () => void }) {
+  return (
+    <div className="mx-auto w-full max-w-sm">
+      <div className="rounded-[32px] border-b-[6px] p-3" style={{ ...caseStyle, boxShadow: "0 24px 48px var(--pf-shadow)" }}>
+        <div className="rounded-[22px] p-3" style={{ background: "var(--pf-bezel)" }}>
+          <Readout game={game} scoreMode={game.phase === "final"} />
+          <div className="mt-2 h-72 overflow-hidden rounded-xl p-1.5" style={{ background: "var(--pf-glass)" }}>
+            <Field game={game} paused={paused} upright />
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onPlay}
+          className="mt-3 w-full rounded-full py-4 font-mono text-sm font-bold tracking-[0.25em] text-white uppercase"
+          style={{ background: "var(--pf-go)", boxShadow: "0 4px 0 rgba(0,0,0,0.3)" }}
+        >
+          {game.phase === "ready" && game.quarter === 1 && game.score.home + game.score.away === 0
+            ? copy.buttons.play
+            : copy.buttons.resumeFull}
+        </button>
+      </div>
+      <p className="mt-3 text-center text-xs">{copy.phoneNote}</p>
     </div>
   );
 }
@@ -513,51 +662,31 @@ function SideLamp({ on, dir }: { on: boolean; dir: "left" | "right" }) {
   );
 }
 
-function Field({ game, paused }: { game: State; paused: boolean }) {
+/**
+ * The field. Wide, it is 9 columns by 3 lanes and runs toward the side with
+ * the ball's goal. Upright, it is 3 lanes by 9 rows and always runs up.
+ */
+function Field({ game, paused, upright = false }: { game: State; paused: boolean; upright?: boolean }) {
   const { runner, defenders, tackler } = game;
   const yards = columnYards(game);
-  const mirrored = game.board === "away";
+  const away = game.board === "away";
   const holding = game.phase === "result" && !paused;
   const o = game.outcome;
   const allBlink = holding && (o?.kind === "touchdown" || o?.kind === "fieldGoal");
 
-  const cells: ReactNode[] = [];
-  for (let lane = 0; lane < LANES; lane++) {
-    for (let screen = 0; screen < COLUMNS; screen++) {
-      const c = mirrored ? COLUMNS - 1 - screen : screen;
-      const yard = yards[c];
-      const isRunner = runner.x === c && runner.lane === lane;
-      const isDefender = defenders.some((d) => d.x === c && d.lane === lane);
-      const isTackler = holding && tackler !== null && tackler.x === c && tackler.lane === lane;
-      const endZone = yard > 100;
-      // A yard line sits on the edge of the cell nearest the offence's own goal.
-      const marked = yard === 100 || (yard % 10 === 0 && yard > 0 && yard < 100);
-      const edge = mirrored ? "borderRight" : "borderLeft";
-
-      cells.push(
-        <div
-          key={`${lane}-${screen}`}
-          className="flex aspect-[1.35] items-center justify-center"
-          style={{
-            [edge]: `1px solid ${yard === 100 ? "var(--pf-goal)" : marked ? "var(--pf-line)" : "transparent"}`,
-            background: endZone ? "rgba(255,61,46,0.05)" : undefined,
-          }}
-        >
-          <span
-            className={`block w-[62%] rounded-[3px] ${isRunner ? "pf-glow h-[30%]" : "h-[26%]"} ${
-              isTackler || (allBlink && (isRunner || isDefender)) ? "pf-blink" : ""
-            }`}
-            style={{
-              // The runner is a hot dot with a pale core; defenders are the same LED at a fraction of the current.
-              background: isRunner
-                ? "linear-gradient(180deg, var(--pf-led) 0%, var(--pf-led-hot) 50%, var(--pf-led) 100%)"
-                : isDefender
-                  ? "var(--pf-led-dim)"
-                  : "var(--pf-led-off)",
-            }}
-          />
-        </div>,
-      );
+  // Screen cells in reading order, each mapped back to a column (yard) and lane.
+  const cells: { c: number; lane: number; key: string }[] = [];
+  if (upright) {
+    for (let row = 0; row < COLUMNS; row++) {
+      for (let k = 0; k < LANES; k++) {
+        cells.push({ c: COLUMNS - 1 - row, lane: away ? LANES - 1 - k : k, key: `${row}-${k}` });
+      }
+    }
+  } else {
+    for (let lane = 0; lane < LANES; lane++) {
+      for (let screen = 0; screen < COLUMNS; screen++) {
+        cells.push({ c: away ? COLUMNS - 1 - screen : screen, lane, key: `${lane}-${screen}` });
+      }
     }
   }
 
@@ -565,10 +694,52 @@ function Field({ game, paused }: { game: State; paused: boolean }) {
     <div
       role="img"
       aria-label={describe(game, paused)}
-      className="grid"
-      style={{ gridTemplateColumns: `repeat(${COLUMNS}, minmax(0, 1fr))` }}
+      className={`grid ${upright ? "h-full" : ""}`}
+      style={
+        upright
+          ? { gridTemplateColumns: `repeat(${LANES}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${COLUMNS}, minmax(0, 1fr))` }
+          : { gridTemplateColumns: `repeat(${COLUMNS}, minmax(0, 1fr))` }
+      }
     >
-      {cells}
+      {cells.map(({ c, lane, key }) => {
+        const yard = yards[c];
+        const isRunner = runner.x === c && runner.lane === lane;
+        const isDefender = !isRunner && defenders.some((d) => d.x === c && d.lane === lane);
+        const isTackler = holding && tackler !== null && tackler.x === c && tackler.lane === lane;
+        // A yard line sits on the edge of the cell nearest the offence's own goal.
+        const marked = yard === 100 || (yard % 10 === 0 && yard > 0 && yard < 100);
+        const line = `1px solid ${yard === 100 ? "var(--pf-goal)" : marked ? "var(--pf-line)" : "transparent"}`;
+        const edge = upright ? "borderBottom" : away ? "borderRight" : "borderLeft";
+        const blink = isTackler || (allBlink && (isRunner || isDefender));
+
+        return (
+          <div
+            key={key}
+            className={`flex items-center justify-center ${upright ? "" : "aspect-[1.35]"}`}
+            style={{ [edge]: line, background: yard > 100 ? "rgba(255,61,46,0.06)" : undefined }}
+          >
+            <span
+              className={`block rounded-full ${blink ? "pf-blink" : ""} ${
+                isRunner
+                  ? `pf-glow-strong ${upright ? "h-[46%] w-[66%]" : "h-[38%] w-[74%]"}`
+                  : isDefender
+                    ? upright ? "h-[34%] w-[52%]" : "h-[28%] w-[58%]"
+                    : upright ? "h-[22%] w-[40%]" : "h-[20%] w-[46%]"
+              }`}
+              style={{
+                // The runner is white hot in the middle; a defender is a solid, plainly dimmer red;
+                // an unlit cell is barely there, so only the players catch the eye.
+                background: isRunner
+                  ? "radial-gradient(ellipse at center, #fff4ef 0%, var(--pf-led-hot) 35%, var(--pf-led) 75%)"
+                  : isDefender
+                    ? "var(--pf-led-dim)"
+                    : "var(--pf-led-off)",
+                boxShadow: isDefender ? "inset 0 0 0 1px rgba(255,120,100,0.35)" : undefined,
+              }}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -604,12 +775,14 @@ function PadKey({
   onPress,
   children,
   big,
+  large,
   go,
 }: {
   label: string;
   onPress: () => void;
   children: ReactNode;
   big?: boolean;
+  large?: boolean;
   go?: boolean;
 }) {
   const handlers = usePress(onPress);
@@ -620,7 +793,7 @@ function PadKey({
       aria-label={label}
       {...handlers}
       className={`flex items-center justify-center rounded-full text-white transition-transform active:translate-y-0.5 active:scale-95 ${
-        big ? "h-20 w-20 sm:h-24 sm:w-24" : "h-12 w-12 sm:h-14 sm:w-14"
+        big ? "h-24 w-24" : large ? "h-[72px] w-[72px]" : "h-14 w-14"
       }`}
       style={{
         background: `radial-gradient(circle at 35% 30%, ${go ? "var(--pf-go-top)" : "var(--pf-key-top)"}, ${go ? "var(--pf-go)" : "var(--pf-key)"})`,
@@ -642,7 +815,7 @@ function SmallKey({ label, onPress, go, disabled }: { label: string; onPress: ()
         aria-label={label}
         aria-disabled={disabled}
         {...handlers}
-        className={`h-7 w-12 rounded-full transition-transform active:translate-y-0.5 sm:h-8 sm:w-14 ${disabled ? "opacity-50" : ""}`}
+        className={`h-9 w-16 rounded-full transition-transform active:translate-y-0.5 sm:h-8 sm:w-14 ${disabled ? "opacity-50" : ""}`}
         style={{
           background: go ? "var(--pf-go)" : "var(--pf-key)",
           boxShadow: "0 3px 0 rgba(0,0,0,0.35)",

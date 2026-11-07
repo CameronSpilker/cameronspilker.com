@@ -38,7 +38,12 @@ export const pixelFootball = {
     up: "Up",
     down: "Down",
     forward: "Run",
+    left: "Move left",
+    right: "Move right",
     kick: "Kick",
+    play: "Play",
+    resumeFull: "Back to the game",
+    close: "Close the game",
     status: "Status",
     score: "Score",
     newGame: "New game",
@@ -105,6 +110,7 @@ export const pixelFootball = {
       { k: "P or Esc", v: "Pause" },
     ],
   },
+  phoneNote: "On a phone the game opens full screen with the field upright and the buttons under your thumbs.",
   privacy: "Runs entirely in your browser. Your bests are kept in this browser's storage and nowhere else.",
 } as const;
 
