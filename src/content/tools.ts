@@ -263,9 +263,8 @@ export const diceTool = {
 export const giftListTool = {
   slug: "gift-list",
   name: "Gift list",
-  title: "One gift list, shared with a link",
-  description:
-    "Paste links to things you'd like, rank them, and share one link. People mark what they're getting so nobody doubles up.",
+  title: "Make a gift list",
+  description: "Add links, share one link. Guests claim gifts so nobody doubles up.",
   lede: "Paste links, put the best first, share one link. No accounts.",
   defaults: {
     title: (name: string) => `${name}'s gift list`,
@@ -401,9 +400,8 @@ export const giftListTool = {
 export const debtTool = {
   slug: "debt-payoff",
   name: "Debt payoff calculator",
-  title: "When will it all be paid off",
-  description:
-    "List your mortgage, car loan, student loans and cards, add extra each month, and see the payoff date and full schedule. Nothing leaves your browser.",
+  title: "Pay off your debt",
+  description: "Add your debts, see your payoff date. Nothing leaves your browser.",
   lede:
     "Put in what you owe, see the date it's gone, then try paying a bit more. The numbers stay in your browser.",
   privacy: "Worked out in this page and remembered in this browser only. Nothing is uploaded.",
