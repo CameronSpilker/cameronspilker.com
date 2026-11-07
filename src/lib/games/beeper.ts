@@ -33,16 +33,6 @@ const SOUNDS: Record<GameEvent, Note[]> = {
   firstDown: [{ freq: 1568, ms: 90 }],
   touchdown: fanfare,
   fieldGoal: fanfare,
-  safety: [
-    { freq: 880, ms: 160, gap: 60 },
-    { freq: 660, ms: 220 },
-  ],
-  kick: [
-    { freq: 500, ms: 50 },
-    { freq: 800, ms: 50 },
-    { freq: 1100, ms: 70 },
-  ],
-  returnReady: [{ freq: 988, ms: 160 }],
   quarter: buzzer,
   final: buzzer,
 };

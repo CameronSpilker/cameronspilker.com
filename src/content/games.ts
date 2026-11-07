@@ -19,8 +19,8 @@ export const pixelFootball = {
   name: "Pixel Football",
   title: "Run the ball through a wall of red dots",
   description:
-    "An LED style football game. Dodge five defenders, make ten yards in four downs, run back kicks, and kick on fourth. Keyboard or touch.",
-  lede: "A football game in the style of the LED handhelds from the late 70s. You are the bright dot. Get past the dim ones.",
+    "An LED style football game on a 9 yard screen. Dodge five defenders, make ten yards in four downs, kick on fourth. Keyboard or touch.",
+  lede: "A football game played by the rules of the LED handhelds from the late 70s. You are the bright dot. Get past the dim ones.",
 
   /** Printed on the case. */
   brand: "PIXEL",
@@ -38,7 +38,6 @@ export const pixelFootball = {
     up: "Up",
     down: "Down",
     forward: "Run",
-    back: "Back",
     kick: "Kick",
     status: "Status",
     score: "Score",
@@ -54,26 +53,19 @@ export const pixelFootball = {
     ready: (team: string, down: number, toGo: number, toGoal: number) =>
       `${team} ball. ${ordinal(down)} and ${toGo === toGoal ? "goal" : toGo}, ${toGoal} to the goal line.`,
     fourth: "Fourth down. Kick, or go for it.",
-    kickoff: (team: string) => `${team} kicks off. Press Kick.`,
-    returnReady: (team: string, kick: "kickoff" | "punt", distance: number, from: number) =>
-      `${kick === "kickoff" ? "Kickoff" : "Punt"} of ${distance} yards. ${team} takes it at its own ${from}. Run it back.`,
-    tackle: (gain: number) =>
-      gain === 0 ? "Stopped at the line." : gain < 0 ? `Tackled for a loss of ${yards(-gain)}.` : `Tackled after ${yards(gain)}.`,
+    tackle: (gain: number) => (gain === 0 ? "Stopped at the line." : `Tackled after ${yards(gain)}.`),
     firstDown: (gain: number) => `${yards(gain)} and a first down.`,
-    returned: (gain: number) =>
-      gain > 0 ? `Returned ${yards(gain)}. First and 10.` : gain === 0 ? "Stopped where it landed. First and 10." : `Brought down ${yards(-gain)} back. First and 10.`,
-    turnover: (gain: number) => `${gain === 0 ? "Stopped" : gain < 0 ? "Thrown for a loss" : `Tackled after ${yards(gain)}`}, short on fourth down. Turnover.`,
-    touchdown: (gain: number) => (gain > 1 ? `Touchdown! A ${gain} yard run.` : "Touchdown!"),
-    safety: "Safety! Two points, and the ball goes back with a kick.",
-    fieldGoal: (distance: number) => `The ${distance} yard field goal is good.`,
-    missedKick: (distance: number) => `The ${distance} yard field goal is no good. Turnover.`,
-    touchback: (kick: "kickoff" | "punt", distance: number) =>
-      `A ${distance} yard ${kick} into the end zone. Touchback.`,
+    turnover: (gain: number) => `${gain === 0 ? "Stopped" : `Tackled after ${yards(gain)}`}, short on fourth down. Turnover.`,
+    touchdown: (gain: number) => `Touchdown! A ${gain} yard run.`,
+    fieldGoal: (distance: number) => `The kicker goes for it: a ${distance} yard field goal, good.`,
+    punt: (distance: number, touchback: boolean) =>
+      touchback ? `A ${distance} yard punt into the end zone. Touchback.` : `A ${distance} yard punt. The other side takes over.`,
     endQuarter: (quarter: number) => (quarter === 2 ? "Halftime." : `End of the ${ordinal(quarter).toLowerCase()} quarter.`),
+    setUp: "Press Status for the next play.",
     final: (home: number, away: number) =>
       home === away ? `Final: a tie, ${home} to ${away}.` : `Final: ${home > away ? "home" : "away"} wins, ${Math.max(home, away)} to ${Math.min(home, away)}.`,
     paused: "Paused.",
-    start: "Away kicks off to start the game. Press Kick or Run.",
+    start: "Home ball, first and 10 on its own 20. Press an arrow to snap the ball.",
   },
   teams: { home: "Home", away: "Away" },
 
@@ -91,23 +83,25 @@ export const pixelFootball = {
     title: "How to play",
     items: [
       "You are the bright dot. The five dim dots are the defence. Touch one, or let one reach you from any side, and you are tackled. The one who got you blinks.",
-      "Each press moves you one yard: forward, back, or across the three lanes. Dropping back can pull the defence out of position, but go down in your own end zone and it is a safety, worth 2 to the other side.",
-      "Gain 10 yards in four downs for a first down. A touchdown is 7 points.",
-      "Kickoffs open each half and follow every score. A kick that lands in play is run back live; one into the end zone is a touchback at the 20.",
-      "On fourth down you can kick before the snap. Inside the opponent's 35 it is a field goal for 3, and the longer the kick the likelier the miss. Further out it is a punt, which the other side runs back.",
-      "You play both sides. Home runs right, away runs left. Pass it to a friend, or play yourself.",
-      "Four 15 minute quarters, about 45 seconds of real play each. The clock only runs while a play is live, and a play that starts before the buzzer gets finished.",
-      "The readout shows the down, the yard line with a light on the side of midfield the ball is on, and yards to go. Score shows both scores and the time left.",
-      "Rookie or Pro sets how fast the defence moves. You can switch at any time.",
+      "Each press moves you one yard: toward the goal, or across the three lanes. There is no going backwards.",
+      "The screen is 9 yards long. Every play starts at your own end of it. Run off the far end and you start the next 9 yards from the near end, with the defence where it stood.",
+      "Gain 10 yards in four downs for a first down. A touchdown is 7 points. Short on fourth down and the other side takes over where you went down.",
+      "Kick only on fourth down. The kicker decides: close enough, and it is a field goal for 3 (the closer, the likelier). Otherwise it is a punt of up to 65 yards. After any score the other side starts on its own 20.",
+      "After every play, press Status or Score to set up the next one. Status shows the down, the yard line (with a light for the side of midfield) and yards to go, which goes dark inside the 10. Score shows both scores and the time.",
+      "You play both sides. Home runs right and away runs left. Pass it to a friend, or play yourself.",
+      "Four 15 minute quarters, about 2 and a half minutes of real play each. The clock only runs while a play is live. Possession carries over between quarters, but the second half starts with away on its own 20.",
+      "Pro moves the defence 50% faster than Rookie. Changing level starts a new game.",
+      "The trick: start a play by moving across to pull the defence that way, then cut back and run down the other side. Watch for the safety.",
     ],
   },
   keys: {
     title: "Keys",
     items: [
-      { k: "Space or Enter", v: "Run forward, or kick off" },
-      { k: "Left and Right, or A and D", v: "Forward and back, by the direction of play" },
+      { k: "Left or Right, A or D", v: "Run toward the goal" },
       { k: "Up and Down, or W and S", v: "Change lane" },
-      { k: "K", v: "Kick: kickoffs, and fourth down" },
+      { k: "Space or Enter", v: "Status, and set up the next play" },
+      { k: "C", v: "Score, and set up the next play" },
+      { k: "K", v: "Kick, on fourth down" },
       { k: "P or Esc", v: "Pause" },
     ],
   },

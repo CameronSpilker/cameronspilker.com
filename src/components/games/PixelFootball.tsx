@@ -7,13 +7,12 @@ import {
   COLUMNS,
   LANES,
   QUARTER_MS,
-  RUNNER_COLUMN,
   advance,
   clockReading,
+  columnYards,
   fieldPosition,
   newGame,
   press,
-  visible,
   yardsToGo,
   type Difficulty,
   type GameEvent,
@@ -76,44 +75,32 @@ function describe(state: State, paused: boolean): string {
       case "tackle":
         line = o.firstDown ? m.firstDown(o.gain) : m.tackle(o.gain);
         break;
-      case "return":
-        line = m.returned(o.gain);
-        break;
       case "turnover":
         line = m.turnover(o.gain);
         break;
       case "touchdown":
         line = m.touchdown(o.gain);
         break;
-      case "safety":
-        line = m.safety;
-        break;
       case "fieldGoal":
         line = m.fieldGoal(o.distance);
         break;
-      case "missedKick":
-        line = m.missedKick(o.distance);
-        break;
-      case "touchback":
-        line = m.touchback(o.kick, o.distance);
+      case "punt":
+        line = m.punt(o.distance, o.touchback);
         break;
     }
-    return state.quarterOver ? `${line} ${m.endQuarter(state.quarter)}` : line;
+    const end = state.quarterOver ? ` ${m.endQuarter(state.quarter)}` : "";
+    return `${line}${end} ${m.setUp}`;
   }
 
-  if (state.phase === "kickoff") {
-    // The clock only runs during live plays, so a full first quarter at 0 to 0 means the opening kick.
-    const opening = state.quarter === 1 && state.clockMs === QUARTER_MS && state.score.home + state.score.away === 0;
-    return opening ? m.start : m.kickoff(team);
-  }
-  if (state.returning) return m.returnReady(team, state.returning.kind, state.returning.yards, state.ballOn);
-
-  const situation = m.ready(team, state.down, state.toGo, 100 - state.ballOn);
+  // The clock only runs during live plays, so a full first quarter means nobody has snapped yet.
+  if (state.phase === "ready" && state.quarter === 1 && state.clockMs === QUARTER_MS) return m.start;
+  const toGoal = 100 - state.ballOn;
+  const situation = m.ready(team, state.down, state.toGo, toGoal);
   return state.phase === "ready" && state.down === 4 ? `${situation} ${m.fourth}` : situation;
 }
 
 export function PixelFootball() {
-  const [game, setGame] = useState<State>(() => newGame("rookie"));
+  const [game, setGame] = useState<State>(() => newGame("rookie", rng));
   const [paused, setPaused] = useState(false);
   const [showScore, setShowScore] = useState(false);
   const [sound, setSound] = useState(true);
@@ -155,13 +142,10 @@ export function PixelFootball() {
       "final",
       "touchdown",
       "fieldGoal",
-      "safety",
       "turnover",
       "quarter",
       "firstDown",
       "tackle",
-      "returnReady",
-      "kick",
       "step",
     ];
     const loudest = order.find((e) => events.includes(e));
@@ -193,10 +177,10 @@ export function PixelFootball() {
           return old;
         });
       }
-      // The display swaps to the score whenever the score changes.
+      // The display swaps to the score whenever the score changes, and back to status at the snap.
       const scored = next.score.home !== before.score.home || next.score.away !== before.score.away;
       if (scored || over) setShowScore(true);
-      if (next.phase === "ready" && before.phase !== "ready") setShowScore(false);
+      if (next.phase === "live" && before.phase !== "live") setShowScore(false);
     },
     [play],
   );
@@ -206,7 +190,7 @@ export function PixelFootball() {
       if (pausedRef.current) return;
       const current = gameRef.current;
       if (current.phase === "final") {
-        if (input === "forward") commit({ state: newGame(current.difficulty), events: [] });
+        if (input === "forward") commit({ state: newGame(current.difficulty, rng), events: [] });
         return;
       }
       commit(press(current, input, rng));
@@ -217,7 +201,7 @@ export function PixelFootball() {
   const restart = useCallback(() => {
     setPaused(false);
     setShowScore(false);
-    commit({ state: newGame(gameRef.current.difficulty), events: [] });
+    commit({ state: newGame(gameRef.current.difficulty, rng), events: [] });
   }, [commit]);
 
   const togglePause = useCallback(() => {
@@ -225,21 +209,30 @@ export function PixelFootball() {
     setPaused((p) => !p);
   }, []);
 
-  const flashScore = useCallback(() => {
+  /** Score shows the score for a moment, and like Status it sets up the next play. */
+  const pressScore = useCallback(() => {
+    if (pausedRef.current) return;
     setShowScore(true);
     window.clearTimeout(scoreTimer.current);
     scoreTimer.current = window.setTimeout(() => setShowScore(false), SCORE_SHOW_MS);
-  }, []);
+    send("score");
+  }, [send]);
 
-  const showStatus = useCallback(() => {
+  const pressStatus = useCallback(() => {
+    if (pausedRef.current) return;
     window.clearTimeout(scoreTimer.current);
     setShowScore(false);
-  }, []);
+    send("status");
+  }, [send]);
 
+  /** Changing level mid game ends the game, the way it did on the old handhelds. */
   const setLevel = useCallback(
     (difficulty: Difficulty) => {
+      if (difficulty === gameRef.current.difficulty) return;
       save(LEVEL_KEY, difficulty);
-      commit({ state: { ...gameRef.current, difficulty }, events: [] });
+      setPaused(false);
+      setShowScore(false);
+      commit({ state: newGame(difficulty, rng), events: [] });
     },
     [commit],
   );
@@ -285,29 +278,25 @@ export function PixelFootball() {
       const onButton = tag === "BUTTON" || tag === "A";
 
       const key = event.key;
-      const runsRight = gameRef.current.board === "home";
-      let input: Input | null = null;
-      if (key === "ArrowUp" || key === "w" || key === "W") input = "up";
-      else if (key === "ArrowDown" || key === "s" || key === "S") input = "down";
-      else if (key === "ArrowRight" || key === "d" || key === "D") input = runsRight ? "forward" : "back";
-      else if (key === "ArrowLeft" || key === "a" || key === "A") input = runsRight ? "back" : "forward";
-      else if ((key === " " || key === "Enter") && !onButton) input = "forward";
-      else if (key === "k" || key === "K") input = "kick";
-      else if (key === "p" || key === "P" || key === "Escape") {
-        event.preventDefault();
-        if (!event.repeat) togglePause();
-        return;
-      }
+      // Like the old one key "run" button, either sideways arrow runs toward the goal.
+      let action: (() => void) | null = null;
+      if (key === "ArrowUp" || key === "w" || key === "W") action = () => send("up");
+      else if (key === "ArrowDown" || key === "s" || key === "S") action = () => send("down");
+      else if (["ArrowRight", "ArrowLeft", "d", "D", "a", "A"].includes(key)) action = () => send("forward");
+      else if ((key === " " || key === "Enter") && !onButton) action = pressStatus;
+      else if (key === "c" || key === "C") action = pressScore;
+      else if (key === "k" || key === "K") action = () => send("kick");
+      else if (key === "p" || key === "P" || key === "Escape") action = togglePause;
 
-      if (input === null) return;
+      if (action === null) return;
       event.preventDefault();
       // One press, one step. Holding a key down is not a sprint.
       if (event.repeat) return;
-      send(input);
+      action();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [send, togglePause]);
+  }, [send, togglePause, pressStatus, pressScore]);
 
   useEffect(() => {
     const timer = scoreTimer;
@@ -325,8 +314,8 @@ export function PixelFootball() {
         showScore={showScore}
         sound={sound}
         onInput={send}
-        onScore={flashScore}
-        onStatus={showStatus}
+        onScore={pressScore}
+        onStatus={pressStatus}
         onLevel={setLevel}
         onSound={toggleSound}
       />
@@ -382,7 +371,7 @@ function Handheld({
   const runsRight = game.board === "home";
   const scoreMode = showScore || game.phase === "final";
   const message = describe(game, paused);
-  const canKick = !paused && (game.phase === "kickoff" || (game.phase === "ready" && game.down === 4 && !game.returning));
+  const canKick = !paused && game.phase === "ready" && game.down === 4;
 
   return (
     <div className="mx-auto w-full max-w-[680px] select-none" style={{ touchAction: "manipulation" }}>
@@ -468,14 +457,9 @@ function Handheld({
             <SmallKey label={copy.buttons.kick} onPress={() => onInput("kick")} go disabled={!canKick} />
           </div>
 
-          <div className={`flex items-center gap-2 sm:gap-3 ${runsRight ? "" : "flex-row-reverse"}`}>
-            <PadKey label={copy.buttons.back} onPress={() => onInput("back")}>
-              <Arrow dir={runsRight ? "left" : "right"} />
-            </PadKey>
-            <PadKey label={copy.buttons.forward} onPress={() => onInput("forward")} big go>
-              <Arrow dir={runsRight ? "right" : "left"} />
-            </PadKey>
-          </div>
+          <PadKey label={copy.buttons.forward} onPress={() => onInput("forward")} big go>
+            <Arrow dir={runsRight ? "right" : "left"} />
+          </PadKey>
         </div>
       </div>
     </div>
@@ -484,9 +468,9 @@ function Handheld({
 
 function Readout({ game, scoreMode }: { game: State; scoreMode: boolean }) {
   const l = copy.labels;
-  // No downs on a kickoff or a return: those readouts go dark, the way a dash would.
-  const noDowns = game.phase === "kickoff" || (game.returning !== null && game.phase !== "result");
   const spot = fieldPosition(game);
+  // Inside the 10 the yards to go box goes dark: it is goal to go.
+  const toGo = yardsToGo(game);
 
   const cells: { label: string; value: string; width: number; side?: Team | null }[] = scoreMode
     ? [
@@ -495,9 +479,9 @@ function Readout({ game, scoreMode }: { game: State; scoreMode: boolean }) {
         { label: l.away, value: String(game.score.away % 100), width: 2 },
       ]
     : [
-        { label: l.down, value: noDowns ? "-" : String(game.down), width: 1 },
+        { label: l.down, value: String(game.down), width: 1 },
         { label: l.field, value: String(spot.yard), width: 2, side: spot.side },
-        { label: l.toGo, value: noDowns ? "-" : String(yardsToGo(game)), width: 2 },
+        { label: l.toGo, value: toGo === null ? "" : String(toGo), width: 2 },
       ];
 
   return (
@@ -530,7 +514,8 @@ function SideLamp({ on, dir }: { on: boolean; dir: "left" | "right" }) {
 }
 
 function Field({ game, paused }: { game: State; paused: boolean }) {
-  const { runner, defenders, tackler } = visible(game);
+  const { runner, defenders, tackler } = game;
+  const yards = columnYards(game);
   const mirrored = game.board === "away";
   const holding = game.phase === "result" && !paused;
   const o = game.outcome;
@@ -540,7 +525,7 @@ function Field({ game, paused }: { game: State; paused: boolean }) {
   for (let lane = 0; lane < LANES; lane++) {
     for (let screen = 0; screen < COLUMNS; screen++) {
       const c = mirrored ? COLUMNS - 1 - screen : screen;
-      const yard = game.lineAt + game.runner.x + (c - RUNNER_COLUMN);
+      const yard = yards[c];
       const isRunner = runner.x === c && runner.lane === lane;
       const isDefender = defenders.some((d) => d.x === c && d.lane === lane);
       const isTackler = holding && tackler !== null && tackler.x === c && tackler.lane === lane;

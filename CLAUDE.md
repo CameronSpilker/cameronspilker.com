@@ -128,9 +128,10 @@ leaderboard would mean storage, so it gets the same push back as above.
 Pixel Football's rules live in `src/lib/games/football.ts` as pure functions
 (`press`, `advance`) that take the random source as an argument, so
 `football.test.ts` can play whole drives with scripted dice. The page owns the
-animation frame and the keys. It is an original game in the style of the late
-70s LED handhelds: keep its own name, case and sounds rather than copying any
-real product's.
+animation frame and the keys. Its rules follow the 1977 LED football handheld
+manual (9 yard screen, forward and across only, Status to set up each play,
+kicks only on fourth down). Its name, case and sounds are its own: keep them
+that way rather than copying any real product's.
 
 ## Before pushing
 
