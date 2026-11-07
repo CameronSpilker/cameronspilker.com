@@ -367,8 +367,24 @@
   animation: pf-blink 0.36s steps(1) infinite;
 }
 
+/* The next thing to press breathes, so after a play the eye goes straight to it. */
+@keyframes pf-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--pf-go) 70%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--pf-go) 0%, transparent);
+  }
+}
+
+@utility pf-pulse {
+  animation: pf-pulse 1.1s ease-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .pf-blink {
+  .pf-blink,
+  .pf-pulse {
     animation: none;
   }
 }

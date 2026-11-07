@@ -134,6 +134,11 @@ manual (9 yard screen, forward and across only, Status to set up each play,
 kicks only on fourth down). Its name, case and sounds are its own: keep them
 that way rather than copying any real product's.
 
+The computer opponent is `src/lib/games/cpu.ts`: a pure `cpuMove` that picks
+the computer's next button, tested in `cpu.test.ts`. The page decides when it
+presses, so it plays at a human pace. Copy for the opening pop up, the result
+banner and both modes lives in `src/content/games.ts` like everything else.
+
 ## Before pushing
 
 ```bash
