@@ -50,6 +50,11 @@ function dieSize(count: number, width: number): number {
   return Math.max(36, Math.min(base, Math.floor((width - GAP * (perRow - 1)) / perRow)));
 }
 
+/** The side a throw comes in from: left or right, a little high or low. */
+function throwHeading(): number {
+  return (Math.random() < 0.5 ? Math.PI : 0) + (Math.random() - 0.5) * 0.9;
+}
+
 /** Identifies one physical die on the table. A d100 is two of them. */
 const dieKey = (group: DiceGroup, j: number, kind: SolidKind) => `${group.id}-${group.sides}-${j}-${kind}`;
 
@@ -58,6 +63,7 @@ export function DiceRoller() {
   const [result, setResult] = useState<RollResult | null>(null);
   const [shown, setShown] = useState<Record<string, string>>({});
   const [throwId, setThrowId] = useState(0);
+  const [heading, setHeading] = useState(Math.PI);
   const [trayWidth, setTrayWidth] = useState(0);
   const tray = useRef<HTMLButtonElement | null>(null);
   const [rolling, setRolling] = useState(false);
@@ -136,6 +142,9 @@ export function DiceRoller() {
       });
     });
     setShown(faces);
+    // Thrown in from the left or the right, a little high or low. This only
+    // steers the animation; the faces above are already final.
+    setHeading(throwHeading());
     setThrowId((n) => n + 1);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       land(rolled, what);
@@ -188,8 +197,8 @@ export function DiceRoller() {
   return (
     <div className="grid gap-6">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start">
-        {/* The table */}
-        <section className="glass flex flex-col items-center rounded-[28px] px-4 py-6 sm:px-8 sm:py-10">
+        {/* The table. It clips, so a throw rolls in from the card's edge. */}
+        <section className="glass flex flex-col items-center overflow-hidden rounded-[28px] px-4 py-6 sm:px-8 sm:py-10">
           <button
             ref={tray}
             type="button"
@@ -207,6 +216,7 @@ export function DiceRoller() {
                   size={size}
                   throwId={throwId}
                   index={i}
+                  heading={heading}
                   glow={!rolling && die.kind === "d20" && die.label === "20"}
                 />
               ))}
