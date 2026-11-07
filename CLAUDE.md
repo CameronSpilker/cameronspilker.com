@@ -40,6 +40,7 @@ src/
 ├── lib/            # Framework-free helpers (cron.ts drives the Lab countdown)
 │   ├── dbt/        # Parser, metrics and colour rules for the run results tool
 │   ├── debt/       # Month by month payoff simulation, in whole cents
+│   ├── games/      # Pixel Football rules (pure, tested) and the Web Audio beeper
 │   └── gifts/      # Gift list: ids, prices, page reader, input checks; server/ holds the DB
 └── content/
     ├── site.ts        # name, tagline, contact links, Full Data Stack Lab URLs
@@ -47,7 +48,8 @@ src/
     ├── projects.ts    # the four project cards and their calls to action
     ├── experience.ts  # three detailed roles plus the compact earlier list
     ├── lab.ts         # the Lab section: stats, the nightly countdown, links out
-    └── tools.ts       # copy for everything under /tools
+    ├── tools.ts       # copy for everything under /tools
+    └── games.ts       # copy for everything under /games
 ```
 
 ## Tools
@@ -116,6 +118,19 @@ The longer story about the lab, its layers and its full schedule, is not here.
 It lives at `lab.cameronspilker.com/how-it-works`, in the repo that also holds
 the pipeline, so it can be corrected in the same commit that changes the code.
 The homepage section points at the dashboard and gets out of the way.
+
+## Games
+
+`/games` follows the same rule as the tools: everything runs in the browser and
+nothing is uploaded. Bests and preferences live in `localStorage`. A shared
+leaderboard would mean storage, so it gets the same push back as above.
+
+Pixel Football's rules live in `src/lib/games/football.ts` as pure functions
+(`press`, `advance`) that take the random source as an argument, so
+`football.test.ts` can play whole drives with scripted dice. The page owns the
+animation frame and the keys. It is an original game in the style of the late
+70s LED handhelds: keep its own name, case and sounds rather than copying any
+real product's.
 
 ## Before pushing
 
