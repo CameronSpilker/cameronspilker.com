@@ -14,7 +14,7 @@
  * Units are pixels and seconds. Kept free of the DOM so it can be tested.
  */
 
-import { axisAngle, quatMultiply, type Quat } from "./solids.ts";
+import { axisAngle, quatMultiply, type Quat, type Vec } from "./solids.ts";
 
 export type Point = { x: number; y: number };
 
@@ -35,7 +35,10 @@ export const WALL = 0.58;
 export const DT = 1 / 120;
 
 /** The longest a throw may take, in seconds. */
-export const MAX_SECONDS = 2.4;
+export const MAX_SECONDS = 2.8;
+
+/** How long a die spends hopping and tumbling at the start of a throw. */
+export const AIRBORNE = 0.95;
 
 /** How many dice sit in a row at rest, and so how tall the tray must be. */
 function gridShape(count: number, size: number, width: number) {
@@ -113,7 +116,8 @@ export function simulateThrow({
   const perColumn = Math.max(1, Math.floor((height - 2 * wall) / (2.15 * rho)) + 1);
   const columns = Math.ceil(count / perColumn);
   const depth = columns * 2.15 * rho;
-  const seconds = 1.25;
+  // A heavy throw: it comes in fast and takes a good while to wind down.
+  const seconds = 1.6;
   const typical = width * 0.5 + depth * 0.5;
   const friction = (2 * typical) / (seconds * seconds);
 
@@ -150,7 +154,21 @@ export function simulateThrow({
   }));
   const rolled: Quat[] = bodies.map(() => [1, 0, 0, 0]);
   const distance = bodies.map(() => 0);
-  const hops = bodies.map(() => 0.75 + random() * 0.5);
+  const hops = bodies.map(() => 0.85 + random() * 0.3);
+  // While it is in the air each die also tumbles two or three whole turns
+  // about its own axis, slowing as it comes down. Whole turns unwind to no
+  // turn at all, so this adds to the throw without moving where it lands,
+  // and it means even a die that barely travels still turns right over.
+  const tumbles = bodies.map((b) => {
+    const toward = Math.atan2(b.vy, b.vx);
+    // The unwinding turns backwards about its axis, so the axis points the
+    // opposite way to the rolling one; the two add up instead of cancelling.
+    const across = toward - Math.PI / 2 + (random() - 0.5) * 1.2;
+    return {
+      axis: [Math.cos(across), Math.sin(across), (random() - 0.5) * 0.9] as Vec,
+      turns: 2 + (random() < 0.5 ? 1 : 0),
+    };
+  });
 
   const record = (frame: number) => {
     const t = frame * DT;
@@ -158,17 +176,23 @@ export function simulateThrow({
       const track = tracks[i];
       track.x[frame] = b.x;
       track.y[frame] = b.y;
-      // A few hops while it is first in the air, smaller each time.
-      const airborne = 0.7 * hops[i];
-      track.lift[frame] = t < airborne ? Math.abs(Math.sin((Math.PI * 3 * t) / airborne)) * (1 - t / airborne) * size * 0.32 : 0;
-      track.roll.set(rolled[i], frame * 4);
+      // Three hops while it is first in the air, each lower than the last.
+      const airborne = AIRBORNE * hops[i];
+      const a = Math.min(1, t / airborne);
+      track.lift[frame] = a < 1 ? Math.abs(Math.sin(Math.PI * 3 * a)) * (1 - a) ** 1.5 * size * 0.5 : 0;
+      const spin = tumbles[i];
+      // Fast as it leaves the hand, easing to nothing as it settles.
+      const unwind = 2 * Math.PI * spin.turns * (1 - a) ** 2;
+      track.roll.set(quatMultiply(axisAngle(spin.axis, unwind), rolled[i]), frame * 4);
       track.travelled[frame] = distance[i];
     });
   };
 
   const wallBounce = 0.45;
   const dieBounce = 0.55;
-  const rollRadius = size * 0.42;
+  // Smaller than the die, so it tumbles over its edges as it goes rather than
+  // gliding like a ball.
+  const rollRadius = size * 0.3;
   // Dice against dice: push apart, then trade momentum along the contact.
   // Later passes only separate, so a crowded table still ends with no overlap.
   const collide = (bounce: boolean, passes = 3) => {
@@ -262,15 +286,20 @@ export function simulateThrow({
       const moved = Math.hypot(mx, my);
       if (moved > 1e-4) {
         distance[i] += moved;
-        const forward = axisAngle([-my, mx, 0], moved / rollRadius);
-        const twist = axisAngle([0, 0, 1], (moved / rollRadius) * b.spin * 0.3);
+        // A slow die settles flat and slides the last of the way rather than
+        // creeping over on an edge, so rolling fades out with speed.
+        const speed = moved / DT;
+        const rolling = Math.min(1, speed / (size * 2.5));
+        const angle = (moved / rollRadius) * rolling;
+        const forward = axisAngle([-my, mx, 0], angle);
+        const twist = axisAngle([0, 0, 1], angle * b.spin * 0.3);
         rolled[i] = quatMultiply(twist, quatMultiply(forward, rolled[i]));
       }
     });
     record(frame);
 
     const settled = bodies.every((b) => b.inside && Math.hypot(b.vx, b.vy) < 2);
-    const hopsDone = frame * DT > 0.7 * 1.25;
+    const hopsDone = frame * DT > AIRBORNE * 1.15;
     if (settled && hopsDone) break;
   }
 

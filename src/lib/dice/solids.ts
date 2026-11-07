@@ -259,8 +259,12 @@ export function rotationZ(angle: number): Mat {
   ];
 }
 
-/** How far the resting die is tipped back, so a little of its sides shows. */
-export const TILT = (-24 * Math.PI) / 180;
+/**
+ * How far the resting die is tipped back. Small on purpose: the top face looks
+ * almost straight at you, so the number it landed on is never in doubt, with
+ * just enough tip to show the die is solid.
+ */
+export const TILT = (-10 * Math.PI) / 180;
 
 /**
  * The rotation that lands `face` toward the viewer, its label upright, then
