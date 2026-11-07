@@ -56,7 +56,7 @@ test("a game opens with home on its own 20, first and ten, runner at the end of 
 });
 
 test("the defence lines up three across, a linebacker, and a safety deep", () => {
-  const d = formation(keen, "pro");
+  const d = formation(keen);
   assert.equal(d.length, 5);
   assert.deepEqual(d.slice(0, 3), [
     { x: 3, lane: 0 },
@@ -65,7 +65,24 @@ test("the defence lines up three across, a linebacker, and a safety deep", () =>
   ]);
   assert.equal(d[3].x, 5);
   assert.equal(d[4].x, 8);
-  assert.equal(formation(keen, "rookie")[0].x, 4, "rookie gives one more yard of room");
+});
+
+test("running straight never earns a first down on its own, on either level", () => {
+  // The line is 3 yards off, so a runner who never dodges gets 2 yards a play,
+  // 8 over four downs: short of the 10 needed. Played out with the real defence.
+  for (const difficulty of ["rookie", "pro"] as const) {
+    let s = newGame(difficulty, keen);
+    for (let play = 0; play < 4; play++) {
+      for (let t = 0; t < 200 && (s.phase === "ready" || s.phase === "live"); t++) {
+        s = press(s, "forward", keen).state;
+        s = advance(s, 50, keen).state;
+      }
+      assert.ok(s.outcome && "gain" in s.outcome && s.outcome.gain <= 2, `${difficulty}: ${JSON.stringify(s.outcome)}`);
+      assert.notEqual(s.outcome && s.outcome.kind === "tackle" && s.outcome.firstDown, true);
+      s = press(s, "status", keen).state;
+    }
+    assert.equal(s.offense, "away", `${difficulty}: four straight runs should end in a turnover`);
+  }
 });
 
 test("pro reacts 50% faster than rookie", () => {

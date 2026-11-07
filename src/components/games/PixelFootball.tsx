@@ -74,6 +74,8 @@ function useMediaQuery(query: string): boolean {
 }
 
 const rng = Math.random;
+/** A fixed "random" number, for the one board that has to look the same on the server and in the browser. */
+const FIXED_ROLL = () => 0.5;
 
 function readBests(): Bests {
   try {
@@ -141,7 +143,10 @@ function describe(state: State, paused: boolean, mode: Mode): string {
 }
 
 export function PixelFootball() {
-  const [game, setGame] = useState<State>(() => newGame("rookie", rng));
+  // The first board is drawn on the server and again in the browser. It must come out the same in both,
+  // or the browser keeps a lit cell the server drew for a defender who is not there. So no dice until
+  // a real game starts: the formation's random lanes use a fixed roll here.
+  const [game, setGame] = useState<State>(() => newGame("rookie", FIXED_ROLL));
   const [paused, setPaused] = useState(false);
   const [showScore, setShowScore] = useState(false);
   const [sound, setSound] = useState(true);

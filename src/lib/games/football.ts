@@ -108,12 +108,17 @@ export const RESTART_AT = 20;
  * happen. Pro reacts 50% faster: its beat is two thirds as long.
  */
 export const PACE: Record<Difficulty, { beatMs: number }> = {
-  rookie: { beatMs: 450 },
-  pro: { beatMs: 300 },
+  rookie: { beatMs: 660 },
+  pro: { beatMs: 440 },
 };
 
-/** How many yards off the line sets up at the snap: Rookie gives one more yard to work with. */
-export const LINE_OFF: Record<Difficulty, number> = { rookie: 4, pro: 3 };
+/**
+ * The line sets up 3 yards off at the snap on both levels, as on the original
+ * screen: runner in column 1, the line in column 4. That leaves exactly 2
+ * free yards, 8 over four downs, so a first down always takes some dodging.
+ * Moving the line back even one yard would hand over 12 a series for free.
+ */
+export const LINE_OFF = 3;
 
 /**
  * How often a defender who is not yet in the runner's lane moves across
@@ -148,9 +153,8 @@ export function fieldGoalChance(distance: number): number {
  * safety deep. Which lane the linebacker and the safety take is left to
  * chance, so no two snaps look quite alike.
  */
-export function formation(rng: Rng, difficulty: Difficulty = "pro"): Spot[] {
-  const off = LINE_OFF[difficulty];
-  const line = [0, 1, 2].map((lane) => ({ x: off, lane }));
+export function formation(rng: Rng): Spot[] {
+  const line = [0, 1, 2].map((lane) => ({ x: LINE_OFF, lane }));
   const backer = { x: 5, lane: Math.floor(rng() * LANES) % LANES };
   const safety = { x: 8, lane: Math.floor(rng() * LANES) % LANES };
   return [...line, backer, safety];
@@ -167,7 +171,7 @@ function lineUp(state: State, rng: Rng): State {
     lineAt: state.ballOn,
     runner: { x: 0, lane: 1 },
     screenAt: 0,
-    defenders: formation(rng, state.difficulty),
+    defenders: formation(rng),
     tackler: null,
     outcome: null,
     quarterOver: false,
