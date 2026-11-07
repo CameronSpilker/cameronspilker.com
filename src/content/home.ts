@@ -10,6 +10,7 @@ export const nav = {
   sections: [
     { id: "projects", label: "Projects" },
     { id: "tools", label: "Tools" },
+    { id: "games", label: "Games" },
     { id: "work", label: "Experience" },
     { id: "about", label: "About" },
   ],

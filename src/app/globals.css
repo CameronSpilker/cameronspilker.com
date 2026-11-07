@@ -309,3 +309,66 @@
   --viz-grid: rgba(232, 238, 245, 0.08);
   --viz-axis: rgba(232, 238, 245, 0.22);
 }
+
+/*
+ * Pixel Football. The handheld is a physical object, so it keeps one set of
+ * colours in both appearances: putty plastic, a dark bezel, red LEDs. Only the
+ * shadow it casts follows the page.
+ */
+:root {
+  --pf-case: #d8d0bf;
+  --pf-case-edge: #b9af99;
+  --pf-print: #3d3a33;
+  --pf-bezel: #1d1c1a;
+  --pf-glass: #0b0605;
+  --pf-led: #ff4a36;
+  --pf-led-hot: #ffb3a3;
+  --pf-led-dim: #b02a20;
+  --pf-led-off: #1a0806;
+  --pf-line: rgba(255, 61, 46, 0.1);
+  --pf-goal: rgba(255, 61, 46, 0.32);
+  --pf-key: #2f2d29;
+  --pf-key-top: #47443e;
+  --pf-go: #e2702a;
+  --pf-go-top: #f08a47;
+  --pf-shadow: rgba(10, 34, 51, 0.28);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --pf-shadow: rgba(0, 0, 0, 0.6);
+  }
+}
+
+:root[data-theme="dark"] {
+  --pf-shadow: rgba(0, 0, 0, 0.6);
+}
+
+@utility pf-glow {
+  filter: drop-shadow(0 0 3px var(--pf-led)) drop-shadow(0 0 7px color-mix(in srgb, var(--pf-led) 55%, transparent));
+}
+
+@utility pf-glow-strong {
+  filter: drop-shadow(0 0 4px var(--pf-led)) drop-shadow(0 0 12px var(--pf-led));
+}
+
+@keyframes pf-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.15;
+  }
+}
+
+@utility pf-blink {
+  animation: pf-blink 0.36s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-blink {
+    animation: none;
+  }
+}
