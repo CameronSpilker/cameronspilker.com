@@ -103,21 +103,24 @@ export const LONGEST_KICK = 65;
 export const RESTART_AT = 20;
 
 /**
- * How the two levels differ. The defence moves on a beat, and on each beat
- * every defender moves with the same chance. Pro reacts 50% faster: its beat is
- * two thirds as long.
+ * How the two levels differ. The defence moves one tackler at a time, on a
+ * beat: you never know which one will step next, but you can see each step
+ * happen. Pro reacts 50% faster: its beat is two thirds as long.
  */
-export const PACE: Record<Difficulty, { beatMs: number; chance: number }> = {
-  rookie: { beatMs: 510, chance: 0.5 },
-  pro: { beatMs: 340, chance: 0.5 },
+export const PACE: Record<Difficulty, { beatMs: number }> = {
+  rookie: { beatMs: 450 },
+  pro: { beatMs: 300 },
 };
 
-/** The line at the snap, runner at (0, 1): three across, three yards off. */
-export const LINE: readonly [number, number][] = [
-  [3, 0],
-  [3, 1],
-  [3, 2],
-];
+/** How many yards off the line sets up at the snap: Rookie gives one more yard to work with. */
+export const LINE_OFF: Record<Difficulty, number> = { rookie: 4, pro: 3 };
+
+/**
+ * How often a defender who is not yet in the runner's lane moves across
+ * rather than forward. Drifting toward the runner is what lets the manual's
+ * trick work: pull the defence to one side and the other side opens up.
+ */
+export const LANE_PULL = 0.75;
 
 export type Rng = () => number;
 
@@ -145,8 +148,9 @@ export function fieldGoalChance(distance: number): number {
  * safety deep. Which lane the linebacker and the safety take is left to
  * chance, so no two snaps look quite alike.
  */
-export function formation(rng: Rng): Spot[] {
-  const line = LINE.map(([x, lane]) => ({ x, lane }));
+export function formation(rng: Rng, difficulty: Difficulty = "pro"): Spot[] {
+  const off = LINE_OFF[difficulty];
+  const line = [0, 1, 2].map((lane) => ({ x: off, lane }));
   const backer = { x: 5, lane: Math.floor(rng() * LANES) % LANES };
   const safety = { x: 8, lane: Math.floor(rng() * LANES) % LANES };
   return [...line, backer, safety];
@@ -163,7 +167,7 @@ function lineUp(state: State, rng: Rng): State {
     lineAt: state.ballOn,
     runner: { x: 0, lane: 1 },
     screenAt: 0,
-    defenders: formation(rng),
+    defenders: formation(rng, state.difficulty),
     tackler: null,
     outcome: null,
     quarterOver: false,
@@ -340,26 +344,32 @@ function chase(d: Spot, runner: Spot, rng: Rng): Spot {
   const dy = runner.lane - d.lane;
   const towardLane = { x: d.x, lane: d.lane + Math.sign(dy) };
 
-  if (dy !== 0 && (Math.abs(dx) <= 1 || rng() < 0.25)) return towardLane;
+  if (dy !== 0 && (Math.abs(dx) <= 1 || rng() < LANE_PULL)) return towardLane;
   if (dx > 0) return { x: d.x - 1, lane: d.lane };
   if (dx < 0) return { x: d.x + 1, lane: d.lane };
   return towardLane;
 }
 
-/** Move the defence one beat. If someone reaches the runner, the play ends there. */
+/**
+ * Move the defence one beat: one tackler, picked at random, takes one step
+ * toward the runner. If it is boxed in by its own side, the next one tries.
+ * If it reaches the runner, the play ends there.
+ */
 export function defend(state: State, rng: Rng): Step {
-  const { chance } = PACE[state.difficulty];
   const defenders = state.defenders.map((d) => ({ ...d }));
+  const first = Math.floor(rng() * defenders.length) % Math.max(1, defenders.length);
 
-  for (let i = 0; i < defenders.length; i++) {
-    if (rng() >= chance) continue;
+  for (let k = 0; k < defenders.length; k++) {
+    const i = (first + k) % defenders.length;
     const to = chase(defenders[i], state.runner, rng);
     if (to.x === state.runner.x && to.lane === state.runner.lane) {
       // The tackler stays a step off the runner so both stay visible on the board.
       return tackled({ ...state, defenders }, defenders[i]);
     }
     const blocked = defenders.some((o, j) => j !== i && o.x === to.x && o.lane === to.lane);
-    if (!blocked) defenders[i] = to;
+    if (blocked) continue;
+    defenders[i] = to;
+    break;
   }
   return { state: { ...state, defenders }, events: [] };
 }
