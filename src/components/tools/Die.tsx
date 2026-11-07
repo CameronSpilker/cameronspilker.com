@@ -1,237 +1,248 @@
-import { useId, type CSSProperties } from "react";
-import { edgeFor, inkFor, type DieSides } from "@/lib/dice/roll";
+import { useLayoutEffect, useMemo, useRef } from "react";
+import { edgeFor, inkFor } from "@/lib/dice/roll";
+import {
+  apply,
+  cssMatrix,
+  dot,
+  facesOf,
+  landing,
+  toMat,
+  toQuat,
+  tumbleAt,
+  type Mat,
+  type Quat,
+  type SolidKind,
+  type Vec,
+} from "@/lib/dice/solids";
 
 /**
- * One die, drawn flat in SVG: the silhouette a real one shows face on, a few
- * facet lines so it reads as a solid, and the face it landed on. A d6 shows
- * pips; the rest show numbers. With no `value` it shows its own name ("d20"),
- * which is how the table looks before the first roll.
+ * One die, built in CSS 3D: every face is a flat element with its number on
+ * it, placed on the solid, so a tumbling die shows real numbers going past.
  *
- * Everything is in a 100 by 100 box, so the caller sizes it with CSS.
+ * The face that lands is decided before the throw starts. The throw itself
+ * (where it comes from, how it spins, how far it twists on landing) uses
+ * Math.random, because it changes nothing about the result.
  */
 
-type Shape = {
-  /** The outline, as an SVG path. */
-  body: string;
-  /** Facet lines inside the outline. */
-  facets?: string;
-  /** Where the number sits, and how big it may be. */
-  cx: number;
-  cy: number;
-  font: number;
+/** How big each solid is drawn, as its farthest vertex over the die's box. */
+const RADIUS: Record<SolidKind, number> = {
+  d4: 0.56,
+  d6: 0.6,
+  d8: 0.52,
+  d10: 0.5,
+  d12: 0.5,
+  d20: 0.5,
+  tens: 0.5,
+  units: 0.5,
 };
 
-const pts = (list: [number, number][]) => `M ${list.map(([x, y]) => `${x} ${y}`).join(" L ")} Z`;
-const lines = (list: [number, number, number, number][]) =>
-  list.map(([x1, y1, x2, y2]) => `M ${x1} ${y1} L ${x2} ${y2}`).join(" ");
+/** Light from the top left, a little in front. */
+const LIGHT: Vec = (() => {
+  const v: Vec = [-0.45, -0.6, 1];
+  const n = Math.hypot(...v);
+  return [v[0] / n, v[1] / n, v[2] / n];
+})();
 
-function polygon(n: number, r: number, cx: number, cy: number): [number, number][] {
-  return Array.from({ length: n }, (_, i) => {
-    const a = -Math.PI / 2 + (i * 2 * Math.PI) / n;
-    return [Number((cx + r * Math.cos(a)).toFixed(2)), Number((cy + r * Math.sin(a)).toFixed(2))];
-  });
+const STROKE = 2;
+
+/** The face that shows before a die has ever been thrown: its highest number. */
+function restingFace(kind: SolidKind): number {
+  const faces = facesOf(kind);
+  const want = kind === "tens" ? "00" : kind === "units" ? "0" : String(faces.length);
+  return Math.max(0, faces.findIndex((f) => f.label === want));
 }
 
-const d12Outer = polygon(5, 47, 50, 53);
-const d12Inner = polygon(5, 27, 50, 53);
-const kite: [number, number][] = [
-  [50, 3],
-  [95, 46],
-  [50, 97],
-  [5, 46],
-];
-const kiteFacets = pts([
-  [50, 3],
-  [77, 58],
-  [50, 72],
-  [23, 58],
-]) + " " + lines([
-  [23, 58, 5, 46],
-  [77, 58, 95, 46],
-  [50, 72, 50, 97],
-]);
-
-const SHAPES: Record<DieSides, Shape> = {
-  4: {
-    body: pts([
-      [50, 5],
-      [96, 89],
-      [4, 89],
-    ]),
-    cx: 50,
-    cy: 64,
-    font: 30,
-  },
-  6: { body: "M 24 6 H 76 Q 94 6 94 24 V 76 Q 94 94 76 94 H 24 Q 6 94 6 76 V 24 Q 6 6 24 6 Z", cx: 50, cy: 50, font: 44 },
-  8: {
-    body: pts([
-      [50, 3],
-      [96, 50],
-      [50, 97],
-      [4, 50],
-    ]),
-    facets: pts([
-      [50, 3],
-      [80, 66],
-      [20, 66],
-    ]) + " " + lines([
-      [20, 66, 4, 50],
-      [80, 66, 96, 50],
-      [20, 66, 50, 97],
-      [80, 66, 50, 97],
-    ]),
-    cx: 50,
-    cy: 48,
-    font: 28,
-  },
-  10: { body: pts(kite), facets: kiteFacets, cx: 50, cy: 47, font: 28 },
-  12: {
-    body: pts(d12Outer),
-    facets:
-      pts(d12Inner) +
-      " " +
-      lines(d12Inner.map(([x, y], i) => [x, y, d12Outer[i][0], d12Outer[i][1]] as [number, number, number, number])),
-    cx: 50,
-    cy: 54,
-    font: 28,
-  },
-  20: {
-    body: pts([
-      [50, 3],
-      [91, 26],
-      [91, 74],
-      [50, 97],
-      [9, 74],
-      [9, 26],
-    ]),
-    facets:
-      pts([
-        [50, 22],
-        [78, 70],
-        [22, 70],
-      ]) +
-      " " +
-      lines([
-        [50, 22, 50, 3],
-        [50, 22, 9, 26],
-        [50, 22, 91, 26],
-        [78, 70, 91, 26],
-        [78, 70, 91, 74],
-        [78, 70, 50, 97],
-        [22, 70, 9, 26],
-        [22, 70, 9, 74],
-        [22, 70, 50, 97],
-      ]),
-    cx: 50,
-    cy: 55,
-    font: 24,
-  },
-  100: { body: pts(kite), facets: kiteFacets, cx: 50, cy: 47, font: 28 },
-};
-
-/** Pip centres for each face of a d6, on a 100 box. */
-const PIPS: Record<number, [number, number][]> = {
-  1: [[50, 50]],
-  2: [
-    [30, 30],
-    [70, 70],
-  ],
-  3: [
-    [30, 30],
-    [50, 50],
-    [70, 70],
-  ],
-  4: [
-    [30, 30],
-    [70, 30],
-    [30, 70],
-    [70, 70],
-  ],
-  5: [
-    [30, 30],
-    [70, 30],
-    [50, 50],
-    [30, 70],
-    [70, 70],
-  ],
-  6: [
-    [30, 28],
-    [70, 28],
-    [30, 50],
-    [70, 50],
-    [30, 72],
-    [70, 72],
-  ],
-};
+const easeOut = (t: number) => 1 - (1 - t) ** 3;
 
 export function Die({
-  sides,
+  kind,
+  label,
   colour,
-  value,
-  className,
-  style,
+  size,
+  throwId,
+  index,
   glow,
 }: {
-  sides: DieSides;
+  kind: SolidKind;
+  /** The face to show, or null for the resting face. */
+  label: string | null;
   colour: string;
-  /** The face showing, or null before the first roll. */
-  value: number | null;
-  className?: string;
-  style?: CSSProperties;
-  /** A ring for a natural 20. */
+  /** The die's box, in pixels. */
+  size: number;
+  /** Bumped once per roll. A new value throws the die. */
+  throwId: number;
+  /** Its place on the table, for staggering the throw. */
+  index: number;
   glow?: boolean;
 }) {
-  const shape = SHAPES[sides];
+  const faces = facesOf(kind);
+  const r = size * RADIUS[kind];
   const ink = inkFor(colour);
   const edge = edgeFor(colour);
-  // useId can return characters that break url(#...) references; keep it plain.
-  const sheen = `die-sheen-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
 
-  const label = value === null ? `d${sides}` : String(value);
-  const scale = label.length >= 3 ? 0.78 : label.length === 2 && value === null ? 0.9 : 1;
-  const font = shape.font * (value === null ? 0.82 : 1) * scale;
+  const body = useRef<HTMLDivElement | null>(null);
+  const shadow = useRef<HTMLDivElement | null>(null);
+  const shades = useRef<(SVGPolygonElement | null)[]>([]);
+  const orientation = useRef<Quat | null>(null);
+  const lastThrow = useRef(throwId);
+
+  const target = label === null ? restingFace(kind) : Math.max(0, faces.findIndex((f) => f.label === label));
+
+  // Where each face sits on the solid, and how it is drawn. Fixed per shape and size.
+  const drawn = useMemo(
+    () =>
+      faces.map((f) => {
+        const outline = f.outline.map(([x, y]) => [x * r, y * r] as [number, number]);
+        const hw = Math.max(...outline.map(([x]) => Math.abs(x))) + STROKE;
+        const hh = Math.max(...outline.map(([, y]) => Math.abs(y))) + STROKE;
+        const placed: Mat = [
+          [f.right[0], -f.up[0], f.normal[0]],
+          [f.right[1], -f.up[1], f.normal[1]],
+          [f.right[2], -f.up[2], f.normal[2]],
+        ];
+        const c = f.centroid;
+        return {
+          label: f.label,
+          hw,
+          hh,
+          points: outline.map(([x, y]) => `${x.toFixed(2)},${y.toFixed(2)}`).join(" "),
+          transform: cssMatrix(placed, [c[0] * r, c[1] * r, c[2] * r]),
+          font: f.inradius * r * (f.label.length >= 2 ? 0.95 : 1.15),
+        };
+      }),
+    [faces, r],
+  );
+
+  useLayoutEffect(() => {
+    const el = body.current;
+    if (!el) return;
+
+    const paint = (q: Quat, x: number, y: number, lift: number) => {
+      const m = toMat(q);
+      el.style.transform = `translate3d(${x.toFixed(2)}px, ${(y - lift).toFixed(2)}px, 0) ${cssMatrix(m)}`;
+      faces.forEach((f, i) => {
+        const n = apply(m, f.normal);
+        const light = Math.max(0, dot(n, LIGHT));
+        const shade = shades.current[i];
+        if (shade) shade.style.opacity = String(Math.min(0.6, (1 - light) * 0.55).toFixed(3));
+      });
+      const s = shadow.current;
+      if (s) {
+        const k = Math.max(0.55, 1 - lift / size);
+        s.style.transform = `translate(${x.toFixed(2)}px, 0) scale(${k.toFixed(3)})`;
+        s.style.opacity = String((0.35 * k).toFixed(3));
+      }
+    };
+
+    const twist = (Math.random() - 0.5) * 0.7;
+    const to = toQuat(landing(faces[target], twist));
+    const thrown = throwId !== lastThrow.current;
+    lastThrow.current = throwId;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (!thrown || reduced || orientation.current === null) {
+      orientation.current = to;
+      paint(to, 0, 0, 0);
+      return;
+    }
+
+    // A throw: in from a random side, a few bounces, a couple of turns.
+    const from = orientation.current;
+    const angle = Math.random() * Math.PI * 2;
+    const reach = size * (0.9 + Math.random() * 0.8);
+    const sx = Math.cos(angle) * reach;
+    const sy = Math.sin(angle) * reach * 0.6;
+    const axis: Vec = [Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5];
+    const turns = 2 + Math.floor(Math.random() * 2);
+    const bounces = 3;
+    const duration = 950 + ((index * 53) % 5) * 60;
+    const delay = ((index * 29) % 6) * 25;
+    const start = performance.now() + delay;
+    let frame = 0;
+
+    const step = (now: number) => {
+      const t = Math.min(1, Math.max(0, (now - start) / duration));
+      const e = easeOut(t);
+      const q = tumbleAt(from, to, axis, turns, e);
+      const lift = Math.abs(Math.sin(Math.PI * bounces * e)) * (1 - e) * size * 0.55;
+      paint(q, sx * (1 - e), sy * (1 - e), lift);
+      orientation.current = q;
+      if (t < 1) frame = requestAnimationFrame(step);
+      else orientation.current = to;
+    };
+    paint(from, sx, sy, 0);
+    frame = requestAnimationFrame(step);
+    return () => {
+      cancelAnimationFrame(frame);
+      orientation.current = to;
+    };
+    // The throw is keyed on throwId; the rest only reposition the die.
+  }, [throwId, target, faces, size, index]);
 
   return (
-    <svg
-      viewBox="0 0 100 100"
-      aria-hidden="true"
-      className={className}
-      style={{
-        ...style,
-        filter: glow
-          ? "drop-shadow(0 0 6px #fab219) drop-shadow(0 6px 10px rgba(0,0,0,0.25))"
-          : "drop-shadow(0 6px 10px rgba(0,0,0,0.22))",
-      }}
-    >
-      <defs>
-        <linearGradient id={sheen} x1="0" y1="0" x2="0.8" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.38" />
-          <stop offset="55%" stopColor="#ffffff" stopOpacity="0" />
-          <stop offset="100%" stopColor="#000000" stopOpacity="0.12" />
-        </linearGradient>
-      </defs>
-      <path d={shape.body} fill={colour} />
-      <path d={shape.body} fill={`url(#${sheen})`} />
-      {shape.facets && (
-        <path d={shape.facets} fill="none" stroke={edge} strokeOpacity="0.55" strokeWidth="1.6" strokeLinejoin="round" />
+    <div aria-hidden="true" className="relative shrink-0" style={{ width: size, height: size }}>
+      {glow && (
+        <div
+          className="absolute inset-[-12%] rounded-full"
+          style={{ background: "radial-gradient(closest-side, rgba(250,178,25,0.55), rgba(250,178,25,0))" }}
+        />
       )}
-      <path d={shape.body} fill="none" stroke={edge} strokeWidth="3" strokeLinejoin="round" />
-      {sides === 6 && value !== null && PIPS[value] ? (
-        PIPS[value].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="8" fill={ink} />)
-      ) : (
-        <text
-          x={shape.cx}
-          y={shape.cy}
-          textAnchor="middle"
-          dominantBaseline="central"
-          fill={ink}
-          fontSize={font}
-          fontWeight={800}
-          className="font-mono"
-        >
-          {label}
-        </text>
-      )}
-    </svg>
+      {/* Ground shadow, which shrinks as the die leaves the table. */}
+      <div
+        ref={shadow}
+        className="absolute bottom-[2%] left-[15%] h-[14%] w-[70%] rounded-[50%]"
+        style={{ background: "radial-gradient(closest-side, rgba(0,0,0,0.6), rgba(0,0,0,0))", opacity: 0.35 }}
+      />
+      <div className="absolute inset-0" style={{ perspective: `${size * 5}px` }}>
+        <div ref={body} className="absolute top-1/2 left-1/2 h-0 w-0" style={{ transformStyle: "preserve-3d" }}>
+          {drawn.map((f, i) => (
+            <div
+              key={i}
+              className="absolute"
+              style={{
+                width: f.hw * 2,
+                height: f.hh * 2,
+                left: -f.hw,
+                top: -f.hh,
+                transform: f.transform,
+                backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden",
+              }}
+            >
+              <svg width={f.hw * 2} height={f.hh * 2} viewBox={`${-f.hw} ${-f.hh} ${f.hw * 2} ${f.hh * 2}`} className="block overflow-visible">
+                <polygon points={f.points} fill={colour} stroke={edge} strokeWidth={STROKE} strokeLinejoin="round" />
+                <text
+                  x={0}
+                  y={0}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fill={ink}
+                  fontSize={f.font}
+                  fontWeight={800}
+                  className="font-mono"
+                >
+                  {f.label}
+                </text>
+                {/* 6 and 9 read the same upside down; real dice underline them. */}
+                {(f.label === "6" || f.label === "9") && (
+                  <rect x={-f.font * 0.26} y={f.font * 0.48} width={f.font * 0.52} height={Math.max(1.2, f.font * 0.08)} rx={0.6} fill={ink} />
+                )}
+                <polygon
+                  ref={(node) => {
+                    shades.current[i] = node;
+                  }}
+                  points={f.points}
+                  fill="#000000"
+                  stroke="#000000"
+                  strokeWidth={STROKE}
+                  strokeLinejoin="round"
+                  opacity={0}
+                />
+              </svg>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
