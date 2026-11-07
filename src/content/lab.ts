@@ -38,10 +38,10 @@ export const stats = [
 export const nightly = {
   name: "nightly_in_season_schedule",
   /** Standard five-field cron, exactly as it appears in the repo. */
-  cron: "0 6 * * *",
+  cron: "17 2 * * *",
   /** IANA zone the cron is evaluated in. */
   timezone: "America/Denver",
-  cadence: "Nightly at 06:00 Mountain",
+  cadence: "Nightly at 02:17 Mountain",
   what: "Scores, box scores, betting lines and ratings for the season in progress, then the dbt graph behind them.",
 };
 
