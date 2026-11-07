@@ -33,7 +33,7 @@ const MAX_FRAME_MS = 100;
 
 type Bests = { longestRun: number; mostPoints: number };
 
-/** Phones held upright get their own layout. The server renders the wide one, and a phone swaps after load. */
+/** Phones get their own layout, built for two thumbs. The server renders the wide one, and a phone swaps after load. */
 const PHONE_QUERY = "(max-width: 639px)";
 
 function useMediaQuery(query: string): boolean {
@@ -518,17 +518,16 @@ function Handheld(props: HandheldProps) {
 }
 
 /**
- * The phone handheld: held upright, the field stands on end and every side
- * runs up the screen. Lanes are left and right, and the buttons sit where
- * thumbs rest: lanes on the left, Run on the right. It fills the screen, so
- * the page cannot scroll out from under a press.
+ * The phone handheld, for a phone held upright in both hands the way you text.
+ * The field still runs left to right; what changes is where the buttons are.
+ * They sit in the bottom of the screen where thumbs rest: lanes under the left
+ * thumb, Run under the right, and Status, Score and Kick just above. It fills
+ * the screen, so the page cannot scroll out from under a press.
  */
 function PhoneHandheld(props: HandheldProps & { onClose: () => void }) {
   const { game, paused, showScore, onInput, onScore, onStatus, onClose } = props;
   const canKick = !paused && game.phase === "ready" && game.down === 4;
-  // Turning the field upright puts the home side's top lane on the left and the away side's on the right.
-  const toLeft: Input = game.board === "home" ? "up" : "down";
-  const toRight: Input = game.board === "home" ? "down" : "up";
+  const runsRight = game.board === "home";
 
   return (
     <div
@@ -538,7 +537,7 @@ function PhoneHandheld(props: HandheldProps & { onClose: () => void }) {
         touchAction: "none",
         overscrollBehavior: "none",
         paddingTop: "max(10px, env(safe-area-inset-top))",
-        paddingBottom: "max(18px, env(safe-area-inset-bottom))",
+        paddingBottom: "max(20px, env(safe-area-inset-bottom))",
       }}
     >
       <div className="px-3">
@@ -555,48 +554,53 @@ function PhoneHandheld(props: HandheldProps & { onClose: () => void }) {
         </TopBar>
       </div>
 
-      <div className="mx-3 flex min-h-0 flex-1 flex-col gap-2 rounded-[24px] p-3" style={{ background: "var(--pf-bezel)" }}>
+      <div className="mx-2 flex flex-col gap-2 rounded-[22px] px-2 py-3" style={{ background: "var(--pf-bezel)" }}>
         <Readout game={game} scoreMode={showScore || game.phase === "final"} />
-        <div className="min-h-0 flex-1 overflow-hidden rounded-xl p-1.5" style={{ background: "var(--pf-glass)" }}>
-          <Field game={game} paused={paused} upright />
+        <div className="overflow-hidden rounded-xl p-1" style={{ background: "var(--pf-glass)" }}>
+          <Field game={game} paused={paused} big />
         </div>
-        <Lamps game={game} />
+        <div className="px-1">
+          <Lamps game={game} />
+        </div>
       </div>
 
-      <p className="mx-4 mt-2 min-h-[2.6em] text-center font-mono text-[11px] leading-snug">{describe(game, paused)}</p>
+      <p className="mx-4 mt-3 min-h-[2.6em] text-center font-mono text-xs leading-snug">{describe(game, paused)}</p>
 
-      <div className="mt-1 flex items-center justify-center gap-4">
+      {/* Everything above is for the eyes; everything from here down is for the thumbs. */}
+      <div className="flex-1" />
+
+      <div className="flex items-center justify-center gap-5 pb-4">
         <SmallKey label={copy.buttons.status} onPress={onStatus} />
         <SmallKey label={copy.buttons.score} onPress={onScore} />
         <SmallKey label={copy.buttons.kick} onPress={() => onInput("kick")} go disabled={!canKick} />
       </div>
 
-      <div className="mt-3 flex items-end justify-between px-5">
-        <div className="flex gap-3 pb-1">
-          <PadKey label={copy.buttons.left} onPress={() => onInput(toLeft)} large>
-            <Arrow dir="left" />
+      <div className="flex items-end justify-between px-5">
+        <div className="flex flex-col gap-3">
+          <PadKey label={copy.buttons.up} onPress={() => onInput("up")} large>
+            <Arrow dir="up" />
           </PadKey>
-          <PadKey label={copy.buttons.right} onPress={() => onInput(toRight)} large>
-            <Arrow dir="right" />
+          <PadKey label={copy.buttons.down} onPress={() => onInput("down")} large>
+            <Arrow dir="down" />
           </PadKey>
         </div>
         <PadKey label={copy.buttons.forward} onPress={() => onInput("forward")} big go>
-          <Arrow dir="up" />
+          <Arrow dir={runsRight ? "right" : "left"} />
         </PadKey>
       </div>
     </div>
   );
 }
 
-/** On a phone, the page shows the upright field and one big button that opens the game full screen. */
+/** On a phone, the page shows the field and one big button that opens the game full screen. */
 function PhonePreview({ game, paused, onPlay }: { game: State; paused: boolean; onPlay: () => void }) {
   return (
-    <div className="mx-auto w-full max-w-sm">
+    <div className="mx-auto w-full max-w-md">
       <div className="rounded-[32px] border-b-[6px] p-3" style={{ ...caseStyle, boxShadow: "0 24px 48px var(--pf-shadow)" }}>
-        <div className="rounded-[22px] p-3" style={{ background: "var(--pf-bezel)" }}>
+        <div className="rounded-[22px] px-2 py-3" style={{ background: "var(--pf-bezel)" }}>
           <Readout game={game} scoreMode={game.phase === "final"} />
-          <div className="mt-2 h-72 overflow-hidden rounded-xl p-1.5" style={{ background: "var(--pf-glass)" }}>
-            <Field game={game} paused={paused} upright />
+          <div className="mt-2 overflow-hidden rounded-xl p-1" style={{ background: "var(--pf-glass)" }}>
+            <Field game={game} paused={paused} big />
           </div>
         </div>
         <button
@@ -663,10 +667,11 @@ function SideLamp({ on, dir }: { on: boolean; dir: "left" | "right" }) {
 }
 
 /**
- * The field. Wide, it is 9 columns by 3 lanes and runs toward the side with
- * the ball's goal. Upright, it is 3 lanes by 9 rows and always runs up.
+ * The field: 9 columns by 3 lanes, running toward the goal of the side with
+ * the ball. `big` squares the cells up for a narrow phone screen, so the dots
+ * stay large.
  */
-function Field({ game, paused, upright = false }: { game: State; paused: boolean; upright?: boolean }) {
+function Field({ game, paused, big = false }: { game: State; paused: boolean; big?: boolean }) {
   const { runner, defenders, tackler } = game;
   const yards = columnYards(game);
   const away = game.board === "away";
@@ -674,19 +679,46 @@ function Field({ game, paused, upright = false }: { game: State; paused: boolean
   const o = game.outcome;
   const allBlink = holding && (o?.kind === "touchdown" || o?.kind === "fieldGoal");
 
-  // Screen cells in reading order, each mapped back to a column (yard) and lane.
-  const cells: { c: number; lane: number; key: string }[] = [];
-  if (upright) {
-    for (let row = 0; row < COLUMNS; row++) {
-      for (let k = 0; k < LANES; k++) {
-        cells.push({ c: COLUMNS - 1 - row, lane: away ? LANES - 1 - k : k, key: `${row}-${k}` });
-      }
-    }
-  } else {
-    for (let lane = 0; lane < LANES; lane++) {
-      for (let screen = 0; screen < COLUMNS; screen++) {
-        cells.push({ c: away ? COLUMNS - 1 - screen : screen, lane, key: `${lane}-${screen}` });
-      }
+  const cells: ReactNode[] = [];
+  for (let lane = 0; lane < LANES; lane++) {
+    for (let screen = 0; screen < COLUMNS; screen++) {
+      const c = away ? COLUMNS - 1 - screen : screen;
+      const yard = yards[c];
+      const isRunner = runner.x === c && runner.lane === lane;
+      const isDefender = !isRunner && defenders.some((d) => d.x === c && d.lane === lane);
+      const isTackler = holding && tackler !== null && tackler.x === c && tackler.lane === lane;
+      // A yard line sits on the edge of the cell nearest the offence's own goal.
+      const marked = yard === 100 || (yard % 10 === 0 && yard > 0 && yard < 100);
+      const line = `1px solid ${yard === 100 ? "var(--pf-goal)" : marked ? "var(--pf-line)" : "transparent"}`;
+      const blink = isTackler || (allBlink && (isRunner || isDefender));
+
+      cells.push(
+        <div
+          key={`${lane}-${screen}`}
+          className={`flex items-center justify-center ${big ? "aspect-[0.9]" : "aspect-[1.35]"}`}
+          style={{ [away ? "borderRight" : "borderLeft"]: line, background: yard > 100 ? "rgba(255,61,46,0.06)" : undefined }}
+        >
+          <span
+            className={`block rounded-full ${blink ? "pf-blink" : ""} ${
+              isRunner
+                ? `pf-glow-strong w-[78%] ${big ? "h-[32%]" : "h-[38%]"}`
+                : isDefender
+                  ? `w-[64%] ${big ? "h-[24%]" : "h-[28%]"}`
+                  : `w-[48%] ${big ? "h-[16%]" : "h-[20%]"}`
+            }`}
+            style={{
+              // The runner is white hot in the middle; a defender is a solid, plainly dimmer red;
+              // an unlit cell is barely there, so only the players catch the eye.
+              background: isRunner
+                ? "radial-gradient(ellipse at center, #fff4ef 0%, var(--pf-led-hot) 35%, var(--pf-led) 75%)"
+                : isDefender
+                  ? "var(--pf-led-dim)"
+                  : "var(--pf-led-off)",
+              boxShadow: isDefender ? "inset 0 0 0 1px rgba(255,120,100,0.35)" : undefined,
+            }}
+          />
+        </div>,
+      );
     }
   }
 
@@ -694,52 +726,10 @@ function Field({ game, paused, upright = false }: { game: State; paused: boolean
     <div
       role="img"
       aria-label={describe(game, paused)}
-      className={`grid ${upright ? "h-full" : ""}`}
-      style={
-        upright
-          ? { gridTemplateColumns: `repeat(${LANES}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${COLUMNS}, minmax(0, 1fr))` }
-          : { gridTemplateColumns: `repeat(${COLUMNS}, minmax(0, 1fr))` }
-      }
+      className="grid"
+      style={{ gridTemplateColumns: `repeat(${COLUMNS}, minmax(0, 1fr))` }}
     >
-      {cells.map(({ c, lane, key }) => {
-        const yard = yards[c];
-        const isRunner = runner.x === c && runner.lane === lane;
-        const isDefender = !isRunner && defenders.some((d) => d.x === c && d.lane === lane);
-        const isTackler = holding && tackler !== null && tackler.x === c && tackler.lane === lane;
-        // A yard line sits on the edge of the cell nearest the offence's own goal.
-        const marked = yard === 100 || (yard % 10 === 0 && yard > 0 && yard < 100);
-        const line = `1px solid ${yard === 100 ? "var(--pf-goal)" : marked ? "var(--pf-line)" : "transparent"}`;
-        const edge = upright ? "borderBottom" : away ? "borderRight" : "borderLeft";
-        const blink = isTackler || (allBlink && (isRunner || isDefender));
-
-        return (
-          <div
-            key={key}
-            className={`flex items-center justify-center ${upright ? "" : "aspect-[1.35]"}`}
-            style={{ [edge]: line, background: yard > 100 ? "rgba(255,61,46,0.06)" : undefined }}
-          >
-            <span
-              className={`block rounded-full ${blink ? "pf-blink" : ""} ${
-                isRunner
-                  ? `pf-glow-strong ${upright ? "h-[46%] w-[66%]" : "h-[38%] w-[74%]"}`
-                  : isDefender
-                    ? upright ? "h-[34%] w-[52%]" : "h-[28%] w-[58%]"
-                    : upright ? "h-[22%] w-[40%]" : "h-[20%] w-[46%]"
-              }`}
-              style={{
-                // The runner is white hot in the middle; a defender is a solid, plainly dimmer red;
-                // an unlit cell is barely there, so only the players catch the eye.
-                background: isRunner
-                  ? "radial-gradient(ellipse at center, #fff4ef 0%, var(--pf-led-hot) 35%, var(--pf-led) 75%)"
-                  : isDefender
-                    ? "var(--pf-led-dim)"
-                    : "var(--pf-led-off)",
-                boxShadow: isDefender ? "inset 0 0 0 1px rgba(255,120,100,0.35)" : undefined,
-              }}
-            />
-          </div>
-        );
-      })}
+      {cells}
     </div>
   );
 }
