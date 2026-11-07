@@ -6,14 +6,16 @@ import {
   dot,
   facesOf,
   landing,
+  quatMultiply,
+  slerp,
   toMat,
   toQuat,
-  tumbleAt,
   type Mat,
   type Quat,
   type SolidKind,
   type Vec,
 } from "@/lib/dice/solids";
+import { DT, type Track } from "@/lib/dice/physics";
 
 /**
  * One die, built in CSS 3D: every face is a flat element with its number on
@@ -67,16 +69,18 @@ function restingFace(kind: SolidKind): number {
   return Math.max(0, faces.findIndex((f) => f.label === want));
 }
 
-const easeOut = (t: number) => 1 - (1 - t) ** 3;
+const conjugate = ([w, x, y, z]: Quat): Quat => [w, -x, -y, -z];
+const IDENTITY: Quat = [1, 0, 0, 0];
 
 export function Die({
   kind,
   label,
   colour,
   size,
+  x,
+  y,
+  track,
   throwId,
-  index,
-  heading,
   glow,
 }: {
   kind: SolidKind;
@@ -85,15 +89,13 @@ export function Die({
   colour: string;
   /** The die's box, in pixels. */
   size: number;
-  /** Bumped once per roll. A new value throws the die. */
+  /** Where its centre rests on the table, in pixels from the tray's corner. */
+  x: number;
+  y: number;
+  /** This die's part of the latest throw, from the table simulation. */
+  track: Track | null;
+  /** Bumped once per roll. A new value plays `track`. */
   throwId: number;
-  /** Its place on the table, for staggering the throw. */
-  index: number;
-  /**
-   * The side this roll comes in from, in radians, shared by every die in the
-   * throw so they travel together instead of crossing.
-   */
-  heading: number;
   glow?: boolean;
 }) {
   const faces = facesOf(kind);
@@ -101,6 +103,7 @@ export function Die({
   const ink = inkFor(colour);
   const edge = edgeFor(colour);
 
+  const place = useRef<HTMLDivElement | null>(null);
   const body = useRef<HTMLDivElement | null>(null);
   const shadow = useRef<HTMLDivElement | null>(null);
   const shades = useRef<(SVGPolygonElement | null)[]>([]);
@@ -136,24 +139,27 @@ export function Die({
 
   useLayoutEffect(() => {
     const el = body.current;
-    if (!el) return;
+    const at = place.current;
+    if (!el || !at) return;
 
-    const paint = (q: Quat, x: number, y: number, lift: number) => {
+    const paint = (q: Quat, px: number, py: number, lift: number) => {
       const m = toMat(q);
-      el.style.transform = `translate3d(${x.toFixed(2)}px, ${(y - lift).toFixed(2)}px, 0) ${cssMatrix(m)}`;
+      at.style.transform = `translate(${(px - size / 2).toFixed(2)}px, ${(py - size / 2).toFixed(2)}px)`;
+      el.style.transform = `translate3d(0, ${(-lift).toFixed(2)}px, 0) ${cssMatrix(m)}`;
       faces.forEach((f, i) => {
         const n = apply(m, f.normal);
         const light = Math.max(0, dot(n, LIGHT));
         const shade = shades.current[i];
-        // Faces toward the light stay nearly their true colour; faces turned
-        // away darken faster, which is what makes the solid read as one.
-        if (shade) shade.style.opacity = ((1 - light) ** 1.5 * 0.6).toFixed(3);
+        // Faces toward the light keep their true colour. Faces turned away
+        // darken a little, enough to read as a solid, not so much that their
+        // numbers sink.
+        if (shade) shade.style.opacity = ((1 - light) ** 1.6 * 0.42).toFixed(3);
       });
       const s = shadow.current;
       if (s) {
-        const k = Math.max(0.55, 1 - lift / size);
-        s.style.transform = `translate(${x.toFixed(2)}px, 0) scale(${k.toFixed(3)})`;
-        s.style.opacity = String((0.35 * k).toFixed(3));
+        const k = Math.max(0.6, 1 - lift / size);
+        s.style.transform = `scale(${k.toFixed(3)})`;
+        s.style.opacity = (0.35 * k).toFixed(3);
       }
     };
 
@@ -163,51 +169,54 @@ export function Die({
     lastThrow.current = throwId;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    if (!thrown || reduced || orientation.current === null) {
+    if (!thrown || reduced || !track || orientation.current === null) {
       orientation.current = to;
-      paint(to, 0, 0, 0);
+      paint(to, x, y, 0);
       return;
     }
 
-    // A throw: the whole handful comes in from one side, rolling forward the
-    // way it travels, bouncing a few times before it settles.
+    // Play the simulated throw. The die rolls as the table says it moved,
+    // and the turn that brings it onto its landing face is spread over the
+    // distance it rolls, so it is complete exactly when the die stops.
     const from = orientation.current;
-    const angle = heading + (Math.random() - 0.5) * 0.12;
-    const reach = size * (1.15 + Math.random() * 0.12);
-    const sx = Math.cos(angle) * reach;
-    const sy = Math.sin(angle) * reach * 0.5;
-    // Rolling toward (-sx, -sy) on the table turns about the axis across that
-    // path. Whole turns that unwind to zero spin it forward, hence the sign.
-    const len = Math.hypot(sx, sy) || 1;
-    const axis: Vec = [sy / len, -sx / len, (Math.random() - 0.5) * 0.5];
-    const turns = 2;
-    const bounces = 3;
-    const duration = 1000 + ((index * 53) % 3) * 30;
-    const delay = ((index * 29) % 4) * 15;
-    const start = performance.now() + delay;
+    const last = track.x.length - 1;
+    const rolledAt = (f: number): Quat => [track.roll[f * 4], track.roll[f * 4 + 1], track.roll[f * 4 + 2], track.roll[f * 4 + 3]];
+    const free = quatMultiply(rolledAt(last), from);
+    const correction = quatMultiply(to, conjugate(free));
+    const total = track.travelled[last];
+    const start = performance.now();
     let frame = 0;
 
     const step = (now: number) => {
-      const t = Math.min(1, Math.max(0, (now - start) / duration));
-      const e = easeOut(t);
-      const q = tumbleAt(from, to, axis, turns, e);
-      const lift = Math.abs(Math.sin(Math.PI * bounces * e)) * (1 - e) * size * 0.42;
-      paint(q, sx * (1 - e), sy * (1 - e), lift);
+      const exact = Math.min(last, Math.max(0, (now - start) / 1000 / DT));
+      const f = Math.floor(exact);
+      const g = Math.min(last, f + 1);
+      const k = exact - f;
+      const px = track.x[f] + (track.x[g] - track.x[f]) * k;
+      const py = track.y[f] + (track.y[g] - track.y[f]) * k;
+      const lift = track.lift[f] + (track.lift[g] - track.lift[f]) * k;
+      const w = total > 0 ? track.travelled[f] / total : f / last;
+      const q = f >= last ? to : quatMultiply(slerp(IDENTITY, correction, w), quatMultiply(rolledAt(f), from));
+      paint(q, px, py, lift);
       orientation.current = q;
-      if (t < 1) frame = requestAnimationFrame(step);
+      if (f < last) frame = requestAnimationFrame(step);
       else orientation.current = to;
     };
-    paint(from, sx, sy, 0);
-    frame = requestAnimationFrame(step);
+    step(start);
     return () => {
       cancelAnimationFrame(frame);
       orientation.current = to;
     };
-    // The throw is keyed on throwId; the rest only reposition the die.
-  }, [throwId, target, faces, size, index, heading]);
+    // A throw is keyed on throwId; the rest only reposition the die.
+  }, [throwId, target, faces, size, x, y, track]);
 
   return (
-    <div aria-hidden="true" className="relative shrink-0" style={{ width: size, height: size }}>
+    <div
+      ref={place}
+      aria-hidden="true"
+      className="absolute top-0 left-0"
+      style={{ width: size, height: size, transform: `translate(${x - size / 2}px, ${y - size / 2}px)` }}
+    >
       {glow && (
         <div
           className="absolute inset-[-12%] rounded-full"
@@ -238,22 +247,7 @@ export function Die({
             >
               <svg width={f.hw * 2} height={f.hh * 2} viewBox={`${-f.hw} ${-f.hh} ${f.hw * 2} ${f.hh * 2}`} className="block overflow-visible">
                 <polygon points={f.points} fill={colour} stroke={edge} strokeWidth={STROKE} strokeLinejoin="round" />
-                <text
-                  x={0}
-                  y={0}
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                  fill={ink}
-                  fontSize={f.font}
-                  fontWeight={800}
-                  className="font-sans"
-                >
-                  {f.label}
-                </text>
-                {/* 6 and 9 read the same upside down; real dice underline them. */}
-                {(f.label === "6" || f.label === "9") && (
-                  <rect x={-f.font * 0.26} y={f.font * 0.48} width={f.font * 0.52} height={Math.max(1.2, f.font * 0.08)} rx={0.6} fill={ink} />
-                )}
+                {/* Shading sits under the number, so a face turned away still reads. */}
                 <polygon
                   ref={(node) => {
                     shades.current[i] = node;
@@ -265,6 +259,25 @@ export function Die({
                   strokeLinejoin="round"
                   opacity={0}
                 />
+                <text
+                  x={0}
+                  y={0}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fill={ink}
+                  fontSize={f.font}
+                  fontWeight={800}
+                  stroke={ink === "#ffffff" ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.35)"}
+                  strokeWidth={Math.max(0.8, f.font * 0.06)}
+                  paintOrder="stroke"
+                  className="font-sans"
+                >
+                  {f.label}
+                </text>
+                {/* 6 and 9 read the same upside down; real dice underline them. */}
+                {(f.label === "6" || f.label === "9") && (
+                  <rect x={-f.font * 0.26} y={f.font * 0.48} width={f.font * 0.52} height={Math.max(1.2, f.font * 0.08)} rx={0.6} fill={ink} />
+                )}
               </svg>
             </div>
           ))}

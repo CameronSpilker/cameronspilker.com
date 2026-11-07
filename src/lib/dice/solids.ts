@@ -260,7 +260,7 @@ export function rotationZ(angle: number): Mat {
 }
 
 /** How far the resting die is tipped back, so a little of its sides shows. */
-export const TILT = (-16 * Math.PI) / 180;
+export const TILT = (-24 * Math.PI) / 180;
 
 /**
  * The rotation that lands `face` toward the viewer, its label upright, then
