@@ -10,7 +10,7 @@ export const toolsIndex = {
   label: "Tools",
   title: "Little tools",
   lede:
-    "Small things I made because I needed them. Most run entirely in your browser and upload nothing. The gift list is the exception, because sharing a list means saving it somewhere.",
+    "Small things I made because I needed them.",
   /** Description metadata for `/tools`. */
   metaDescription:
     "Small tools: a gift list you share with a link, a debt payoff calculator, a wheel spinner, a dice roller, a PDF signer, and a dbt run results visualizer.",
@@ -21,11 +21,9 @@ export const runResultsTool = {
   name: "dbt run results visualizer",
   title: "See where a dbt run actually spent its time",
   description:
-    "Drop in a run_results.json and get the timeline, the idle threads, and the models worth fixing. Nothing leaves your browser.",
+    "Drop in a run_results.json and get the timeline, the idle threads, and the models worth fixing.",
   lede:
-    "Every dbt invocation writes a full account of itself to target/run_results.json: what ran, on which thread, for how long, and how it ended. This reads that file and draws it. The file never leaves your browser, so you can use it on a work artifact without asking anyone.",
-  privacy:
-    "Parsed in the page with JavaScript. There is no upload, no server, and no analytics event carrying anything from your file.",
+    "Every dbt invocation writes a full account of itself to target/run_results.json: what ran, on which thread, for how long, and how it ended. This reads that file and draws it.",
   howto: {
     title: "Where the file is",
     steps: [
@@ -198,8 +196,8 @@ export const wheelTool = {
   slug: "wheel-spinner",
   name: "Wheel spinner",
   title: "Spin the wheel",
-  description: "Add your options, spin, and let the wheel decide. No ads, nothing uploaded.",
-  lede: "Add options, hit spin. Runs in your browser, nothing is uploaded.",
+  description: "Add your options, spin, and let the wheel decide.",
+  lede: "Add options, hit spin.",
   /** A starting set, so the wheel is spinnable the moment the page opens. */
   starter: ["Pizza", "Tacos", "Sushi", "Burgers", "Ramen", "Curry"],
   add: "Add",
@@ -223,8 +221,8 @@ export const diceTool = {
   slug: "dice-roller",
   name: "Dice roller",
   title: "Roll some dice",
-  description: "Pick your dice and colours, then roll. No ads, nothing uploaded.",
-  lede: "Pick dice, pick a colour, roll. Runs in your browser, nothing is uploaded.",
+  description: "Pick your dice and colours, then roll.",
+  lede: "Pick dice, pick a colour, roll.",
   roll: "Roll",
   rolling: "Rolling",
   rollAria: (what: string) => `Roll ${what}`,
@@ -401,10 +399,9 @@ export const debtTool = {
   slug: "debt-payoff",
   name: "Debt payoff calculator",
   title: "Pay off your debt",
-  description: "Add your debts, see your payoff date. Nothing leaves your browser.",
+  description: "Add your debts, see your payoff date.",
   lede:
-    "Put in what you owe, see the date it's gone, then try paying a bit more. The numbers stay in your browser.",
-  privacy: "Worked out in this page and remembered in this browser only. Nothing is uploaded.",
+    "Put in what you owe, see the date it's gone, then try paying a bit more.",
   /** The example on first visit, so there is a result to read straight away. */
   example: {
     debts: [
