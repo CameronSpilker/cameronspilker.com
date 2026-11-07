@@ -593,7 +593,6 @@ export function DebtPayoff() {
         </>
       )}
 
-      <p className="text-xs text-body/70">{copy.privacy}</p>
     </div>
   );
 }

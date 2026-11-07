@@ -152,7 +152,6 @@ export function RunResultsVisualizer() {
             onChange={(event) => void openFile(event.target.files?.[0])}
           />
         </div>
-        <p className="mx-auto mt-4 max-w-xl text-xs leading-relaxed text-body/70">{copy.privacy}</p>
       </section>
 
       {error && (

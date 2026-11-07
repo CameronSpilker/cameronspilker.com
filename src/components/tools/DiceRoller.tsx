@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { diceTool as copy } from "@/content/tools";
 import {
   DEFAULT_COLOURS,
@@ -16,14 +16,14 @@ import {
   type DiceGroup,
   type RollResult,
 } from "@/lib/dice/roll";
+import { kindsFor, labelsForValue, type SolidKind } from "@/lib/dice/solids";
+import { GAP, gridLayout, simulateThrow, trayHeight, type Point, type Track } from "@/lib/dice/physics";
 import { Die } from "./Die";
 
 const STORAGE_KEY = "dice-sets";
 
-/** How long the dice tumble. The result is already decided when this starts. */
-const ROLL_MS = 650;
-/** How often the faces flicker while they tumble. */
-const FLICKER_MS = 70;
+/** The tray's width before it has been measured, as on a small phone. */
+const FALLBACK_WIDTH = 320;
 
 /** The table on a first visit: one ordinary six sided die. */
 const START: DiceGroup[] = [{ id: 1, sides: 6, count: 1, colour: DEFAULT_COLOURS[0] }];
@@ -33,33 +33,37 @@ const ADD_ORDER = [20, 6, 8, 10, 12, 4, 100] as const;
 
 type HistoryEntry = { id: number; what: string; total: number };
 
-/** Smaller dice the more of them there are, so a big roll still fits a phone. */
-function dieSize(total: number): string {
-  if (total <= 3) return "w-24 sm:w-32";
-  if (total <= 8) return "w-20 sm:w-24";
-  if (total <= 20) return "w-14 sm:w-[4.5rem]";
-  return "w-11 sm:w-14";
+/**
+ * Smaller dice the more of them there are, and never wider than the tray
+ * allows, so a big roll still fits a phone. Up to 3 dice share a row, then 4,
+ * 5 and 6.
+ */
+function dieSize(count: number, width: number): number {
+  const [base, cols] = count <= 3 ? [120, 3] : count <= 8 ? [92, 4] : count <= 20 ? [70, 5] : [54, 6];
+  if (width <= 0) return base;
+  const perRow = Math.min(count, cols);
+  return Math.max(36, Math.min(base, Math.floor((width - GAP * (perRow - 1)) / perRow)));
 }
 
-/**
- * A little variety per die so they do not tumble in lockstep. Derived from the
- * position, not from chance, so it never touches the random source. Each spin
- * is whole turns, so a die lands upright and the animation has nothing to snap.
- */
-function tumble(i: number): CSSProperties {
-  const dir = i % 2 === 0 ? 1 : -1;
-  const turns = 1 + ((i * 7) % 3 === 0 ? 1 : 0);
-  return {
-    "--spin": `${dir * turns * 360}deg`,
-    "--dx": `${((i * 37) % 21) - 10}%`,
-    animationDelay: `${((i * 23) % 5) * 15}ms`,
-  } as CSSProperties;
+/** Which side a throw comes in from. Only steers the animation. */
+function fromTheLeft(): boolean {
+  return Math.random() < 0.5;
 }
+
+/** Where the dice lie after a throw, and how they got there. */
+type Table = { key: string; width: number; positions: Record<string, Point>; tracks: Record<string, Track> };
+
+/** Identifies one physical die on the table. A d100 is two of them. */
+const dieKey = (group: DiceGroup, j: number, kind: SolidKind) => `${group.id}-${group.sides}-${j}-${kind}`;
 
 export function DiceRoller() {
   const [groups, setGroups] = useState<DiceGroup[]>(START);
   const [result, setResult] = useState<RollResult | null>(null);
-  const [flicker, setFlicker] = useState<number[][] | null>(null);
+  const [shown, setShown] = useState<Record<string, string>>({});
+  const [throwId, setThrowId] = useState(0);
+  const [table, setTable] = useState<Table | null>(null);
+  const [trayWidth, setTrayWidth] = useState(0);
+  const tray = useRef<HTMLButtonElement | null>(null);
   const [rolling, setRolling] = useState(false);
   const [landed, setLanded] = useState(0);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -67,7 +71,7 @@ export function DiceRoller() {
   const nextId = useRef(2);
   const historyId = useRef(1);
   const rollingRef = useRef(false);
-  const timers = useRef<{ interval?: number; timeout?: number }>({});
+  const timer = useRef<number | undefined>(undefined);
 
   // The table is remembered in this browser only, so a reload keeps the dice.
   useEffect(() => {
@@ -94,12 +98,15 @@ export function DiceRoller() {
     }
   }, [groups]);
 
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  // Dice are sized to the tray, so watch how wide it is.
   useEffect(() => {
-    const t = timers.current;
-    return () => {
-      window.clearInterval(t.interval);
-      window.clearTimeout(t.timeout);
-    };
+    const el = tray.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(([entry]) => setTrayWidth(entry.contentRect.width));
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   const key = shapeKey(groups);
@@ -110,7 +117,6 @@ export function DiceRoller() {
   const land = useCallback(
     (rolled: RollResult, label: string) => {
       setResult(rolled);
-      setFlicker(null);
       setLanded((n) => n + 1);
       setHistory((past) => [{ id: historyId.current++, what: label, total: rolled.total }, ...past].slice(0, 8));
       // One set needs no labels ("4, 5"); several do ("2d6 4, 5; 1d20 17").
@@ -127,21 +133,38 @@ export function DiceRoller() {
     if (rollingRef.current) return;
     // Decided here, in full, before anything moves.
     const rolled = rollGroups(groups);
+    const faces: Record<string, string> = {};
+    groups.forEach((group, g) => {
+      rolled.groups[g].values.forEach((value, j) => {
+        for (const die of labelsForValue(group.sides, value)) faces[dieKey(group, j, die.kind)] = die.label;
+      });
+    });
+    setShown(faces);
+    setThrowId((n) => n + 1);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      // No throw: the dice stay where they are and turn to their faces.
       land(rolled, what);
       return;
     }
+    // Where the dice go is the table's business, not the roll's: the faces
+    // above are final whatever path the simulation takes.
+    const thrown = simulateThrow({ count: dice.length, size, width, height, fromLeft: fromTheLeft() });
+    const positions: Record<string, Point> = {};
+    const tracks: Record<string, Track> = {};
+    dice.forEach((die, i) => {
+      const track = thrown.tracks[i];
+      const last = track.x.length - 1;
+      positions[die.key] = { x: track.x[last], y: track.y[last] };
+      tracks[die.key] = track;
+    });
+    setTable({ key, width, positions, tracks });
     rollingRef.current = true;
     setRolling(true);
-    const shuffleFaces = () => setFlicker(rollGroups(groups).groups.map((g) => g.values));
-    shuffleFaces();
-    timers.current.interval = window.setInterval(shuffleFaces, FLICKER_MS);
-    timers.current.timeout = window.setTimeout(() => {
-      window.clearInterval(timers.current.interval);
+    timer.current = window.setTimeout(() => {
       rollingRef.current = false;
       setRolling(false);
       land(rolled, what);
-    }, ROLL_MS);
+    }, thrown.seconds * 1000 + 80);
   };
 
   const update = (id: number, patch: Partial<Omit<DiceGroup, "id">>) => {
@@ -162,46 +185,55 @@ export function DiceRoller() {
     });
   };
 
-  // Every die on the table, in order, with the face it should show right now.
-  const dice = useMemo(() => {
-    const out: { key: string; group: DiceGroup; value: number | null }[] = [];
-    groups.forEach((group, g) => {
-      for (let j = 0; j < group.count; j++) {
-        const value = flicker?.[g]?.[j] ?? current?.groups[g]?.values[j] ?? null;
-        out.push({ key: `${group.id}-${j}`, group, value });
+  // Every physical die on the table, in order, with the face it last landed on.
+  const dice: { key: string; kind: SolidKind; colour: string; label: string | null }[] = [];
+  for (const group of groups) {
+    for (let j = 0; j < group.count; j++) {
+      for (const kind of kindsFor(group.sides)) {
+        const id = dieKey(group, j, kind);
+        dice.push({ key: id, kind, colour: group.colour, label: shown[id] ?? null });
       }
-    });
-    return out;
-  }, [groups, flicker, current]);
+    }
+  }
 
-  const size = dieSize(totalDice);
+  const width = trayWidth > 0 ? trayWidth : FALLBACK_WIDTH;
+  const size = dieSize(dice.length, width);
+  const height = trayHeight(dice.length, size, width);
+  const grid = gridLayout(dice.length, size, width, height);
+  // After a throw the dice stay where they stopped, until the set or the tray changes.
+  const settled = table && table.key === key && table.width === width ? table : null;
   const single = totalDice === 1;
 
   return (
     <div className="grid gap-6">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start">
-        {/* The table */}
-        <section className="glass flex flex-col items-center rounded-[28px] px-4 py-6 sm:px-8 sm:py-10">
+        {/* The table. It clips, so a throw rolls in from the card's edge. */}
+        <section className="glass flex flex-col items-center overflow-hidden rounded-[28px] px-4 py-6 sm:px-8 sm:py-10">
           <button
+            ref={tray}
             type="button"
             onClick={roll}
             aria-label={copy.rollAria(what)}
-            className="group flex min-h-[11rem] w-full touch-manipulation items-center justify-center rounded-[22px] p-2 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent sm:min-h-[15rem]"
+            className="group block w-full touch-manipulation rounded-[22px] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
           >
-            <span className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-              {dice.map((die, i) => (
-                <Die
-                  key={die.key}
-                  sides={die.group.sides}
-                  colour={die.group.colour}
-                  value={die.value}
-                  glow={!rolling && die.group.sides === 20 && die.value === 20}
-                  className={`${size} aspect-square shrink-0 ${
-                    rolling ? "dice-tumbling" : landed > 0 && current ? "dice-landed" : ""
-                  }`}
-                  style={rolling ? tumble(i) : undefined}
-                />
-              ))}
+            <span className="relative block w-full" style={{ height }}>
+              {dice.map((die, i) => {
+                const at = settled?.positions[die.key] ?? grid[i];
+                return (
+                  <Die
+                    key={die.key}
+                    kind={die.kind}
+                    label={die.label}
+                    colour={die.colour}
+                    size={size}
+                    x={at.x}
+                    y={at.y}
+                    track={settled?.tracks[die.key] ?? null}
+                    throwId={throwId}
+                    glow={!rolling && die.kind === "d20" && die.label === "20"}
+                  />
+                );
+              })}
             </span>
           </button>
 

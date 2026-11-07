@@ -57,7 +57,8 @@ src/
 `/tools` holds small things that run entirely in the browser. The rule that
 makes them worth using is that nothing is uploaded: a person should be able to
 drop a work artifact into one without asking anyone's permission first, so no
-tool may gain a server round trip, and the pages say so in as many words.
+tool may gain a server round trip. Only the PDF signer says so on the page;
+the other tools leave it unsaid.
 
 ### The one exception: the gift list
 

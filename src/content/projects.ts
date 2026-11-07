@@ -73,8 +73,7 @@ export const projects: Project[] = [
     name: "Full Data Stack Lab",
     state: "live",
     kicker: "College basketball, from raw data to dashboard",
-    summary:
-      "A college basketball model I run in the open. It tracks every Division I men's team, simulates the tournament 20,000 times, and keeps score on how its own picks did.",
+    summary: "A college basketball model that rates every Division I men's team and simulates the tournament 20,000 times.",
     href: "https://lab.cameronspilker.com",
     repo: "https://github.com/CameronSpilker/full-data-stack-lab",
     cta: { label: "Open the lab", href: "https://lab.cameronspilker.com" },

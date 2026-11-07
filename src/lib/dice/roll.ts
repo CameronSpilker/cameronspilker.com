@@ -130,12 +130,12 @@ export const INK_LIGHT = "#ffffff";
 export const INK_DARK = "#000000";
 
 /**
- * Whichever of white or black reads better on a die of this colour. Pure black
- * rather than a softer ink, because only that pair guarantees 4.5:1 or more
- * for every colour someone can pick.
+ * The ink for a die's numbers: white, as on most real dice, whenever it clears
+ * 3:1 (the bar for large bold text, which die numbers are), and black on
+ * colours too light for that. Black always clears it there.
  */
 export function inkFor(hex: string): string {
-  return contrast(hex, INK_LIGHT) >= contrast(hex, INK_DARK) ? INK_LIGHT : INK_DARK;
+  return contrast(hex, INK_LIGHT) >= 3 ? INK_LIGHT : INK_DARK;
 }
 
 /**

@@ -1,237 +1,293 @@
-import { useId, type CSSProperties } from "react";
-import { edgeFor, inkFor, type DieSides } from "@/lib/dice/roll";
+import { useLayoutEffect, useMemo, useRef } from "react";
+import { edgeFor, inkFor } from "@/lib/dice/roll";
+import {
+  apply,
+  cssMatrix,
+  dot,
+  facesOf,
+  landing,
+  quatMultiply,
+  slerp,
+  toMat,
+  toQuat,
+  type Mat,
+  type Quat,
+  type SolidKind,
+  type Vec,
+} from "@/lib/dice/solids";
+import { DT, type Track } from "@/lib/dice/physics";
 
 /**
- * One die, drawn flat in SVG: the silhouette a real one shows face on, a few
- * facet lines so it reads as a solid, and the face it landed on. A d6 shows
- * pips; the rest show numbers. With no `value` it shows its own name ("d20"),
- * which is how the table looks before the first roll.
+ * One die, built in CSS 3D: every face is a flat element with its number on
+ * it, placed on the solid, so a tumbling die shows real numbers going past.
  *
- * Everything is in a 100 by 100 box, so the caller sizes it with CSS.
+ * The face that lands is decided before the throw starts. The throw itself
+ * (where it comes from, how it spins, how far it twists on landing) uses
+ * Math.random, because it changes nothing about the result.
  */
 
-type Shape = {
-  /** The outline, as an SVG path. */
-  body: string;
-  /** Facet lines inside the outline. */
-  facets?: string;
-  /** Where the number sits, and how big it may be. */
-  cx: number;
-  cy: number;
-  font: number;
+/** How big each solid is drawn, as its farthest vertex over the die's box. */
+const RADIUS: Record<SolidKind, number> = {
+  d4: 0.56,
+  d6: 0.6,
+  d8: 0.54,
+  d10: 0.52,
+  d12: 0.52,
+  d20: 0.55,
+  tens: 0.52,
+  units: 0.52,
 };
 
-const pts = (list: [number, number][]) => `M ${list.map(([x, y]) => `${x} ${y}`).join(" L ")} Z`;
-const lines = (list: [number, number, number, number][]) =>
-  list.map(([x1, y1, x2, y2]) => `M ${x1} ${y1} L ${x2} ${y2}`).join(" ");
+/**
+ * Label size as a multiple of the face's inradius, for one digit and for two.
+ * Triangles and kites are narrow at the label, so they need more of it.
+ */
+const FONT: Record<SolidKind, [number, number]> = {
+  d4: [1.45, 1.2],
+  d6: [1.05, 0.85],
+  d8: [1.45, 1.2],
+  d10: [1.35, 1.1],
+  d12: [1.0, 0.82],
+  d20: [1.5, 1.22],
+  tens: [1.35, 1.1],
+  units: [1.35, 1.1],
+};
 
-function polygon(n: number, r: number, cx: number, cy: number): [number, number][] {
-  return Array.from({ length: n }, (_, i) => {
-    const a = -Math.PI / 2 + (i * 2 * Math.PI) / n;
-    return [Number((cx + r * Math.cos(a)).toFixed(2)), Number((cy + r * Math.sin(a)).toFixed(2))];
-  });
+/** Light mostly from in front, a little from the top left. */
+const LIGHT: Vec = (() => {
+  const v: Vec = [-0.3, -0.35, 1];
+  const n = Math.hypot(...v);
+  return [v[0] / n, v[1] / n, v[2] / n];
+})();
+
+const STROKE = 2;
+
+/** The face that shows before a die has ever been thrown: its highest number. */
+function restingFace(kind: SolidKind): number {
+  const faces = facesOf(kind);
+  const want = kind === "tens" ? "00" : kind === "units" ? "0" : String(faces.length);
+  return Math.max(0, faces.findIndex((f) => f.label === want));
 }
 
-const d12Outer = polygon(5, 47, 50, 53);
-const d12Inner = polygon(5, 27, 50, 53);
-const kite: [number, number][] = [
-  [50, 3],
-  [95, 46],
-  [50, 97],
-  [5, 46],
-];
-const kiteFacets = pts([
-  [50, 3],
-  [77, 58],
-  [50, 72],
-  [23, 58],
-]) + " " + lines([
-  [23, 58, 5, 46],
-  [77, 58, 95, 46],
-  [50, 72, 50, 97],
-]);
-
-const SHAPES: Record<DieSides, Shape> = {
-  4: {
-    body: pts([
-      [50, 5],
-      [96, 89],
-      [4, 89],
-    ]),
-    cx: 50,
-    cy: 64,
-    font: 30,
-  },
-  6: { body: "M 24 6 H 76 Q 94 6 94 24 V 76 Q 94 94 76 94 H 24 Q 6 94 6 76 V 24 Q 6 6 24 6 Z", cx: 50, cy: 50, font: 44 },
-  8: {
-    body: pts([
-      [50, 3],
-      [96, 50],
-      [50, 97],
-      [4, 50],
-    ]),
-    facets: pts([
-      [50, 3],
-      [80, 66],
-      [20, 66],
-    ]) + " " + lines([
-      [20, 66, 4, 50],
-      [80, 66, 96, 50],
-      [20, 66, 50, 97],
-      [80, 66, 50, 97],
-    ]),
-    cx: 50,
-    cy: 48,
-    font: 28,
-  },
-  10: { body: pts(kite), facets: kiteFacets, cx: 50, cy: 47, font: 28 },
-  12: {
-    body: pts(d12Outer),
-    facets:
-      pts(d12Inner) +
-      " " +
-      lines(d12Inner.map(([x, y], i) => [x, y, d12Outer[i][0], d12Outer[i][1]] as [number, number, number, number])),
-    cx: 50,
-    cy: 54,
-    font: 28,
-  },
-  20: {
-    body: pts([
-      [50, 3],
-      [91, 26],
-      [91, 74],
-      [50, 97],
-      [9, 74],
-      [9, 26],
-    ]),
-    facets:
-      pts([
-        [50, 22],
-        [78, 70],
-        [22, 70],
-      ]) +
-      " " +
-      lines([
-        [50, 22, 50, 3],
-        [50, 22, 9, 26],
-        [50, 22, 91, 26],
-        [78, 70, 91, 26],
-        [78, 70, 91, 74],
-        [78, 70, 50, 97],
-        [22, 70, 9, 26],
-        [22, 70, 9, 74],
-        [22, 70, 50, 97],
-      ]),
-    cx: 50,
-    cy: 55,
-    font: 24,
-  },
-  100: { body: pts(kite), facets: kiteFacets, cx: 50, cy: 47, font: 28 },
-};
-
-/** Pip centres for each face of a d6, on a 100 box. */
-const PIPS: Record<number, [number, number][]> = {
-  1: [[50, 50]],
-  2: [
-    [30, 30],
-    [70, 70],
-  ],
-  3: [
-    [30, 30],
-    [50, 50],
-    [70, 70],
-  ],
-  4: [
-    [30, 30],
-    [70, 30],
-    [30, 70],
-    [70, 70],
-  ],
-  5: [
-    [30, 30],
-    [70, 30],
-    [50, 50],
-    [30, 70],
-    [70, 70],
-  ],
-  6: [
-    [30, 28],
-    [70, 28],
-    [30, 50],
-    [70, 50],
-    [30, 72],
-    [70, 72],
-  ],
-};
+const conjugate = ([w, x, y, z]: Quat): Quat => [w, -x, -y, -z];
+const IDENTITY: Quat = [1, 0, 0, 0];
+const smooth = (t: number) => t * t * (3 - 2 * t);
 
 export function Die({
-  sides,
+  kind,
+  label,
   colour,
-  value,
-  className,
-  style,
+  size,
+  x,
+  y,
+  track,
+  throwId,
   glow,
 }: {
-  sides: DieSides;
+  kind: SolidKind;
+  /** The face to show, or null for the resting face. */
+  label: string | null;
   colour: string;
-  /** The face showing, or null before the first roll. */
-  value: number | null;
-  className?: string;
-  style?: CSSProperties;
-  /** A ring for a natural 20. */
+  /** The die's box, in pixels. */
+  size: number;
+  /** Where its centre rests on the table, in pixels from the tray's corner. */
+  x: number;
+  y: number;
+  /** This die's part of the latest throw, from the table simulation. */
+  track: Track | null;
+  /** Bumped once per roll. A new value plays `track`. */
+  throwId: number;
   glow?: boolean;
 }) {
-  const shape = SHAPES[sides];
+  const faces = facesOf(kind);
+  const r = size * RADIUS[kind];
   const ink = inkFor(colour);
   const edge = edgeFor(colour);
-  // useId can return characters that break url(#...) references; keep it plain.
-  const sheen = `die-sheen-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
 
-  const label = value === null ? `d${sides}` : String(value);
-  const scale = label.length >= 3 ? 0.78 : label.length === 2 && value === null ? 0.9 : 1;
-  const font = shape.font * (value === null ? 0.82 : 1) * scale;
+  const place = useRef<HTMLDivElement | null>(null);
+  const body = useRef<HTMLDivElement | null>(null);
+  const shadow = useRef<HTMLDivElement | null>(null);
+  const shades = useRef<(SVGPolygonElement | null)[]>([]);
+  const orientation = useRef<Quat | null>(null);
+  const lastThrow = useRef(throwId);
+
+  const target = label === null ? restingFace(kind) : Math.max(0, faces.findIndex((f) => f.label === label));
+
+  // Where each face sits on the solid, and how it is drawn. Fixed per shape and size.
+  const drawn = useMemo(
+    () =>
+      faces.map((f) => {
+        const outline = f.outline.map(([x, y]) => [x * r, y * r] as [number, number]);
+        const hw = Math.max(...outline.map(([x]) => Math.abs(x))) + STROKE;
+        const hh = Math.max(...outline.map(([, y]) => Math.abs(y))) + STROKE;
+        const placed: Mat = [
+          [f.right[0], -f.up[0], f.normal[0]],
+          [f.right[1], -f.up[1], f.normal[1]],
+          [f.right[2], -f.up[2], f.normal[2]],
+        ];
+        const c = f.centroid;
+        return {
+          label: f.label,
+          hw,
+          hh,
+          points: outline.map(([x, y]) => `${x.toFixed(2)},${y.toFixed(2)}`).join(" "),
+          transform: cssMatrix(placed, [c[0] * r, c[1] * r, c[2] * r]),
+          font: f.inradius * r * FONT[kind][f.label.length >= 2 ? 1 : 0],
+        };
+      }),
+    [faces, r, kind],
+  );
+
+  useLayoutEffect(() => {
+    const el = body.current;
+    const at = place.current;
+    if (!el || !at) return;
+
+    const paint = (q: Quat, px: number, py: number, lift: number) => {
+      const m = toMat(q);
+      at.style.transform = `translate(${(px - size / 2).toFixed(2)}px, ${(py - size / 2).toFixed(2)}px)`;
+      el.style.transform = `translate3d(0, ${(-lift).toFixed(2)}px, 0) ${cssMatrix(m)}`;
+      faces.forEach((f, i) => {
+        const n = apply(m, f.normal);
+        const light = Math.max(0, dot(n, LIGHT));
+        const shade = shades.current[i];
+        // Faces toward the light keep their true colour. Faces turned away
+        // darken a little, enough to read as a solid, not so much that their
+        // numbers sink.
+        if (shade) shade.style.opacity = ((1 - light) ** 1.6 * 0.42).toFixed(3);
+      });
+      const s = shadow.current;
+      if (s) {
+        const k = Math.max(0.6, 1 - lift / size);
+        s.style.transform = `scale(${k.toFixed(3)})`;
+        s.style.opacity = (0.35 * k).toFixed(3);
+      }
+    };
+
+    const twist = (Math.random() - 0.5) * 0.28;
+    const to = toQuat(landing(faces[target], twist));
+    const thrown = throwId !== lastThrow.current;
+    lastThrow.current = throwId;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (!thrown || reduced || !track || orientation.current === null) {
+      orientation.current = to;
+      paint(to, x, y, 0);
+      return;
+    }
+
+    // Play the simulated throw. The die rolls as the table says it moved,
+    // and the turn that brings it onto its landing face is spread over the
+    // first two thirds of the distance it rolls, hidden in the tumble.
+    const from = orientation.current;
+    const last = track.x.length - 1;
+    const rolledAt = (f: number): Quat => [track.roll[f * 4], track.roll[f * 4 + 1], track.roll[f * 4 + 2], track.roll[f * 4 + 3]];
+    const free = quatMultiply(rolledAt(last), from);
+    const correction = quatMultiply(to, conjugate(free));
+    const total = track.travelled[last];
+    const start = performance.now();
+    let frame = 0;
+
+    const step = (now: number) => {
+      const exact = Math.min(last, Math.max(0, (now - start) / 1000 / DT));
+      const f = Math.floor(exact);
+      const g = Math.min(last, f + 1);
+      const k = exact - f;
+      const px = track.x[f] + (track.x[g] - track.x[f]) * k;
+      const py = track.y[f] + (track.y[g] - track.y[f]) * k;
+      const lift = track.lift[f] + (track.lift[g] - track.lift[f]) * k;
+      // Steer onto the landing face while the die is moving fastest, done by
+      // two thirds of the way. The last stretch is plain rolling, which ends
+      // on that face by construction, so it never visibly flips at rest.
+      const along = total > 0 ? track.travelled[f] / total : f / last;
+      const w = smooth(Math.min(1, along / 0.66));
+      const q = f >= last ? to : quatMultiply(slerp(IDENTITY, correction, w), quatMultiply(rolledAt(f), from));
+      paint(q, px, py, lift);
+      orientation.current = q;
+      if (f < last) frame = requestAnimationFrame(step);
+      else orientation.current = to;
+    };
+    step(start);
+    return () => {
+      cancelAnimationFrame(frame);
+      orientation.current = to;
+    };
+    // A throw is keyed on throwId; the rest only reposition the die.
+  }, [throwId, target, faces, size, x, y, track]);
 
   return (
-    <svg
-      viewBox="0 0 100 100"
+    <div
+      ref={place}
       aria-hidden="true"
-      className={className}
-      style={{
-        ...style,
-        filter: glow
-          ? "drop-shadow(0 0 6px #fab219) drop-shadow(0 6px 10px rgba(0,0,0,0.25))"
-          : "drop-shadow(0 6px 10px rgba(0,0,0,0.22))",
-      }}
+      className="absolute top-0 left-0"
+      style={{ width: size, height: size, transform: `translate(${x - size / 2}px, ${y - size / 2}px)` }}
     >
-      <defs>
-        <linearGradient id={sheen} x1="0" y1="0" x2="0.8" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.38" />
-          <stop offset="55%" stopColor="#ffffff" stopOpacity="0" />
-          <stop offset="100%" stopColor="#000000" stopOpacity="0.12" />
-        </linearGradient>
-      </defs>
-      <path d={shape.body} fill={colour} />
-      <path d={shape.body} fill={`url(#${sheen})`} />
-      {shape.facets && (
-        <path d={shape.facets} fill="none" stroke={edge} strokeOpacity="0.55" strokeWidth="1.6" strokeLinejoin="round" />
+      {glow && (
+        <div
+          className="absolute inset-[-12%] rounded-full"
+          style={{ background: "radial-gradient(closest-side, rgba(250,178,25,0.55), rgba(250,178,25,0))" }}
+        />
       )}
-      <path d={shape.body} fill="none" stroke={edge} strokeWidth="3" strokeLinejoin="round" />
-      {sides === 6 && value !== null && PIPS[value] ? (
-        PIPS[value].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="8" fill={ink} />)
-      ) : (
-        <text
-          x={shape.cx}
-          y={shape.cy}
-          textAnchor="middle"
-          dominantBaseline="central"
-          fill={ink}
-          fontSize={font}
-          fontWeight={800}
-          className="font-mono"
-        >
-          {label}
-        </text>
-      )}
-    </svg>
+      {/* Ground shadow, which shrinks as the die leaves the table. */}
+      <div
+        ref={shadow}
+        className="absolute bottom-[2%] left-[15%] h-[14%] w-[70%] rounded-[50%]"
+        style={{ background: "radial-gradient(closest-side, rgba(0,0,0,0.6), rgba(0,0,0,0))", opacity: 0.35 }}
+      />
+      <div className="absolute inset-0" style={{ perspective: `${size * 9}px` }}>
+        <div ref={body} className="absolute top-1/2 left-1/2 h-0 w-0" style={{ transformStyle: "preserve-3d" }}>
+          {drawn.map((f, i) => (
+            <div
+              key={i}
+              className="absolute"
+              style={{
+                width: f.hw * 2,
+                height: f.hh * 2,
+                left: -f.hw,
+                top: -f.hh,
+                transform: f.transform,
+                backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden",
+              }}
+            >
+              <svg width={f.hw * 2} height={f.hh * 2} viewBox={`${-f.hw} ${-f.hh} ${f.hw * 2} ${f.hh * 2}`} className="block overflow-visible">
+                <polygon points={f.points} fill={colour} stroke={edge} strokeWidth={STROKE} strokeLinejoin="round" />
+                {/* Shading sits under the number, so a face turned away still reads. */}
+                <polygon
+                  ref={(node) => {
+                    shades.current[i] = node;
+                  }}
+                  points={f.points}
+                  fill="#000000"
+                  stroke="#000000"
+                  strokeWidth={STROKE}
+                  strokeLinejoin="round"
+                  opacity={0}
+                />
+                <text
+                  x={0}
+                  y={0}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fill={ink}
+                  fontSize={f.font}
+                  fontWeight={800}
+                  stroke={ink === "#ffffff" ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.35)"}
+                  strokeWidth={Math.max(0.8, f.font * 0.06)}
+                  paintOrder="stroke"
+                  className="font-sans"
+                >
+                  {f.label}
+                </text>
+                {/* 6 and 9 read the same upside down; real dice underline them. */}
+                {(f.label === "6" || f.label === "9") && (
+                  <rect x={-f.font * 0.26} y={f.font * 0.48} width={f.font * 0.52} height={Math.max(1.2, f.font * 0.08)} rx={0.6} fill={ink} />
+                )}
+              </svg>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
