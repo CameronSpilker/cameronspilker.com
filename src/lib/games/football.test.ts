@@ -56,7 +56,7 @@ test("a game opens with home on its own 20, first and ten, runner at the end of 
 });
 
 test("the defence lines up three across, a linebacker, and a safety deep", () => {
-  const d = formation(keen);
+  const d = formation(keen, "pro");
   assert.equal(d.length, 5);
   assert.deepEqual(d.slice(0, 3), [
     { x: 3, lane: 0 },
@@ -65,11 +65,11 @@ test("the defence lines up three across, a linebacker, and a safety deep", () =>
   ]);
   assert.equal(d[3].x, 5);
   assert.equal(d[4].x, 8);
+  assert.equal(formation(keen, "rookie")[0].x, 4, "rookie gives one more yard of room");
 });
 
 test("pro reacts 50% faster than rookie", () => {
   assert.equal(PACE.rookie.beatMs / PACE.pro.beatMs, 1.5);
-  assert.equal(PACE.rookie.chance, PACE.pro.chance);
 });
 
 test("the first arrow snaps the ball, and nothing moves before it", () => {
@@ -188,6 +188,14 @@ test("the defence closes on the beat and makes the tackle", () => {
   for (let i = 0; i < 40 && s.phase === "live"; i++) s = advance(s, PACE.pro.beatMs, keen).state;
   assert.equal(s.phase, "result");
   assert.ok(s.tackler);
+});
+
+test("the defence moves one tackler per beat", () => {
+  let s = press(newGame("rookie", keen), "up", keen).state;
+  const before = s.defenders;
+  s = advance(s, PACE.rookie.beatMs, keen).state;
+  const moved = s.defenders.filter((d, i) => d.x !== before[i].x || d.lane !== before[i].lane);
+  assert.equal(moved.length, 1);
 });
 
 test("defenders never share a square", () => {
