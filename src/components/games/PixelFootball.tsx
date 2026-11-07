@@ -9,11 +9,12 @@ import {
   QUARTER_MS,
   RUNNER_COLUMN,
   advance,
+  clockReading,
+  fieldPosition,
   newGame,
   press,
   visible,
   yardsToGo,
-  yardsToGoal,
   type Difficulty,
   type GameEvent,
   type Input,
@@ -64,6 +65,7 @@ function load(key: string): string | null {
 /** The line under the field: what just happened, or what is next. */
 function describe(state: State, paused: boolean): string {
   const m = copy.messages;
+  const team = copy.teams[state.offense];
   if (state.phase === "final") return m.final(state.score.home, state.score.away);
   if (paused) return m.paused;
 
@@ -74,11 +76,17 @@ function describe(state: State, paused: boolean): string {
       case "tackle":
         line = o.firstDown ? m.firstDown(o.gain) : m.tackle(o.gain);
         break;
+      case "return":
+        line = m.returned(o.gain);
+        break;
       case "turnover":
         line = m.turnover(o.gain);
         break;
       case "touchdown":
         line = m.touchdown(o.gain);
+        break;
+      case "safety":
+        line = m.safety;
         break;
       case "fieldGoal":
         line = m.fieldGoal(o.distance);
@@ -86,22 +94,26 @@ function describe(state: State, paused: boolean): string {
       case "missedKick":
         line = m.missedKick(o.distance);
         break;
-      case "punt":
-        line = m.punt(o.distance, o.touchback);
+      case "touchback":
+        line = m.touchback(o.kick, o.distance);
         break;
     }
     return state.quarterOver ? `${line} ${m.endQuarter(state.quarter)}` : line;
   }
 
-  // The clock only runs during live plays, so a full first quarter means nobody has snapped yet.
-  const fresh = state.quarter === 1 && state.clockMs === QUARTER_MS;
-  if (state.phase === "ready" && fresh) return m.start;
-  const situation = m.ready(copy.teams[state.offense], state.down, state.toGo, 100 - state.ballOn);
+  if (state.phase === "kickoff") {
+    // The clock only runs during live plays, so a full first quarter at 0 to 0 means the opening kick.
+    const opening = state.quarter === 1 && state.clockMs === QUARTER_MS && state.score.home + state.score.away === 0;
+    return opening ? m.start : m.kickoff(team);
+  }
+  if (state.returning) return m.returnReady(team, state.returning.kind, state.returning.yards, state.ballOn);
+
+  const situation = m.ready(team, state.down, state.toGo, 100 - state.ballOn);
   return state.phase === "ready" && state.down === 4 ? `${situation} ${m.fourth}` : situation;
 }
 
 export function PixelFootball() {
-  const [game, setGame] = useState<State>(() => newGame("rookie", rng));
+  const [game, setGame] = useState<State>(() => newGame("rookie"));
   const [paused, setPaused] = useState(false);
   const [showScore, setShowScore] = useState(false);
   const [sound, setSound] = useState(true);
@@ -139,7 +151,19 @@ export function PixelFootball() {
     if (!soundRef.current || events.length === 0) return;
     beeper.current ??= createBeeper();
     // The biggest moment wins when a step brings several: a tackle that is also a first down.
-    const order: GameEvent[] = ["final", "touchdown", "fieldGoal", "miss", "punt", "quarter", "firstDown", "tackle", "step"];
+    const order: GameEvent[] = [
+      "final",
+      "touchdown",
+      "fieldGoal",
+      "safety",
+      "turnover",
+      "quarter",
+      "firstDown",
+      "tackle",
+      "returnReady",
+      "kick",
+      "step",
+    ];
     const loudest = order.find((e) => events.includes(e));
     if (loudest) beeper.current.play(loudest);
   }, []);
@@ -182,7 +206,7 @@ export function PixelFootball() {
       if (pausedRef.current) return;
       const current = gameRef.current;
       if (current.phase === "final") {
-        if (input === "forward") commit({ state: newGame(current.difficulty, rng), events: [] });
+        if (input === "forward") commit({ state: newGame(current.difficulty), events: [] });
         return;
       }
       commit(press(current, input, rng));
@@ -193,7 +217,7 @@ export function PixelFootball() {
   const restart = useCallback(() => {
     setPaused(false);
     setShowScore(false);
-    commit({ state: newGame(gameRef.current.difficulty, rng), events: [] });
+    commit({ state: newGame(gameRef.current.difficulty), events: [] });
   }, [commit]);
 
   const togglePause = useCallback(() => {
@@ -265,8 +289,8 @@ export function PixelFootball() {
       let input: Input | null = null;
       if (key === "ArrowUp" || key === "w" || key === "W") input = "up";
       else if (key === "ArrowDown" || key === "s" || key === "S") input = "down";
-      else if (key === "ArrowRight" || key === "d" || key === "D") input = runsRight ? "forward" : null;
-      else if (key === "ArrowLeft" || key === "a" || key === "A") input = runsRight ? null : "forward";
+      else if (key === "ArrowRight" || key === "d" || key === "D") input = runsRight ? "forward" : "back";
+      else if (key === "ArrowLeft" || key === "a" || key === "A") input = runsRight ? "back" : "forward";
       else if ((key === " " || key === "Enter") && !onButton) input = "forward";
       else if (key === "k" || key === "K") input = "kick";
       else if (key === "p" || key === "P" || key === "Escape") {
@@ -275,12 +299,7 @@ export function PixelFootball() {
         return;
       }
 
-      const horizontal = key.startsWith("Arrow");
-      if (input === null) {
-        // The arrow pointing backwards does nothing, but should not scroll the page either.
-        if (horizontal) event.preventDefault();
-        return;
-      }
+      if (input === null) return;
       event.preventDefault();
       // One press, one step. Holding a key down is not a sprint.
       if (event.repeat) return;
@@ -363,7 +382,7 @@ function Handheld({
   const runsRight = game.board === "home";
   const scoreMode = showScore || game.phase === "final";
   const message = describe(game, paused);
-  const canKick = game.phase === "ready" && game.down === 4 && !paused;
+  const canKick = !paused && (game.phase === "kickoff" || (game.phase === "ready" && game.down === 4 && !game.returning));
 
   return (
     <div className="mx-auto w-full max-w-[680px] select-none" style={{ touchAction: "manipulation" }}>
@@ -442,15 +461,21 @@ function Handheld({
             </PadKey>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+          {/* On a phone the small keys drop to their own row under the pad. */}
+          <div className="order-last col-span-3 flex items-center justify-center gap-3 sm:order-none sm:col-span-1">
             <SmallKey label={copy.buttons.status} onPress={onStatus} />
             <SmallKey label={copy.buttons.score} onPress={onScore} />
             <SmallKey label={copy.buttons.kick} onPress={() => onInput("kick")} go disabled={!canKick} />
           </div>
 
-          <PadKey label={copy.buttons.forward} onPress={() => onInput("forward")} big go>
-            <Arrow dir={runsRight ? "right" : "left"} />
-          </PadKey>
+          <div className={`flex items-center gap-2 sm:gap-3 ${runsRight ? "" : "flex-row-reverse"}`}>
+            <PadKey label={copy.buttons.back} onPress={() => onInput("back")}>
+              <Arrow dir={runsRight ? "left" : "right"} />
+            </PadKey>
+            <PadKey label={copy.buttons.forward} onPress={() => onInput("forward")} big go>
+              <Arrow dir={runsRight ? "right" : "left"} />
+            </PadKey>
+          </div>
         </div>
       </div>
     </div>
@@ -459,26 +484,31 @@ function Handheld({
 
 function Readout({ game, scoreMode }: { game: State; scoreMode: boolean }) {
   const l = copy.labels;
-  const seconds = Math.ceil(game.clockMs / 1000);
-  const groups: { label: string; value: string; width: number }[] = scoreMode
+  // No downs on a kickoff or a return: those readouts go dark, the way a dash would.
+  const noDowns = game.phase === "kickoff" || (game.returning !== null && game.phase !== "result");
+  const spot = fieldPosition(game);
+
+  const cells: { label: string; value: string; width: number; side?: Team | null }[] = scoreMode
     ? [
         { label: l.home, value: String(game.score.home % 100), width: 2 },
-        { label: l.time, value: String(seconds).padStart(2, "0"), width: 2 },
+        { label: l.time, value: clockReading(game), width: 3 },
         { label: l.away, value: String(game.score.away % 100), width: 2 },
       ]
     : [
-        { label: l.down, value: String(game.down), width: 1 },
-        { label: l.toGo, value: String(yardsToGo(game)), width: 2 },
-        { label: l.toGoal, value: String(yardsToGoal(game)), width: 2 },
+        { label: l.down, value: noDowns ? "-" : String(game.down), width: 1 },
+        { label: l.field, value: String(spot.yard), width: 2, side: spot.side },
+        { label: l.toGo, value: noDowns ? "-" : String(yardsToGo(game)), width: 2 },
       ];
 
   return (
     <div className="grid grid-cols-3 gap-2" aria-hidden="true">
-      {groups.map((g) => (
+      {cells.map((g) => (
         <div key={g.label} className="flex flex-col items-center gap-1">
           <span className="font-mono text-[9px] tracking-[0.25em] text-white/45 sm:text-[10px]">{g.label}</span>
-          <span className="flex h-7 items-center rounded-md px-2 py-1 sm:h-10" style={{ background: "var(--pf-glass)" }}>
+          <span className="flex h-7 items-center gap-1 rounded-md px-1.5 py-1 sm:h-10 sm:px-2" style={{ background: "var(--pf-glass)" }}>
+            {g.side !== undefined && <SideLamp on={g.side === "home"} dir="left" />}
             <SevenSegment value={g.value} width={g.width} />
+            {g.side !== undefined && <SideLamp on={g.side === "away"} dir="right" />}
           </span>
         </div>
       ))}
@@ -486,12 +516,25 @@ function Readout({ game, scoreMode }: { game: State; scoreMode: boolean }) {
   );
 }
 
+/** The marker beside the yard line: lit on the side of midfield the ball is on. */
+function SideLamp({ on, dir }: { on: boolean; dir: "left" | "right" }) {
+  return (
+    <svg viewBox="0 0 6 10" className={`h-2/5 w-auto ${on ? "pf-glow" : ""}`} aria-hidden="true">
+      <path
+        d={dir === "left" ? "M6 0 L0 5 L6 10 Z" : "M0 0 L6 5 L0 10 Z"}
+        fill={on ? "var(--pf-led)" : "var(--pf-led-off)"}
+        opacity={on ? 1 : 0.6}
+      />
+    </svg>
+  );
+}
+
 function Field({ game, paused }: { game: State; paused: boolean }) {
-  const { runner, defenders } = visible(game);
+  const { runner, defenders, tackler } = visible(game);
   const mirrored = game.board === "away";
+  const holding = game.phase === "result" && !paused;
   const o = game.outcome;
-  const runnerBlinks = game.phase === "result" && !paused && o !== null && (o.kind === "tackle" || o.kind === "turnover");
-  const allBlink = game.phase === "result" && !paused && o?.kind === "touchdown";
+  const allBlink = holding && (o?.kind === "touchdown" || o?.kind === "fieldGoal");
 
   const cells: ReactNode[] = [];
   for (let lane = 0; lane < LANES; lane++) {
@@ -500,6 +543,7 @@ function Field({ game, paused }: { game: State; paused: boolean }) {
       const yard = game.lineAt + game.runner.x + (c - RUNNER_COLUMN);
       const isRunner = runner.x === c && runner.lane === lane;
       const isDefender = defenders.some((d) => d.x === c && d.lane === lane);
+      const isTackler = holding && tackler !== null && tackler.x === c && tackler.lane === lane;
       const endZone = yard > 100;
       // A yard line sits on the edge of the cell nearest the offence's own goal.
       const marked = yard === 100 || (yard % 10 === 0 && yard > 0 && yard < 100);
@@ -516,7 +560,7 @@ function Field({ game, paused }: { game: State; paused: boolean }) {
         >
           <span
             className={`block w-[62%] rounded-[3px] ${isRunner ? "pf-glow h-[30%]" : "h-[26%]"} ${
-              (isRunner && runnerBlinks) || (allBlink && (isRunner || isDefender)) ? "pf-blink" : ""
+              isTackler || (allBlink && (isRunner || isDefender)) ? "pf-blink" : ""
             }`}
             style={{
               // The runner is a hot dot with a pale core; defenders are the same LED at a fraction of the current.
@@ -668,7 +712,6 @@ function Arrow({ dir }: { dir: "up" | "down" | "left" | "right" }) {
 
 function Scoreboard({ game, bests }: { game: State; bests: Bests }) {
   const s = copy.scoreboard;
-  const seconds = Math.ceil(game.clockMs / 1000);
   const team = (t: Team) => (
     <div className="flex items-baseline justify-between gap-4">
       <dt className="text-sm">
@@ -688,7 +731,7 @@ function Scoreboard({ game, bests }: { game: State; bests: Bests }) {
           {team("away")}
         </dl>
         <p className="mt-3 font-mono text-xs">
-          {s.quarter(game.quarter)} · 0:{String(seconds).padStart(2, "0")}
+          {s.quarter(game.quarter)} · {clockReading(game)}
         </p>
       </div>
       <div className="glass rounded-[24px] p-5">

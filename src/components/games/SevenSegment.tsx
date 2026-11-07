@@ -30,10 +30,10 @@ const GLYPHS: Record<string, string> = {
   " ": "",
 };
 
-function Digit({ char }: { char: string }) {
+function Digit({ char, dot }: { char: string; dot: boolean }) {
   const lit = GLYPHS[char] ?? "";
   return (
-    <svg viewBox="-1 -1 12 20" className="h-full w-auto" aria-hidden="true">
+    <svg viewBox="-1 -1 14 20" className="h-full w-auto" aria-hidden="true">
       <g transform="skewX(-6) translate(1 0)">
         {(Object.keys(SEGMENTS) as Segment[]).map((key) => {
           const s = SEGMENTS[key];
@@ -52,18 +52,37 @@ function Digit({ char }: { char: string }) {
             />
           );
         })}
+        <rect
+          x={10.6}
+          y={16.2}
+          width={1.6}
+          height={1.6}
+          rx={0.8}
+          fill={dot ? "var(--pf-led)" : "var(--pf-led-off)"}
+          opacity={dot ? 1 : 0.6}
+          className={dot ? "pf-glow" : undefined}
+        />
       </g>
     </svg>
   );
 }
 
-/** `value` is padded on the left with blanks to `width` characters. */
+/**
+ * `value` is padded on the left with blanks to `width` digits. A "." lights the
+ * decimal point of the digit before it and takes no place of its own, so "7.5"
+ * fills two digits.
+ */
 export function SevenSegment({ value, width }: { value: string; width: number }) {
-  const chars = value.padStart(width, " ").slice(-width).split("");
+  const digits: { char: string; dot: boolean }[] = [];
+  for (const char of value) {
+    if (char === "." && digits.length > 0) digits[digits.length - 1].dot = true;
+    else digits.push({ char, dot: false });
+  }
+  while (digits.length < width) digits.unshift({ char: " ", dot: false });
   return (
-    <span className="flex h-full gap-[0.12em]">
-      {chars.map((char, i) => (
-        <Digit key={i} char={char} />
+    <span className="flex h-full">
+      {digits.slice(-width).map((d, i) => (
+        <Digit key={i} char={d.char} dot={d.dot} />
       ))}
     </span>
   );

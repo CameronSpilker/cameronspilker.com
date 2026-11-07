@@ -8,42 +8,43 @@ import type { GameEvent } from "./football";
 
 type Note = { freq: number; ms: number; gap?: number };
 
+/** A referee's whistle, as near as a square wave gets: a fast warble between two high notes. */
+const whistle = (gap = 0): Note[] => [
+  { freq: 2350, ms: 45 },
+  { freq: 2650, ms: 45 },
+  { freq: 2350, ms: 45 },
+  { freq: 2650, ms: 45, gap },
+];
+
+const fanfare: Note[] = [
+  { freq: 523, ms: 110, gap: 20 },
+  { freq: 659, ms: 110, gap: 20 },
+  { freq: 784, ms: 110, gap: 20 },
+  { freq: 1047, ms: 260 },
+];
+
+const buzzer: Note[] = [{ freq: 110, ms: 600 }];
+
 const SOUNDS: Record<GameEvent, Note[]> = {
   snap: [],
   step: [{ freq: 1320, ms: 22 }],
-  tackle: [{ freq: 140, ms: 380 }],
-  firstDown: [
-    { freq: 880, ms: 70, gap: 30 },
-    { freq: 1175, ms: 110 },
+  tackle: whistle(),
+  turnover: [...whistle(120), ...whistle()],
+  firstDown: [{ freq: 1568, ms: 90 }],
+  touchdown: fanfare,
+  fieldGoal: fanfare,
+  safety: [
+    { freq: 880, ms: 160, gap: 60 },
+    { freq: 660, ms: 220 },
   ],
-  touchdown: [
-    { freq: 523, ms: 110, gap: 20 },
-    { freq: 659, ms: 110, gap: 20 },
-    { freq: 784, ms: 110, gap: 20 },
-    { freq: 1047, ms: 260 },
+  kick: [
+    { freq: 500, ms: 50 },
+    { freq: 800, ms: 50 },
+    { freq: 1100, ms: 70 },
   ],
-  fieldGoal: [
-    { freq: 784, ms: 90, gap: 20 },
-    { freq: 1047, ms: 180 },
-  ],
-  miss: [
-    { freq: 330, ms: 140, gap: 20 },
-    { freq: 220, ms: 260 },
-  ],
-  punt: [
-    { freq: 600, ms: 60 },
-    { freq: 900, ms: 60 },
-    { freq: 1200, ms: 80 },
-  ],
-  quarter: [
-    { freq: 440, ms: 200, gap: 80 },
-    { freq: 440, ms: 200 },
-  ],
-  final: [
-    { freq: 440, ms: 220, gap: 80 },
-    { freq: 440, ms: 220, gap: 80 },
-    { freq: 330, ms: 500 },
-  ],
+  returnReady: [{ freq: 988, ms: 160 }],
+  quarter: buzzer,
+  final: buzzer,
 };
 
 /** Quiet enough to sit under music, loud enough to hear on a phone speaker. */
