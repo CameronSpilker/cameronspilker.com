@@ -30,28 +30,24 @@ export default function PixelFootballPage() {
           <PixelFootball />
         </div>
 
-        <div className="mx-auto mt-10 grid max-w-[680px] gap-8">
-          <section>
-            <h2 className="text-lg font-bold text-bright">{copy.rules.title}</h2>
-            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed">
-              {copy.rules.items.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </section>
-          <section>
-            <h2 className="text-lg font-bold text-bright">{copy.keys.title}</h2>
-            <dl className="mt-3 space-y-2 text-sm">
-              {copy.keys.items.map((item) => (
-                <div key={item.k} className="flex flex-col sm:flex-row sm:gap-6">
-                  <dt className="font-mono text-bright sm:w-72 sm:shrink-0">{item.k}</dt>
-                  <dd>{item.v}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-          <p className="text-xs">{copy.privacy}</p>
-        </div>
+        {/* The pop up teaches the game. The full rules stay folded away for anyone who wants them. */}
+        <details className="mx-auto mt-10 max-w-[680px] text-sm">
+          <summary className="cursor-pointer font-semibold text-bright">{copy.rules.title}</summary>
+          <ul className="mt-3 list-disc space-y-2 pl-5 leading-relaxed">
+            {copy.rules.items.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+          <h2 className="mt-5 font-semibold text-bright">{copy.rules.keysTitle}</h2>
+          <dl className="mt-2 space-y-2">
+            {copy.rules.keys.map((item) => (
+              <div key={item.k} className="flex flex-col sm:flex-row sm:gap-6">
+                <dt className="font-mono text-bright sm:w-60 sm:shrink-0">{item.k}</dt>
+                <dd>{item.v}</dd>
+              </div>
+            ))}
+          </dl>
+        </details>
       </main>
     </>
   );

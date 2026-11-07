@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { pixelFootball as copy } from "@/content/games";
 import { createBeeper } from "@/lib/games/beeper";
+import { cpuMove } from "@/lib/games/cpu";
 import {
   COLUMNS,
   LANES,
-  QUARTER_MS,
   advance,
   clockReading,
   columnYards,
@@ -26,12 +26,37 @@ import { SevenSegment } from "./SevenSegment";
 const BESTS_KEY = "pixel-football-bests";
 const SOUND_KEY = "pixel-football-sound";
 const LEVEL_KEY = "pixel-football-level";
+const MODE_KEY = "pixel-football-mode";
+/** How long the computer waits before its snap, between its steps, and before setting up its next play. */
+const CPU_SNAP_MS = 900;
+const CPU_STEP_MS = 230;
+const CPU_NEXT_MS = 2_000;
+/** Run turns into Next after a play, but not until this long after it ended, so a mashed Run does not skip the result. */
+const NEXT_GUARD_MS = 450;
 /** How long the score stays up after someone presses Score. */
 const SCORE_SHOW_MS = 2_500;
 /** A frame longer than this (a background tab, a debugger) counts as this long. */
 const MAX_FRAME_MS = 100;
 
 type Bests = { longestRun: number; mostPoints: number };
+
+/** Who the other side is: the computer, or a friend sharing the device. */
+type Mode = "cpu" | "friend";
+
+/** The name a side goes by: You and Computer against the computer, Home and Away between friends. */
+function nameOf(team: Team, mode: Mode): string {
+  if (mode === "cpu") return team === "home" ? copy.teams.you : copy.teams.cpu;
+  return copy.teams[team];
+}
+
+/** "Your ball", "Computer's ball", "Home ball", "Away ball". */
+function ballOf(team: Team, mode: Mode): string {
+  if (mode === "cpu") return team === "home" ? copy.balls.you : copy.balls.cpu;
+  return copy.balls[team];
+}
+
+/** True when the computer is the one with the ball. */
+const cpuHasBall = (state: State, mode: Mode) => mode === "cpu" && state.offense === "away";
 
 /** Phones get their own layout, built for two thumbs. The server renders the wide one, and a phone swaps after load. */
 const PHONE_QUERY = "(max-width: 639px)";
@@ -76,11 +101,14 @@ function load(key: string): string | null {
   }
 }
 
-/** The line under the field: what just happened, or what is next. */
-function describe(state: State, paused: boolean): string {
+/** The line under the field: what just happened, or what to do now. */
+function describe(state: State, paused: boolean, mode: Mode): string {
   const m = copy.messages;
-  const team = copy.teams[state.offense];
-  if (state.phase === "final") return m.final(state.score.home, state.score.away);
+  if (state.phase === "final") {
+    const { home, away } = state.score;
+    const winner = home === away ? null : nameOf(home > away ? "home" : "away", mode);
+    return m.final(winner, Math.max(home, away), Math.min(home, away));
+  }
   if (paused) return m.paused;
 
   if (state.phase === "result" && state.outcome) {
@@ -103,15 +131,13 @@ function describe(state: State, paused: boolean): string {
         line = m.punt(o.distance, o.touchback);
         break;
     }
-    const end = state.quarterOver ? ` ${m.endQuarter(state.quarter)}` : "";
-    return `${line}${end} ${m.setUp}`;
+    return state.quarterOver ? `${line} ${m.endQuarter(state.quarter)}` : line;
   }
 
-  // The clock only runs during live plays, so a full first quarter means nobody has snapped yet.
-  if (state.phase === "ready" && state.quarter === 1 && state.clockMs === QUARTER_MS) return m.start;
-  const toGoal = 100 - state.ballOn;
-  const situation = m.ready(team, state.down, state.toGo, toGoal);
-  return state.phase === "ready" && state.down === 4 ? `${situation} ${m.fourth}` : situation;
+  if (cpuHasBall(state, mode)) return m.cpuBall;
+  if (state.phase === "live") return m.running;
+  const situation = m.ready(ballOf(state.offense, mode), state.down, state.toGo, 100 - state.ballOn);
+  return state.down === 4 ? `${situation} ${m.fourth}` : `${situation} ${m.press}`;
 }
 
 export function PixelFootball() {
@@ -122,6 +148,9 @@ export function PixelFootball() {
   const [bests, setBests] = useState<Bests>({ longestRun: 0, mostPoints: 0 });
   const [announcement, setAnnouncement] = useState("");
   const [full, setFull] = useState(false);
+  const [mode, setMode] = useState<Mode>("cpu");
+  // The pop up opens the game: "start" picks who to play and starts fresh, "help" just shows the steps.
+  const [intro, setIntro] = useState<"start" | "help" | null>("start");
   const phone = useMediaQuery(PHONE_QUERY);
   const fullscreen = phone && full;
 
@@ -130,6 +159,10 @@ export function PixelFootball() {
   const soundRef = useRef(sound);
   const beeper = useRef<ReturnType<typeof createBeeper> | null>(null);
   const scoreTimer = useRef<number | undefined>(undefined);
+  const modeRef = useRef(mode);
+  const introRef = useRef(intro);
+  const cpuClock = useRef(0);
+  const resultAt = useRef(0);
 
   useEffect(() => {
     pausedRef.current = paused;
@@ -137,12 +170,19 @@ export function PixelFootball() {
   useEffect(() => {
     soundRef.current = sound;
   }, [sound]);
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
+  useEffect(() => {
+    introRef.current = intro;
+  }, [intro]);
 
   // Preferences and bests live in this browser only.
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect -- reading storage after hydration */
     setBests(readBests());
     if (load(SOUND_KEY) === "off") setSound(false);
+    if (load(MODE_KEY) === "friend") setMode("friend");
     const level = load(LEVEL_KEY);
     if (level === "pro") {
       const next = { ...gameRef.current, difficulty: "pro" as const };
@@ -179,10 +219,14 @@ export function PixelFootball() {
       setGame(next);
       play(step.events);
 
+      // The computer's timing starts over whenever the phase moves on.
+      if (next.phase !== before.phase) cpuClock.current = 0;
+      if (next.phase === "result" && before.phase !== "result") resultAt.current = performance.now();
+
       const ended = next.phase === "result" && before.phase !== "result";
       const over = next.phase === "final" && before.phase !== "final";
       if (ended || over) {
-        setAnnouncement(describe(next, false));
+        setAnnouncement(describe(next, false, modeRef.current));
         setBests((old) => {
           const updated = {
             longestRun: Math.max(old.longestRun, next.longestRun),
@@ -205,22 +249,50 @@ export function PixelFootball() {
 
   const send = useCallback(
     (input: Input) => {
-      if (pausedRef.current) return;
+      if (pausedRef.current || introRef.current) return;
       const current = gameRef.current;
-      if (current.phase === "final") {
-        if (input === "forward") commit({ state: newGame(current.difficulty, rng), events: [] });
+      if (current.phase === "final") return;
+
+      // After a play, Run means Next: one big button does both jobs.
+      if (current.phase === "result" && input === "forward") {
+        if (performance.now() - resultAt.current < NEXT_GUARD_MS) return;
+        setShowScore(false);
+        commit(press(current, "status", rng));
         return;
       }
+      // While the computer has the ball, its buttons are its own.
+      const setsUp = input === "status" || input === "score";
+      if (cpuHasBall(current, modeRef.current) && !setsUp) return;
       commit(press(current, input, rng));
     },
     [commit],
   );
 
-  const restart = useCallback(() => {
-    setPaused(false);
+  /** Next play: what the banner button, Run after a play, and Space all do. */
+  const next = useCallback(() => {
+    if (pausedRef.current || introRef.current) return;
+    window.clearTimeout(scoreTimer.current);
     setShowScore(false);
-    commit({ state: newGame(gameRef.current.difficulty, rng), events: [] });
+    commit(press(gameRef.current, "status", rng));
   }, [commit]);
+
+  /** New game opens the pop up, so the reader picks who to play first. */
+  const newGameAsk = useCallback(() => setIntro("start"), []);
+
+  const start = useCallback(
+    (picked: Mode) => {
+      setMode(picked);
+      modeRef.current = picked;
+      save(MODE_KEY, picked);
+      setPaused(false);
+      setShowScore(false);
+      commit({ state: newGame(gameRef.current.difficulty, rng), events: [] });
+      setIntro(null);
+      introRef.current = null;
+      setFull(true);
+    },
+    [commit],
+  );
 
   const togglePause = useCallback(() => {
     if (gameRef.current.phase === "final") return;
@@ -243,6 +315,9 @@ export function PixelFootball() {
     send("status");
   }, [send]);
 
+  const help = useCallback(() => setIntro("help"), []);
+  const closeIntro = useCallback(() => setIntro(null), []);
+
   /** Changing level mid game ends the game, the way it did on the old handhelds. */
   const setLevel = useCallback(
     (difficulty: Difficulty) => {
@@ -262,19 +337,45 @@ export function PixelFootball() {
     });
   }, []);
 
-  // The clock and the defence: one advance per animation frame.
+  /** The computer's side of the game: it snaps, runs, kicks and sets up its next play at a human pace. */
+  const driveCpu = useCallback(
+    (ms: number) => {
+      const g = gameRef.current;
+      if (!cpuHasBall(g, modeRef.current) || g.phase === "final") {
+        cpuClock.current = 0;
+        return;
+      }
+      cpuClock.current += ms;
+      const wait = g.phase === "ready" ? CPU_SNAP_MS : g.phase === "live" ? CPU_STEP_MS : CPU_NEXT_MS;
+      if (cpuClock.current < wait) return;
+      cpuClock.current = 0;
+      if (g.phase === "result") {
+        setShowScore(false);
+        commit(press(g, "status", rng));
+        return;
+      }
+      const move = cpuMove(g, rng);
+      if (move) commit(press(g, move, rng));
+    },
+    [commit],
+  );
+
+  // The clock, the defence and the computer: one advance per animation frame.
   useEffect(() => {
     let frame = 0;
     let last = performance.now();
     const tick = (now: number) => {
       const ms = Math.min(MAX_FRAME_MS, now - last);
       last = now;
-      if (!pausedRef.current) commit(advance(gameRef.current, ms, rng));
+      if (!pausedRef.current && !introRef.current) {
+        commit(advance(gameRef.current, ms, rng));
+        driveCpu(ms);
+      }
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [commit]);
+  }, [commit, driveCpu]);
 
   // Leaving the tab pauses a game that is under way.
   useEffect(() => {
@@ -286,9 +387,10 @@ export function PixelFootball() {
     return () => document.removeEventListener("visibilitychange", onHide);
   }, []);
 
-  // While the phone layout fills the screen, the page underneath must not scroll or bounce.
+  // While the phone layout or the pop up is open, the page underneath must not scroll or bounce.
+  const locked = fullscreen || intro !== null;
   useEffect(() => {
-    if (!fullscreen) return;
+    if (!locked) return;
     const html = document.documentElement;
     const before = { overflow: html.style.overflow, overscroll: html.style.overscrollBehavior };
     html.style.overflow = "hidden";
@@ -297,7 +399,7 @@ export function PixelFootball() {
       html.style.overflow = before.overflow;
       html.style.overscrollBehavior = before.overscroll;
     };
-  }, [fullscreen]);
+  }, [locked]);
 
   const closeFull = useCallback(() => {
     const phase = gameRef.current.phase;
@@ -315,12 +417,17 @@ export function PixelFootball() {
       const onButton = tag === "BUTTON" || tag === "A";
 
       const key = event.key;
+      // The pop up has its own buttons; Escape closes it when there is a game to go back to.
+      if (introRef.current) {
+        if (key === "Escape" && introRef.current === "help") setIntro(null);
+        return;
+      }
       // Like the old one key "run" button, either sideways arrow runs toward the goal.
       let action: (() => void) | null = null;
       if (key === "ArrowUp" || key === "w" || key === "W") action = () => send("up");
       else if (key === "ArrowDown" || key === "s" || key === "S") action = () => send("down");
       else if (["ArrowRight", "ArrowLeft", "d", "D", "a", "A"].includes(key)) action = () => send("forward");
-      else if ((key === " " || key === "Enter") && !onButton) action = pressStatus;
+      else if ((key === " " || key === "Enter") && !onButton) action = gameRef.current.phase === "result" ? next : pressStatus;
       else if (key === "c" || key === "C") action = pressScore;
       else if (key === "k" || key === "K") action = () => send("kick");
       else if (key === "p" || key === "P" || key === "Escape") action = togglePause;
@@ -333,7 +440,7 @@ export function PixelFootball() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [send, togglePause, pressStatus, pressScore]);
+  }, [send, togglePause, pressStatus, pressScore, next]);
 
   useEffect(() => {
     const timer = scoreTimer;
@@ -348,6 +455,9 @@ export function PixelFootball() {
     paused,
     showScore,
     sound,
+    mode,
+    onNext: next,
+    onNewGame: newGameAsk,
     onInput: send,
     onScore: pressScore,
     onStatus: pressStatus,
@@ -360,11 +470,13 @@ export function PixelFootball() {
       {phone ? (
         <>
           {fullscreen && <PhoneHandheld {...handheld} onClose={closeFull} />}
-          <PhonePreview game={game} paused={paused} onPlay={() => setFull(true)} />
+          <PhonePreview game={game} paused={paused} mode={mode} onPlay={() => setFull(true)} />
         </>
       ) : (
         <Handheld {...handheld} />
       )}
+
+      {intro && <Intro choose={intro === "start"} mode={mode} onPick={start} onClose={closeIntro} />}
 
       <p aria-live="polite" className="sr-only">
         {announcement}
@@ -373,10 +485,17 @@ export function PixelFootball() {
       <div className="flex flex-wrap items-center justify-center gap-3">
         <button
           type="button"
-          onClick={restart}
+          onClick={newGameAsk}
           className="rounded-full bg-bright px-5 py-2.5 text-sm font-semibold text-ink transition-opacity hover:opacity-90"
         >
           {copy.buttons.newGame}
+        </button>
+        <button
+          type="button"
+          onClick={help}
+          className="glass rounded-full px-5 py-2.5 text-sm font-semibold text-bright"
+        >
+          {copy.buttons.howTo}
         </button>
         <button
           type="button"
@@ -388,7 +507,7 @@ export function PixelFootball() {
         </button>
       </div>
 
-      <Scoreboard game={game} bests={bests} />
+      <Scoreboard game={game} bests={bests} mode={mode} />
     </div>
   );
 }
@@ -399,6 +518,9 @@ type HandheldProps = {
   paused: boolean;
   showScore: boolean;
   sound: boolean;
+  mode: Mode;
+  onNext: () => void;
+  onNewGame: () => void;
   onInput: (input: Input) => void;
   onScore: () => void;
   onStatus: () => void;
@@ -447,10 +569,11 @@ function TopBar({ game, sound, onLevel, onSound, children }: HandheldProps & { c
   );
 }
 
-function Lamps({ game }: { game: State }) {
+function Lamps({ game, mode }: { game: State; mode: Mode }) {
+  const l = copy.labels;
   return (
     <div className="flex items-center justify-between font-mono text-[9px] tracking-[0.2em] text-white/45 sm:text-[10px]">
-      <Lamp on={game.board === "home"} label={copy.labels.home} />
+      <Lamp on={game.board === "home"} label={mode === "cpu" ? l.you : l.home} />
       <div className="flex items-center gap-2">
         <span>{copy.labels.quarter}</span>
         {[1, 2, 3, 4].map((q) => (
@@ -461,7 +584,7 @@ function Lamps({ game }: { game: State }) {
           />
         ))}
       </div>
-      <Lamp on={game.board === "away"} label={copy.labels.away} reverse />
+      <Lamp on={game.board === "away"} label={mode === "cpu" ? l.cpu : l.away} reverse />
     </div>
   );
 }
@@ -470,7 +593,7 @@ function Lamps({ game }: { game: State }) {
 function Handheld(props: HandheldProps) {
   const { game, paused, showScore, onInput, onScore, onStatus } = props;
   const runsRight = game.board === "home";
-  const canKick = !paused && game.phase === "ready" && game.down === 4;
+  const canKick = !paused && game.phase === "ready" && game.down === 4 && !cpuHasBall(game, props.mode);
 
   return (
     <div className="mx-auto w-full max-w-[680px] select-none" style={{ touchAction: "manipulation" }}>
@@ -482,16 +605,17 @@ function Handheld(props: HandheldProps) {
 
         {/* The bezel: readout on top, the field under it. */}
         <div className="rounded-[28px] p-4" style={{ background: "var(--pf-bezel)" }}>
-          <Readout game={game} scoreMode={showScore || game.phase === "final"} />
-          <div className="mt-3 overflow-hidden rounded-xl p-2.5" style={{ background: "var(--pf-glass)" }}>
-            <Field game={game} paused={paused} />
+          <Readout game={game} scoreMode={showScore || game.phase === "final"} mode={props.mode} />
+          <div className="relative mt-3 overflow-hidden rounded-xl p-2.5" style={{ background: "var(--pf-glass)" }}>
+            <Field game={game} paused={paused} mode={props.mode} />
+            <PlayBanner {...props} />
           </div>
           <div className="mt-2">
-            <Lamps game={game} />
+            <Lamps game={game} mode={props.mode} />
           </div>
         </div>
 
-        <p className="mt-3 min-h-[2.5em] px-2 text-center font-mono text-xs leading-snug">{describe(game, paused)}</p>
+        <p className="mt-3 min-h-[2.5em] px-2 text-center font-mono text-xs leading-snug">{describe(game, paused, props.mode)}</p>
 
         {/* Controls. Pointer down rather than click, so a press moves the instant it lands. */}
         <div className="mt-3 grid grid-cols-[auto_1fr_auto] items-center gap-5 px-3">
@@ -508,9 +632,7 @@ function Handheld(props: HandheldProps) {
             <SmallKey label={copy.buttons.score} onPress={onScore} />
             <SmallKey label={copy.buttons.kick} onPress={() => onInput("kick")} go disabled={!canKick} />
           </div>
-          <PadKey label={copy.buttons.forward} onPress={() => onInput("forward")} big go>
-            <Arrow dir={runsRight ? "right" : "left"} />
-          </PadKey>
+          <RunKey game={game} paused={paused} mode={props.mode} runsRight={runsRight} onInput={onInput} />
         </div>
       </div>
     </div>
@@ -526,7 +648,7 @@ function Handheld(props: HandheldProps) {
  */
 function PhoneHandheld(props: HandheldProps & { onClose: () => void }) {
   const { game, paused, showScore, onInput, onScore, onStatus, onClose } = props;
-  const canKick = !paused && game.phase === "ready" && game.down === 4;
+  const canKick = !paused && game.phase === "ready" && game.down === 4 && !cpuHasBall(game, props.mode);
   const runsRight = game.board === "home";
 
   return (
@@ -555,16 +677,17 @@ function PhoneHandheld(props: HandheldProps & { onClose: () => void }) {
       </div>
 
       <div className="mx-2 flex flex-col gap-2 rounded-[22px] px-2 py-3" style={{ background: "var(--pf-bezel)" }}>
-        <Readout game={game} scoreMode={showScore || game.phase === "final"} />
-        <div className="overflow-hidden rounded-xl p-1" style={{ background: "var(--pf-glass)" }}>
-          <Field game={game} paused={paused} big />
+        <Readout game={game} scoreMode={showScore || game.phase === "final"} mode={props.mode} />
+        <div className="relative overflow-hidden rounded-xl p-1" style={{ background: "var(--pf-glass)" }}>
+          <Field game={game} paused={paused} mode={props.mode} big />
+          <PlayBanner {...props} />
         </div>
         <div className="px-1">
-          <Lamps game={game} />
+          <Lamps game={game} mode={props.mode} />
         </div>
       </div>
 
-      <p className="mx-4 mt-3 min-h-[2.6em] text-center font-mono text-xs leading-snug">{describe(game, paused)}</p>
+      <p className="mx-4 mt-3 min-h-[2.6em] text-center font-mono text-xs leading-snug">{describe(game, paused, props.mode)}</p>
 
       {/* Everything above is for the eyes; everything from here down is for the thumbs. */}
       <div className="flex-1" />
@@ -584,23 +707,21 @@ function PhoneHandheld(props: HandheldProps & { onClose: () => void }) {
             <Arrow dir="down" />
           </PadKey>
         </div>
-        <PadKey label={copy.buttons.forward} onPress={() => onInput("forward")} big go>
-          <Arrow dir={runsRight ? "right" : "left"} />
-        </PadKey>
+        <RunKey game={game} paused={paused} mode={props.mode} runsRight={runsRight} onInput={onInput} />
       </div>
     </div>
   );
 }
 
 /** On a phone, the page shows the field and one big button that opens the game full screen. */
-function PhonePreview({ game, paused, onPlay }: { game: State; paused: boolean; onPlay: () => void }) {
+function PhonePreview({ game, paused, mode, onPlay }: { game: State; paused: boolean; mode: Mode; onPlay: () => void }) {
   return (
     <div className="mx-auto w-full max-w-md">
       <div className="rounded-[32px] border-b-[6px] p-3" style={{ ...caseStyle, boxShadow: "0 24px 48px var(--pf-shadow)" }}>
         <div className="rounded-[22px] px-2 py-3" style={{ background: "var(--pf-bezel)" }}>
-          <Readout game={game} scoreMode={game.phase === "final"} />
+          <Readout game={game} scoreMode={game.phase === "final"} mode={mode} />
           <div className="mt-2 overflow-hidden rounded-xl p-1" style={{ background: "var(--pf-glass)" }}>
-            <Field game={game} paused={paused} big />
+            <Field game={game} paused={paused} mode={mode} big />
           </div>
         </div>
         <button
@@ -619,7 +740,210 @@ function PhonePreview({ game, paused, onPlay }: { game: State; paused: boolean; 
   );
 }
 
-function Readout({ game, scoreMode }: { game: State; scoreMode: boolean }) {
+/**
+ * What just happened, laid over the field after every play, and what comes
+ * next. A big Next play button sets it up, unless the computer has the ball
+ * next, in which case it sets up its own play after a moment.
+ */
+function PlayBanner({ game, paused, mode, onNext, onNewGame }: HandheldProps) {
+  const b = copy.banner;
+  if (paused) return null;
+
+  if (game.phase === "final") {
+    return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/65 px-3 text-center">
+        <p className="font-mono text-sm font-bold text-white sm:text-base">{describe(game, false, mode)}</p>
+        <button
+          type="button"
+          onClick={onNewGame}
+          className="pf-pulse rounded-full px-5 py-2 font-mono text-xs font-bold tracking-[0.2em] text-white uppercase"
+          style={{ background: "var(--pf-go)" }}
+        >
+          {copy.buttons.newGame}
+        </button>
+      </div>
+    );
+  }
+  if (game.phase !== "result" || !game.outcome) return null;
+
+  const o = game.outcome;
+  const headline = {
+    tackle: o.kind === "tackle" ? (o.firstDown ? b.firstDown(o.gain) : b.tackle(o.gain)) : "",
+    turnover: b.turnover,
+    touchdown: b.touchdown,
+    fieldGoal: b.fieldGoal,
+    punt: o.kind === "punt" ? (o.touchback ? b.touchback : b.punt(o.distance)) : "",
+  }[o.kind];
+  const nextTeam = nameOf(game.offense, mode);
+  const changed = game.offense !== game.board;
+  const cpuNext = cpuHasBall(game, mode);
+
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/60 px-3 text-center">
+      <p className="font-mono text-sm font-bold tracking-wide text-white sm:text-lg">
+        {headline}
+        {game.quarterOver && ` · ${b.endQuarter(game.quarter)}`}
+      </p>
+      <p className="font-mono text-[10px] text-white/75 sm:text-xs">
+        {b.next(ballOf(game.offense, mode), game.down, game.toGo, 100 - game.ballOn)}
+      </p>
+      {mode === "friend" && changed && (
+        <p className="font-mono text-[10px] font-bold sm:text-xs" style={{ color: "var(--pf-go-top)" }}>
+          {b.passTo(nextTeam)}
+        </p>
+      )}
+      {cpuNext ? (
+        <p className="font-mono text-[10px] text-white/60 sm:text-xs">{b.cpuNext}</p>
+      ) : (
+        <button
+          type="button"
+          onClick={onNext}
+          className="pf-pulse mt-1 rounded-full px-4 py-1.5 font-mono text-[11px] font-bold tracking-[0.2em] text-white uppercase sm:px-5 sm:py-2 sm:text-xs"
+          style={{ background: "var(--pf-go)" }}
+        >
+          {copy.buttons.nextPlay} &#9654;
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The big orange key. It runs during a play and becomes Next once a play is
+ * over, so the one button the thumb rests on always does the next thing.
+ */
+function RunKey({
+  game,
+  paused,
+  mode,
+  runsRight,
+  onInput,
+}: {
+  game: State;
+  paused: boolean;
+  mode: Mode;
+  runsRight: boolean;
+  onInput: (input: Input) => void;
+}) {
+  const isNext = !paused && game.phase === "result" && !cpuHasBall(game, mode);
+  const idle = !paused && game.phase !== "result" && cpuHasBall(game, mode);
+  return (
+    <PadKey
+      label={isNext ? copy.buttons.next : copy.buttons.forward}
+      onPress={() => onInput("forward")}
+      big
+      go
+      pulse={isNext}
+      dim={idle || game.phase === "final"}
+    >
+      {isNext ? (
+        <span className="font-mono text-sm font-bold tracking-[0.15em]">{copy.buttons.next.toUpperCase()}</span>
+      ) : (
+        <Arrow dir={runsRight ? "right" : "left"} />
+      )}
+    </PadKey>
+  );
+}
+
+/**
+ * The pop up that opens the game: three steps, then who to play. Opened
+ * again from How to play, it shows the steps and a way back to the game.
+ */
+function Intro({
+  choose,
+  mode,
+  onPick,
+  onClose,
+}: {
+  choose: boolean;
+  mode: Mode;
+  onPick: (mode: Mode) => void;
+  onClose: () => void;
+}) {
+  const i = copy.intro;
+  const options: { value: Mode; label: string; note: string }[] = [
+    { value: "cpu", label: i.cpu, note: i.cpuNote },
+    { value: "friend", label: i.friend, note: i.friendNote },
+  ];
+  return (
+    <div
+      className="fixed inset-0 z-[120] flex items-end justify-center bg-black/60 p-3 sm:items-center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pf-intro-title"
+    >
+      <div className="max-h-full w-full max-w-md overflow-y-auto rounded-[28px] bg-surface p-6 text-body shadow-2xl">
+        <div className="flex items-start justify-between gap-4">
+          <h2 id="pf-intro-title" className="text-2xl font-extrabold tracking-tight text-bright">
+            {i.title}
+          </h2>
+          {!choose && (
+            <button type="button" onClick={onClose} aria-label={i.close} className="text-2xl leading-none text-body hover:text-bright">
+              &times;
+            </button>
+          )}
+        </div>
+
+        <ol className="mt-5 space-y-4">
+          {i.steps.map((step, n) => (
+            <li key={step.title} className="flex gap-3">
+              <span
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-mono text-sm font-bold text-white"
+                style={{ background: "var(--pf-go)" }}
+              >
+                {n + 1}
+              </span>
+              <div>
+                <p className="font-semibold text-bright">{step.title}</p>
+                <p className="text-sm leading-relaxed">{step.body}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+
+        {choose ? (
+          <>
+            <p className="mt-6 text-sm font-semibold text-bright">{i.choose}</p>
+            <div className="mt-3 grid gap-3">
+              {options.map((o) => {
+                const primary = o.value === mode;
+                return (
+                  <button
+                    key={o.value}
+                    type="button"
+                    autoFocus={primary}
+                    onClick={() => onPick(o.value)}
+                    className={`rounded-2xl px-5 py-4 text-left transition-transform active:scale-[0.98] ${
+                      primary ? "text-white" : "border border-line text-bright"
+                    }`}
+                    style={primary ? { background: "var(--pf-go)" } : undefined}
+                  >
+                    <span className="block text-lg font-bold">{o.label}</span>
+                    <span className={`block text-sm ${primary ? "text-white/85" : ""}`}>{o.note}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <button
+            type="button"
+            autoFocus
+            onClick={onClose}
+            className="mt-6 w-full rounded-2xl px-5 py-4 text-lg font-bold text-white"
+            style={{ background: "var(--pf-go)" }}
+          >
+            {copy.buttons.resumeFull}
+          </button>
+        )}
+
+        <p className="mt-4 hidden text-xs sm:block">{i.keys}</p>
+      </div>
+    </div>
+  );
+}
+
+function Readout({ game, scoreMode, mode }: { game: State; scoreMode: boolean; mode: Mode }) {
   const l = copy.labels;
   const spot = fieldPosition(game);
   // Inside the 10 the yards to go box goes dark: it is goal to go.
@@ -627,9 +951,9 @@ function Readout({ game, scoreMode }: { game: State; scoreMode: boolean }) {
 
   const cells: { label: string; value: string; width: number; side?: Team | null }[] = scoreMode
     ? [
-        { label: l.home, value: String(game.score.home % 100), width: 2 },
+        { label: mode === "cpu" ? l.you : l.home, value: String(game.score.home % 100), width: 2 },
         { label: l.time, value: clockReading(game), width: 3 },
-        { label: l.away, value: String(game.score.away % 100), width: 2 },
+        { label: mode === "cpu" ? l.cpu : l.away, value: String(game.score.away % 100), width: 2 },
       ]
     : [
         { label: l.down, value: String(game.down), width: 1 },
@@ -671,7 +995,7 @@ function SideLamp({ on, dir }: { on: boolean; dir: "left" | "right" }) {
  * the ball. `big` squares the cells up for a narrow phone screen, so the dots
  * stay large.
  */
-function Field({ game, paused, big = false }: { game: State; paused: boolean; big?: boolean }) {
+function Field({ game, paused, mode, big = false }: { game: State; paused: boolean; mode: Mode; big?: boolean }) {
   const { runner, defenders, tackler } = game;
   const yards = columnYards(game);
   const away = game.board === "away";
@@ -725,7 +1049,7 @@ function Field({ game, paused, big = false }: { game: State; paused: boolean; bi
   return (
     <div
       role="img"
-      aria-label={describe(game, paused)}
+      aria-label={describe(game, paused, mode)}
       className="grid"
       style={{ gridTemplateColumns: `repeat(${COLUMNS}, minmax(0, 1fr))` }}
     >
@@ -767,6 +1091,8 @@ function PadKey({
   big,
   large,
   go,
+  pulse,
+  dim,
 }: {
   label: string;
   onPress: () => void;
@@ -774,6 +1100,8 @@ function PadKey({
   big?: boolean;
   large?: boolean;
   go?: boolean;
+  pulse?: boolean;
+  dim?: boolean;
 }) {
   const handlers = usePress(onPress);
   return (
@@ -784,7 +1112,7 @@ function PadKey({
       {...handlers}
       className={`flex items-center justify-center rounded-full text-white transition-transform active:translate-y-0.5 active:scale-95 ${
         big ? "h-24 w-24" : large ? "h-[72px] w-[72px]" : "h-14 w-14"
-      }`}
+      } ${pulse ? "pf-pulse" : ""} ${dim ? "opacity-40" : ""}`}
       style={{
         background: `radial-gradient(circle at 35% 30%, ${go ? "var(--pf-go-top)" : "var(--pf-key-top)"}, ${go ? "var(--pf-go)" : "var(--pf-key)"})`,
         boxShadow: "0 4px 0 rgba(0,0,0,0.35), 0 8px 14px rgba(0,0,0,0.2)",
@@ -858,12 +1186,12 @@ function Arrow({ dir }: { dir: "up" | "down" | "left" | "right" }) {
   );
 }
 
-function Scoreboard({ game, bests }: { game: State; bests: Bests }) {
+function Scoreboard({ game, bests, mode }: { game: State; bests: Bests; mode: Mode }) {
   const s = copy.scoreboard;
   const team = (t: Team) => (
     <div className="flex items-baseline justify-between gap-4">
       <dt className="text-sm">
-        {copy.teams[t]}
+        {nameOf(t, mode)}
         {game.phase !== "final" && game.offense === t && <span className="ml-2 text-xs text-accent">{"●"}</span>}
       </dt>
       <dd className="font-mono text-2xl font-bold text-bright">{game.score[t]}</dd>

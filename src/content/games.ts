@@ -9,18 +9,18 @@
 export const gamesIndex = {
   label: "Games",
   title: "Little games",
-  lede: "Small games that run in your browser. No accounts, no ads, nothing uploaded.",
+  lede: "Small games that run in your browser. No accounts, no ads.",
   all: "All games",
-  metaDescription: "Small browser games: Pixel Football, a dot matrix football game in the style of the late 70s LED handhelds.",
+  metaDescription: "Pixel Football: a retro LED football game. Play the computer or a friend.",
 } as const;
 
 export const pixelFootball = {
   slug: "pixel-football",
   name: "Pixel Football",
-  title: "Run the ball through a wall of red dots",
-  description:
-    "An LED style football game on a 9 yard screen. Dodge five defenders, make ten yards in four downs, kick on fourth. Keyboard or touch.",
-  lede: "A football game played by the rules of the LED handhelds from the late 70s. You are the bright dot. Get past the dim ones.",
+  /** The small line above the name on cards. */
+  label: "Retro handheld game",
+  description: "Retro LED football. Dodge the defenders, run for a touchdown. Play the computer or a friend.",
+  lede: "Dodge the red dots and run for a touchdown. Play the computer or a friend.",
 
   /** Printed on the case. */
   brand: "PIXEL",
@@ -31,6 +31,8 @@ export const pixelFootball = {
     toGo: "TO GO",
     home: "HOME",
     away: "AWAY",
+    you: "YOU",
+    cpu: "CPU",
     time: "TIME",
     quarter: "QTR",
   },
@@ -38,6 +40,8 @@ export const pixelFootball = {
     up: "Up",
     down: "Down",
     forward: "Run",
+    next: "Next",
+    nextPlay: "Next play",
     kick: "Kick",
     play: "Play",
     resumeFull: "Back to the game",
@@ -45,32 +49,69 @@ export const pixelFootball = {
     status: "Status",
     score: "Score",
     newGame: "New game",
+    howTo: "How to play",
     pause: "Pause",
     resume: "Resume",
     sound: "Sound",
   },
   level: { label: "Level", rookie: "Rookie", pro: "Pro" },
 
-  /** What the display reads out under the field, and what a screen reader hears. */
+  /** The pop up that opens the game: three steps, then pick who to play. */
+  intro: {
+    title: "How to play",
+    steps: [
+      { title: "You are the bright dot", body: "Run toward the goal and slide between lanes to dodge the red defenders." },
+      { title: "Make 10 yards in 4 tries", body: "Do it and you get 4 more. Reach the end zone for a touchdown, 7 points." },
+      { title: "Tap Next after each tackle", body: "On fourth down you can kick instead: a field goal if you're close." },
+    ],
+    choose: "Who are you playing?",
+    cpu: "Play the computer",
+    cpuNote: "You're Home. The computer runs Away's plays.",
+    friend: "Play a friend",
+    friendNote: "Take turns: Home, then Away. Pass the phone.",
+    keys: "Keys: arrows to move, Space for next play, K to kick, P to pause.",
+    close: "Close",
+  },
+
+  /** The banner over the field after a play. */
+  banner: {
+    tackle: (gain: number) => (gain === 0 ? "Stopped" : `Tackled · ${yards(gain)}`),
+    firstDown: (gain: number) => `First down! · ${yards(gain)}`,
+    turnover: "Turnover on downs",
+    touchdown: "Touchdown!",
+    fieldGoal: "Field goal!",
+    punt: (distance: number) => `Punt · ${yards(distance)}`,
+    touchback: "Punt · touchback",
+    endQuarter: (quarter: number) => (quarter === 2 ? "Halftime" : `End of Q${quarter}`),
+    next: (ball: string, down: number, toGo: number, toGoal: number) =>
+      `Next: ${ball} · ${ordinal(down).toLowerCase()} and ${toGo === toGoal ? "goal" : toGo}`,
+    passTo: (team: string) => `Pass the phone to ${team}`,
+    cpuNext: "The computer has the ball",
+    tap: "Tap Next play",
+  },
+
+  /** The line under the field, and what a screen reader hears. */
   messages: {
-    ready: (team: string, down: number, toGo: number, toGoal: number) =>
-      `${team} ball. ${ordinal(down)} and ${toGo === toGoal ? "goal" : toGo}, ${toGoal} to the goal line.`,
-    fourth: "Fourth down. Kick, or go for it.",
+    press: "Press Run to start the play.",
+    cpuBall: "The computer is running. Watch it go.",
+    running: "Run! Dodge the red dots.",
+    fourth: "Fourth down: kick, or run for it.",
+    ready: (ball: string, down: number, toGo: number, toGoal: number) =>
+      `${ball}. ${ordinal(down)} and ${toGo === toGoal ? "goal" : toGo}, ${toGoal} to the goal line.`,
     tackle: (gain: number) => (gain === 0 ? "Stopped at the line." : `Tackled after ${yards(gain)}.`),
     firstDown: (gain: number) => `${yards(gain)} and a first down.`,
     turnover: (gain: number) => `${gain === 0 ? "Stopped" : `Tackled after ${yards(gain)}`}, short on fourth down. Turnover.`,
     touchdown: (gain: number) => `Touchdown! A ${gain} yard run.`,
-    fieldGoal: (distance: number) => `The kicker goes for it: a ${distance} yard field goal, good.`,
+    fieldGoal: (distance: number) => `A ${distance} yard field goal, good.`,
     punt: (distance: number, touchback: boolean) =>
       touchback ? `A ${distance} yard punt into the end zone. Touchback.` : `A ${distance} yard punt. The other side takes over.`,
     endQuarter: (quarter: number) => (quarter === 2 ? "Halftime." : `End of the ${ordinal(quarter).toLowerCase()} quarter.`),
-    setUp: "Press Status for the next play.",
-    final: (home: number, away: number) =>
-      home === away ? `Final: a tie, ${home} to ${away}.` : `Final: ${home > away ? "home" : "away"} wins, ${Math.max(home, away)} to ${Math.min(home, away)}.`,
+    final: (winner: string | null, high: number, low: number) =>
+      winner === null ? `Final: a tie, ${high} to ${low}.` : `Final: ${winner} ${winner === "You" ? "win" : "wins"}, ${high} to ${low}.`,
     paused: "Paused.",
-    start: "Home ball, first and 10 on its own 20. Press an arrow to snap the ball.",
   },
-  teams: { home: "Home", away: "Away" },
+  teams: { home: "Home", away: "Away", you: "You", cpu: "Computer" },
+  balls: { home: "Home ball", away: "Away ball", you: "Your ball", cpu: "Computer's ball" },
 
   scoreboard: {
     title: "Scoreboard",
@@ -82,34 +123,30 @@ export const pixelFootball = {
     yards: (n: number) => yards(n),
   },
 
+  /** The full rules, folded away at the bottom of the page for anyone who wants them. */
   rules: {
-    title: "How to play",
+    title: "Full rules",
     items: [
-      "You are the bright dot. The five dim dots are the defence. Touch one, or let one reach you from any side, and you are tackled. The one who got you blinks.",
-      "Each press moves you one yard: toward the goal, or across the three lanes. There is no going backwards.",
-      "The screen is 9 yards long. Every play starts at your own end of it. Run off the far end and you start the next 9 yards from the near end, with the defence where it stood.",
-      "Gain 10 yards in four downs for a first down. A touchdown is 7 points. Short on fourth down and the other side takes over where you went down.",
-      "Kick only on fourth down. The kicker decides: close enough, and it is a field goal for 3 (the closer, the likelier). Otherwise it is a punt of up to 65 yards. After any score the other side starts on its own 20.",
-      "After every play, press Status or Score to set up the next one. Status shows the down, the yard line (with a light for the side of midfield) and yards to go, which goes dark inside the 10. Score shows both scores and the time.",
-      "You play both sides. Home runs right and away runs left. Pass it to a friend, or play yourself.",
-      "Four 15 minute quarters, about 2 and a half minutes of real play each. The clock only runs while a play is live. Possession carries over between quarters, but the second half starts with away on its own 20.",
+      "The field is 3 lanes by 9 yards. Each play starts at your own end of it. Run off the far end and you keep going on the next 9 yards.",
+      "Each press moves you one yard: forward, or across a lane. There is no going backwards. Touch a defender, or let one reach you, and you are tackled. The one who got you blinks.",
+      "Gain 10 yards in four downs for a first down. A touchdown is 7. Short on fourth down and the other side takes over where you went down.",
+      "Kick only on fourth down. Close enough and it is a field goal for 3, likelier the closer you are. Otherwise it is a punt of up to 65 yards. After any score the other side starts on its own 20.",
+      "Four quarters of 15 game minutes, about 2 and a half real minutes each. The clock only runs during a play. The second half starts with Away on its own 20.",
+      "Status shows the down, the yard line (a light shows which side of midfield) and yards to go. Score shows both scores and the time. Either one, or Next, sets up the next play.",
       "Pro moves the defence 50% faster than Rookie. Changing level starts a new game.",
-      "The trick: start a play by moving across to pull the defence that way, then cut back and run down the other side. Watch for the safety.",
+      "The trick: step across to pull the defence that way, then cut back and run down the other side.",
     ],
-  },
-  keys: {
-    title: "Keys",
-    items: [
+    keysTitle: "Keys",
+    keys: [
       { k: "Left or Right, A or D", v: "Run toward the goal" },
       { k: "Up and Down, or W and S", v: "Change lane" },
-      { k: "Space or Enter", v: "Status, and set up the next play" },
-      { k: "C", v: "Score, and set up the next play" },
+      { k: "Space or Enter", v: "Next play (also Status)" },
+      { k: "C", v: "Score" },
       { k: "K", v: "Kick, on fourth down" },
       { k: "P or Esc", v: "Pause" },
     ],
   },
-  phoneNote: "On a phone the game opens full screen, with the buttons at the bottom where your thumbs rest.",
-  privacy: "Runs entirely in your browser. Your bests are kept in this browser's storage and nowhere else.",
+  phoneNote: "On a phone the game opens full screen, with the buttons under your thumbs.",
 } as const;
 
 function ordinal(n: number): string {
