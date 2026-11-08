@@ -37,10 +37,10 @@ const PRESS_MS = 240;
  * They are this game's own, not borrowed from any real handheld.
  */
 const PADS: { color: string; freq: number }[] = [
-  { color: "#ff6b5e", freq: 523.25 },
-  { color: "#ffc23d", freq: 587.33 },
-  { color: "#2ec4a6", freq: 659.25 },
-  { color: "#8a7dff", freq: 783.99 },
+  { color: "#ff3d6e", freq: 523.25 },
+  { color: "#ffb000", freq: 587.33 },
+  { color: "#00d4b4", freq: 659.25 },
+  { color: "#7b5cff", freq: 783.99 },
 ];
 
 const MISS: Note[] = [{ freq: 98, ms: 650, wave: "sawtooth", vol: 0.7 }];
@@ -379,12 +379,19 @@ export function ColorEcho() {
 
         <div
           className="mt-3 grid grid-cols-2 gap-3 rounded-[28px] p-3 sm:gap-4 sm:p-4"
-          style={{ background: "#0b1220", touchAction: "manipulation" }}
+          style={{
+            background: "radial-gradient(circle at 50% 40%, #182040, #070a16 75%)",
+            boxShadow: "inset 0 2px 0 rgba(255,255,255,0.06), 0 18px 40px rgba(7,10,22,0.35)",
+            touchAction: "manipulation",
+          }}
         >
           {PADS.map((p, i) => {
             const pad = i as Pad;
             // The pad that was due lights up after a miss, and blinks, so the player sees the answer.
             const on = lit === pad || missed === pad;
+            // While one pad is lit the others step back, so the lit one is unmistakable.
+            const dimmed = !on && (lit !== null || missed !== null);
+            const body = `linear-gradient(160deg, color-mix(in srgb, ${p.color} 72%, white) 0%, ${p.color} 45%, color-mix(in srgb, ${p.color} 72%, black) 100%)`;
             return (
               <button
                 key={i}
@@ -400,14 +407,15 @@ export function ColorEcho() {
                   // A click with no pointer behind it came from the keyboard or a screen reader.
                   if (e.detail === 0) hit(pad);
                 }}
-                className={`relative flex aspect-square items-center justify-center rounded-[22px] transition-[background-color,box-shadow,transform] duration-75 select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
-                  on ? "scale-[0.97]" : ""
+                className={`relative flex aspect-square items-center justify-center rounded-[22px] transition-[filter,box-shadow,transform] duration-100 select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                  on ? "z-10 scale-[1.03]" : ""
                 } ${missed === pad ? "ce-miss" : ""}`}
                 style={{
-                  background: on ? p.color : `color-mix(in srgb, ${p.color} 38%, #0b1220)`,
+                  background: on ? `radial-gradient(circle at 50% 42%, rgba(255,255,255,0.7), transparent 62%), ${body}` : body,
+                  filter: on ? "brightness(1.15) saturate(1.15)" : dimmed ? "brightness(0.5) saturate(0.8)" : "brightness(0.85)",
                   boxShadow: on
-                    ? `0 0 36px 6px color-mix(in srgb, ${p.color} 70%, transparent), inset 0 0 0 2px rgba(255,255,255,0.5)`
-                    : "inset 0 -6px 0 rgba(0,0,0,0.25)",
+                    ? `0 0 56px 12px color-mix(in srgb, ${p.color} 75%, transparent), inset 0 0 0 3px rgba(255,255,255,0.75)`
+                    : "inset 0 -8px 0 rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.35), 0 4px 10px rgba(0,0,0,0.35)",
                   cursor: phase === "input" ? "pointer" : "default",
                   WebkitTapHighlightColor: "transparent",
                 }}
@@ -416,7 +424,7 @@ export function ColorEcho() {
                 <span
                   aria-hidden="true"
                   className="absolute top-2.5 left-3 font-mono text-[11px] font-bold"
-                  style={{ color: on ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.45)" }}
+                  style={{ color: "rgba(0,0,0,0.45)" }}
                 >
                   {copy.pads[i].key}
                 </span>
@@ -477,7 +485,8 @@ function Progress({ game }: { game: State | null }) {
 
 /** A shape per pad, so colour is never the only way to tell them apart. */
 function Shape({ pad, on }: { pad: Pad; on: boolean }) {
-  const fill = on ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.3)";
+  // Dark on every pad: it reads on the yellow as well as the violet, lit or not.
+  const fill = on ? "rgba(0,0,0,0.38)" : "rgba(0,0,0,0.26)";
   const shapes: ReactNode[] = [
     <circle key="c" cx="20" cy="20" r="13" />,
     <polygon key="t" points="20,6 34,32 6,32" />,

@@ -43,6 +43,8 @@ export const pixelFootball = {
     next: "Next",
     nextPlay: "Next play",
     kick: "Kick",
+    /** Under Kick while it is locked. */
+    kickHint: "4th down",
     play: "Play",
     resumeFull: "Back to the game",
     close: "Close the game",
@@ -73,7 +75,7 @@ export const pixelFootball = {
     cpuNote: "You're Home. The computer runs Away's plays.",
     friend: "Play a friend",
     friendNote: "Take turns: Home, then Away. Pass the phone.",
-    keys: "Keys: arrows to move, Space for next play, K to kick, P to pause.",
+    keys: "Keys: arrows to move, Space for next play, C for the score, K to kick, P to pause.",
     close: "Close",
   },
 

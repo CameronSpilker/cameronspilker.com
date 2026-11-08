@@ -687,7 +687,7 @@ function Lamps({ game, mode }: { game: State; mode: Mode }) {
   const l = copy.labels;
   return (
     <div className="flex items-center justify-between font-mono text-[9px] tracking-[0.2em] text-white/45 sm:text-[10px]">
-      <Lamp on={game.board === "home"} label={mode === "cpu" ? l.you : l.home} />
+      <Lamp on={game.board === "home"} label={mode === "cpu" ? l.you : l.home} score={game.score.home} />
       <div className="flex items-center gap-2">
         <span>{copy.labels.quarter}</span>
         {[1, 2, 3, 4].map((q) => (
@@ -698,7 +698,7 @@ function Lamps({ game, mode }: { game: State; mode: Mode }) {
           />
         ))}
       </div>
-      <Lamp on={game.board === "away"} label={mode === "cpu" ? l.cpu : l.away} reverse />
+      <Lamp on={game.board === "away"} label={mode === "cpu" ? l.cpu : l.away} score={game.score.away} reverse />
     </div>
   );
 }
@@ -746,10 +746,15 @@ function Handheld(props: HandheldProps) {
           <div className="flex items-center justify-center gap-3">
             <SmallKey label={copy.buttons.status} onPress={onStatus} />
             <SmallKey label={copy.buttons.score} onPress={onScore} />
-            <SmallKey label={copy.buttons.kick} onPress={() => onInput("kick")} go disabled={!canKick} />
+            <SmallKey label={copy.buttons.kick} onPress={() => onInput("kick")} go disabled={!canKick} hint={canKick ? undefined : copy.buttons.kickHint} pulse={canKick} />
           </div>
           <RunKey game={game} paused={paused} mode={props.mode} runsRight={runsRight} onInput={onInput} />
         </div>
+
+        {/* Touch screens have nothing to learn here, so the guide only shows with a mouse. */}
+        <p className="mt-4 hidden text-center font-mono text-[10px] tracking-wider opacity-70 [@media(pointer:fine)]:block">
+          {copy.intro.keys}
+        </p>
       </div>
     </div>
   );
@@ -814,7 +819,7 @@ function PhoneHandheld(props: HandheldProps & { onClose: () => void }) {
       <div className="flex items-center justify-center gap-5 pb-4">
         <SmallKey label={copy.buttons.status} onPress={onStatus} />
         <SmallKey label={copy.buttons.score} onPress={onScore} />
-        <SmallKey label={copy.buttons.kick} onPress={() => onInput("kick")} go disabled={!canKick} />
+        <SmallKey label={copy.buttons.kick} onPress={() => onInput("kick")} go disabled={!canKick} hint={canKick ? undefined : copy.buttons.kickHint} pulse={canKick} />
       </div>
 
       <div className="flex items-end justify-between px-5">
@@ -1295,7 +1300,8 @@ function Field({ game, paused, mode, big = false }: { game: State; paused: boole
   );
 }
 
-function Lamp({ on, label, reverse }: { on: boolean; label: string; reverse?: boolean }) {
+/** One side: its lamp (lit while that side has the ball), its name and its points, always in view. */
+function Lamp({ on, label, score, reverse }: { on: boolean; label: string; score: number; reverse?: boolean }) {
   return (
     <span className={`flex items-center gap-1.5 ${reverse ? "flex-row-reverse" : ""}`}>
       <span
@@ -1303,6 +1309,13 @@ function Lamp({ on, label, reverse }: { on: boolean; label: string; reverse?: bo
         style={{ background: on ? "var(--pf-led)" : "var(--pf-led-off)" }}
       />
       <span style={{ color: on ? "rgba(255,255,255,0.75)" : undefined }}>{label}</span>
+      <span
+        className="text-[12px] font-bold tracking-normal tabular-nums sm:text-[13px]"
+        style={{ color: "var(--pf-led)" }}
+        aria-hidden="true"
+      >
+        {score}
+      </span>
     </span>
   );
 }
@@ -1360,7 +1373,22 @@ function PadKey({
   );
 }
 
-function SmallKey({ label, onPress, go, disabled }: { label: string; onPress: () => void; go?: boolean; disabled?: boolean }) {
+function SmallKey({
+  label,
+  onPress,
+  go,
+  disabled,
+  hint,
+  pulse,
+}: {
+  label: string;
+  onPress: () => void;
+  go?: boolean;
+  disabled?: boolean;
+  /** A second line under the label, saying when a locked key opens up. */
+  hint?: string;
+  pulse?: boolean;
+}) {
   const handlers = usePress(onPress);
   return (
     <span className="flex flex-col items-center gap-1">
@@ -1370,13 +1398,17 @@ function SmallKey({ label, onPress, go, disabled }: { label: string; onPress: ()
         aria-label={label}
         aria-disabled={disabled}
         {...handlers}
-        className={`h-9 w-16 rounded-full transition-transform active:translate-y-0.5 sm:h-8 sm:w-14 ${disabled ? "opacity-50" : ""}`}
+        className={`h-9 w-16 rounded-full transition-transform active:translate-y-0.5 sm:h-8 sm:w-14 ${disabled ? "opacity-50" : ""} ${pulse ? "pf-pulse" : ""}`}
         style={{
           background: go ? "var(--pf-go)" : "var(--pf-key)",
           boxShadow: "0 3px 0 rgba(0,0,0,0.35)",
         }}
       />
       <span className="font-mono text-[9px] font-bold tracking-[0.2em] uppercase sm:text-[10px]">{label}</span>
+      {/* Every key gets the second line, so the row stays level whether or not Kick has a hint. */}
+      <span className="-mt-1 font-mono text-[8px] tracking-[0.15em] uppercase opacity-60 sm:text-[9px]" aria-hidden="true">
+        {hint ?? "\u00a0"}
+      </span>
     </span>
   );
 }
