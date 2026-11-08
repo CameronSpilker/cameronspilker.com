@@ -212,6 +212,7 @@ export const colorEcho = {
     nice: "Nice. One more",
     round: (round: number, goal: number | null) => (goal === null ? `Round ${round}` : `Round ${round} of ${goal}`),
     lost: (done: number) => (done === 0 ? "Missed the first one" : `You got ${done} ${done === 1 ? "round" : "rounds"}`),
+    slow: "Too slow",
     won: (goal: number) => `All ${goal} rounds!`,
     newBest: "New best!",
     speedUp: "Faster now",
@@ -220,8 +221,9 @@ export const colorEcho = {
   /** What a screen reader hears. */
   announce: {
     watch: (round: number) => `Round ${round}. Watch.`,
-    yourTurn: (count: number) => `Your turn. Repeat ${count === 1 ? "1 light" : `${count} lights`}.`,
-    lost: (done: number, name: string) => `Game over after ${done === 1 ? "1 round" : `${done} rounds`}. It was ${name}.`,
+    yourTurn: (count: number) => `Your turn. Repeat ${count === 1 ? "1 light" : `${count} lights`}, 3 seconds per press.`,
+    lost: (done: number, name: string, slow: boolean) =>
+      `${slow ? "Out of time. " : ""}Game over after ${done === 1 ? "1 round" : `${done} rounds`}. It was ${name}.`,
     won: (goal: number) => `You won all ${goal} rounds.`,
   },
 
@@ -236,8 +238,9 @@ export const colorEcho = {
     items: [
       "Press Start. One pad lights up and plays its note. Press the same pad.",
       "Each round the game plays the whole pattern again with one new light on the end. Repeat all of it, in order.",
-      "One wrong press ends the game. The pad you should have pressed blinks so you can see what it was.",
-      "Pick 10 or 20 rounds to win, or Endless to play until you slip. The lights speed up at rounds 5, 9 and 13.",
+      "You have 3 seconds for each press. The bar under the dots shows how long is left, and it fills again after every right press.",
+      "One wrong press, or running out of time, ends the game. The pad you should have pressed blinks so you can see what it was.",
+      "Pick 8, 14, 20 or 31 rounds to win, or Endless to play until you slip. The lights speed up at rounds 5, 9 and 13.",
       "Each pad has its own shape as well as its own color and note, so you can play by any of the three.",
     ],
     keysTitle: "Keys",

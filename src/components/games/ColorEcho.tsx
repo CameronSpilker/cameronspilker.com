@@ -7,12 +7,14 @@ import { burstConfetti } from "@/components/tools/confetti";
 import {
   DEFAULT_GOAL,
   GOALS,
+  PRESS_LIMIT_MS,
   completed,
   newGame,
   press,
   round,
   startInput,
   tempo,
+  timeUp,
   type Goal,
   type Pad,
   type State,
@@ -94,12 +96,15 @@ export function ColorEcho() {
   const [newBest, setNewBest] = useState(false);
   const [nice, setNice] = useState(false);
   const [announcement, setAnnouncement] = useState("");
+  /** Bumped each time the press clock restarts, so the countdown bar starts over. Zero when it is not running. */
+  const [clock, setClock] = useState(0);
 
   const gameRef = useRef<State | null>(null);
   const soundRef = useRef(sound);
   const bestsRef = useRef<Bests>({});
   const beeper = useRef<ReturnType<typeof createBeeper> | null>(null);
   const timers = useRef<number[]>([]);
+  const clockTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     soundRef.current = sound;
@@ -140,6 +145,49 @@ export function ColorEcho() {
     setGame(next);
   }, []);
 
+  const recordBest = useCallback((state: State) => {
+    const key = goalKey(state.goal);
+    const done = completed(state);
+    if (done <= (bestsRef.current[key] ?? 0)) return;
+    const next = { ...bestsRef.current, [key]: done };
+    bestsRef.current = next;
+    setBests(next);
+    setNewBest(true);
+    save(BESTS_KEY, JSON.stringify(next));
+  }, []);
+
+  const stopClock = useCallback(() => {
+    window.clearTimeout(clockTimer.current);
+    clockTimer.current = undefined;
+    setClock(0);
+  }, []);
+
+  /** The game is over: a wrong pad or too slow. Show the pad that was due. */
+  const lose = useCallback(
+    (lost: State) => {
+      stopClock();
+      setLit(null);
+      notes(MISS);
+      setMissed(lost.expected);
+      recordBest(lost);
+      setAnnouncement(copy.announce.lost(completed(lost), copy.pads[lost.expected ?? 0].name, lost.miss === "slow"));
+    },
+    [notes, recordBest, stopClock],
+  );
+
+  /** Give the player PRESS_LIMIT_MS for their next press. */
+  const startClock = useCallback(() => {
+    window.clearTimeout(clockTimer.current);
+    setClock((c) => c + 1);
+    clockTimer.current = window.setTimeout(() => {
+      const current = gameRef.current;
+      if (!current || current.phase !== "input") return;
+      const lost = timeUp(current);
+      commit(lost);
+      lose(lost);
+    }, PRESS_LIMIT_MS);
+  }, [commit, lose]);
+
   /** Light the whole sequence up, one pad at a time, then hand over to the player. */
   const playback = useCallback(
     (state: State) => {
@@ -159,25 +207,16 @@ export function ColorEcho() {
         const current = gameRef.current;
         if (!current) return;
         commit(startInput(current));
+        startClock();
         setAnnouncement(copy.announce.yourTurn(n));
       }, at);
     },
-    [commit, later, tone],
+    [commit, later, startClock, tone],
   );
-
-  const recordBest = useCallback((state: State) => {
-    const key = goalKey(state.goal);
-    const done = completed(state);
-    if (done <= (bestsRef.current[key] ?? 0)) return;
-    const next = { ...bestsRef.current, [key]: done };
-    bestsRef.current = next;
-    setBests(next);
-    setNewBest(true);
-    save(BESTS_KEY, JSON.stringify(next));
-  }, []);
 
   const start = useCallback(() => {
     clearTimers();
+    stopClock();
     const s = newGame(goal, Math.random);
     commit(s);
     setLit(null);
@@ -185,7 +224,7 @@ export function ColorEcho() {
     setNice(false);
     setNewBest(false);
     playback(s);
-  }, [clearTimers, commit, goal, playback]);
+  }, [clearTimers, commit, goal, playback, stopClock]);
 
   const hit = useCallback(
     (pad: Pad) => {
@@ -195,13 +234,11 @@ export function ColorEcho() {
       commit(next);
 
       if (result === "wrong") {
-        setLit(null);
-        notes(MISS);
-        setMissed(next.expected);
-        recordBest(next);
-        setAnnouncement(copy.announce.lost(completed(next), copy.pads[next.expected ?? 0].name));
+        lose(next);
         return;
       }
+      if (result === "correct") startClock();
+      else stopClock();
 
       setLit(pad);
       tone(pad, PRESS_MS);
@@ -220,7 +257,7 @@ export function ColorEcho() {
         burstConfetti();
       }
     },
-    [commit, later, notes, playback, recordBest, tone],
+    [commit, later, lose, notes, playback, recordBest, startClock, stopClock, tone],
   );
 
   /** Wake the audio from a real tap, click or key press. Phones only allow sound after one. */
@@ -262,16 +299,26 @@ export function ColorEcho() {
   }, [hit, start]);
 
   useEffect(() => {
+    // Switching tabs mid turn should not cost the game: the clock stops while hidden and starts over on return.
     const onHide = () => {
-      if (document.hidden) beeper.current?.rest();
+      if (document.hidden) {
+        beeper.current?.rest();
+        if (gameRef.current?.phase === "input") {
+          window.clearTimeout(clockTimer.current);
+          clockTimer.current = undefined;
+        }
+      } else if (gameRef.current?.phase === "input") {
+        startClock();
+      }
     };
     document.addEventListener("visibilitychange", onHide);
     return () => document.removeEventListener("visibilitychange", onHide);
-  }, []);
+  }, [startClock]);
 
   useEffect(
     () => () => {
       clearTimers();
+      window.clearTimeout(clockTimer.current);
       beeper.current?.close();
     },
     [clearTimers],
@@ -298,7 +345,7 @@ export function ColorEcho() {
   let sub: string | null = null;
   if (!game) headline = s.idle;
   else if (phase === "won") headline = s.won(game.sequence.length);
-  else if (phase === "lost") headline = s.lost(completed(game));
+  else if (phase === "lost") headline = game.miss === "slow" ? s.slow : s.lost(completed(game));
   else if (nice) headline = s.nice;
   else headline = phase === "input" ? s.yourTurn : s.watch;
   if (game && playing) {
@@ -306,21 +353,12 @@ export function ColorEcho() {
     if (phase === "show" && !nice && SPEED_UPS.has(round(game))) sub = `${sub} · ${s.speedUp}`;
   }
   if (over && newBest) sub = s.newBest;
+  if (phase === "lost" && game?.miss === "slow") sub = newBest ? `${s.lost(completed(game))} · ${s.newBest}` : s.lost(completed(game));
 
   return (
     <div className="mx-auto flex w-full max-w-[460px] flex-col items-center gap-6">
       <div className="glass w-full rounded-[32px] p-4 sm:p-5">
-        <div className="flex items-center justify-between gap-3 px-1">
-          <GoalPicker goal={goal} disabled={playing} onPick={pickGoal} />
-          <button
-            type="button"
-            onClick={toggleSound}
-            aria-label={sound ? copy.buttons.soundIsOn : copy.buttons.soundIsOff}
-            className="rounded-full border border-line px-3 py-1 font-mono text-[11px] font-bold tracking-wider text-bright uppercase"
-          >
-            {copy.buttons.sound} · {sound ? copy.buttons.on : copy.buttons.off}
-          </button>
-        </div>
+        <GoalPicker goal={goal} disabled={playing} onPick={pickGoal} />
 
         <div className="mt-4 min-h-[64px] text-center" aria-hidden="true">
           <p className="text-xl font-bold tracking-tight text-bright sm:text-2xl">{headline}</p>
@@ -329,13 +367,20 @@ export function ColorEcho() {
 
         <Progress game={game} />
 
+        <div aria-hidden="true" className="mx-auto mt-2 h-1 w-2/3 overflow-hidden rounded-full" style={{ background: clock ? "var(--line)" : "transparent" }}>
+          {clock > 0 && (
+            <div key={clock} className="ce-clock h-full rounded-full bg-accent" style={{ animationDuration: `${PRESS_LIMIT_MS}ms` }} />
+          )}
+        </div>
+
         <div
           className="mt-3 grid grid-cols-2 gap-3 rounded-[28px] p-3 sm:gap-4 sm:p-4"
           style={{ background: "#0b1220", touchAction: "manipulation" }}
         >
           {PADS.map((p, i) => {
             const pad = i as Pad;
-            const on = lit === pad;
+            // The pad that was due lights up after a miss, and blinks, so the player sees the answer.
+            const on = lit === pad || missed === pad;
             return (
               <button
                 key={i}
@@ -376,7 +421,7 @@ export function ColorEcho() {
           })}
         </div>
 
-        <div className="mt-4 flex justify-center">
+        <div className="mt-4 flex items-center justify-center gap-3">
           <button
             type="button"
             onClick={start}
@@ -384,6 +429,14 @@ export function ColorEcho() {
             className="rounded-full bg-bright px-8 py-3 text-sm font-semibold text-ink transition-opacity hover:opacity-90 disabled:opacity-30"
           >
             {over ? copy.buttons.again : copy.buttons.start}
+          </button>
+          <button
+            type="button"
+            onClick={toggleSound}
+            aria-label={sound ? copy.buttons.soundIsOn : copy.buttons.soundIsOff}
+            className="rounded-full border border-line px-4 py-3 font-mono text-[11px] font-bold tracking-wider text-bright uppercase"
+          >
+            {copy.buttons.sound} · {sound ? copy.buttons.on : copy.buttons.off}
           </button>
         </div>
       </div>
@@ -436,7 +489,7 @@ function Shape({ pad, on }: { pad: Pad; on: boolean }) {
 
 function GoalPicker({ goal, disabled, onPick }: { goal: Goal; disabled: boolean; onPick: (g: Goal) => void }) {
   return (
-    <div role="radiogroup" aria-label={copy.goal.label} className="flex items-center gap-2">
+    <div role="radiogroup" aria-label={copy.goal.label} className="flex flex-wrap items-center justify-center gap-2">
       <span className="font-mono text-[11px] font-bold tracking-wider text-body uppercase">{copy.goal.label}</span>
       <div className="flex rounded-full border border-line p-0.5">
         {GOALS.map((g) => {
@@ -466,7 +519,7 @@ function BestsTable({ bests }: { bests: Bests }) {
   return (
     <section className="w-full text-sm">
       <h2 className="font-semibold text-bright">{copy.best.title}</h2>
-      <dl className="mt-2 grid grid-cols-3 gap-2">
+      <dl className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-5">
         {GOALS.map((g) => (
           <div key={goalKey(g)} className="glass rounded-2xl px-3 py-2 text-center">
             <dt className="font-mono text-[11px] tracking-wider uppercase">{copy.best.line(g)}</dt>

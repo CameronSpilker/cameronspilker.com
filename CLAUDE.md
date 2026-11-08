@@ -143,9 +143,10 @@ then slips. The page decides when it presses, so it plays at a human pace. Copy 
 banner and both modes lives in `src/content/games.ts` like everything else.
 
 Color Echo is the four colour memory game. Its rules are `src/lib/games/memory.ts`
-(`newGame`, `startInput`, `press`, `tempo`), pure and tested in `memory.test.ts`
-with a scripted random source. The page owns the playback timers and the
-lights. Each pad has a shape as well as a colour and a note, so colour is never
+(`newGame`, `startInput`, `press`, `timeUp`, `tempo`), pure and tested in
+`memory.test.ts` with a scripted random source. Games run to 8, 14, 20 or 31
+rounds, or Endless, with 3 seconds per press (`PRESS_LIMIT_MS`). The page owns
+the playback timers, the press clock and the lights. Each pad has a shape as well as a colour and a note, so colour is never
 the only cue. Its notes go through the same beeper as Pixel Football, via
 `beeper.notes`, and its bests per round count live in `localStorage`.
 

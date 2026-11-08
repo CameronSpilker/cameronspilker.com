@@ -489,3 +489,18 @@
     animation: none;
   }
 }
+
+/* Color Echo's press clock: a bar that drains over the time left for the next press. */
+@keyframes ce-clock {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@utility ce-clock {
+  transform-origin: left;
+  animation: ce-clock linear forwards;
+}

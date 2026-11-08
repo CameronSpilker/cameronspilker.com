@@ -2,8 +2,9 @@
  * Color Echo's rules, as pure functions.
  *
  * Four pads. Each round the game plays back the whole sequence so far plus one
- * new pad, and the player repeats it. One wrong press ends the game. Reach the
- * goal (10 rounds unless the player picks Endless) and you win.
+ * new pad, and the player repeats it. One wrong press, or a wait of more than
+ * PRESS_LIMIT_MS before the next press, ends the game. Reach the goal (8, 14,
+ * 20 or 31 rounds, or Endless) and you win.
  *
  * The random source is an argument, so tests can script the sequence. The
  * page owns the timers, the lights and the sound.
@@ -13,9 +14,12 @@ export const PADS = 4;
 export type Pad = 0 | 1 | 2 | 3;
 
 /** How many rounds win the game. Null plays until the first mistake. */
-export type Goal = 10 | 20 | null;
-export const GOALS: readonly Goal[] = [10, 20, null];
-export const DEFAULT_GOAL: Goal = 10;
+export type Goal = 8 | 14 | 20 | 31 | null;
+export const GOALS: readonly Goal[] = [8, 14, 20, 31, null];
+export const DEFAULT_GOAL: Goal = 8;
+
+/** How long the player has for each press, from the end of playback or their last press. */
+export const PRESS_LIMIT_MS = 3_000;
 
 export type Phase = "show" | "input" | "won" | "lost";
 
@@ -28,6 +32,8 @@ export type State = {
   goal: Goal;
   /** On a loss: the pad the player should have pressed. */
   expected: Pad | null;
+  /** On a loss: a wrong pad, or too slow. */
+  miss: "wrong" | "slow" | null;
 };
 
 /** What a press did: kept going, finished the round, won, lost, or did nothing (wrong phase). */
@@ -42,7 +48,7 @@ export function pick(rng: Rng): Pad {
 
 /** A fresh game, ready to play round 1 back to the player. */
 export function newGame(goal: Goal, rng: Rng): State {
-  return { sequence: [pick(rng)], input: 0, phase: "show", goal, expected: null };
+  return { sequence: [pick(rng)], input: 0, phase: "show", goal, expected: null, miss: null };
 }
 
 /** The playback is over: the player's turn to repeat it. */
@@ -56,7 +62,7 @@ export function press(state: State, pad: Pad, rng: Rng): { state: State; result:
   if (state.phase !== "input") return { state, result: "ignored" };
 
   const want = state.sequence[state.input];
-  if (pad !== want) return { state: { ...state, phase: "lost", expected: want }, result: "wrong" };
+  if (pad !== want) return { state: { ...state, phase: "lost", expected: want, miss: "wrong" }, result: "wrong" };
 
   const input = state.input + 1;
   if (input < state.sequence.length) return { state: { ...state, input }, result: "correct" };
@@ -68,6 +74,12 @@ export function press(state: State, pad: Pad, rng: Rng): { state: State; result:
     state: { ...state, input: 0, phase: "show", sequence: [...state.sequence, pick(rng)] },
     result: "round",
   };
+}
+
+/** The player waited longer than PRESS_LIMIT_MS. The page keeps the clock; this ends the game. */
+export function timeUp(state: State): State {
+  if (state.phase !== "input") return state;
+  return { ...state, phase: "lost", expected: state.sequence[state.input], miss: "slow" };
 }
 
 /** The round being played, starting at 1. */

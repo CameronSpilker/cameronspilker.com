@@ -5,7 +5,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { completed, newGame, pick, press, round, startInput, tempo, type Pad, type State } from "./memory.ts";
+import { completed, newGame, pick, press, round, startInput, tempo, timeUp, type Pad, type State } from "./memory.ts";
 
 /** A random source that returns pads in this order, then repeats it. */
 function script(...pads: Pad[]) {
@@ -29,7 +29,7 @@ test("pick maps the random range onto the four pads", () => {
 });
 
 test("a game starts on round 1 with one pad to watch", () => {
-  const s = newGame(10, script(2));
+  const s = newGame(8, script(2));
   assert.deepEqual(s.sequence, [2]);
   assert.equal(s.phase, "show");
   assert.equal(round(s), 1);
@@ -37,13 +37,13 @@ test("a game starts on round 1 with one pad to watch", () => {
 });
 
 test("presses are ignored while the sequence plays", () => {
-  const s = newGame(10, script(2));
+  const s = newGame(8, script(2));
   assert.equal(press(s, 2, script(0)).result, "ignored");
 });
 
 test("repeating the sequence adds one pad and plays it back", () => {
   const rng = script(1, 3, 0);
-  const { state, result } = repeat(newGame(10, rng), rng);
+  const { state, result } = repeat(newGame(8, rng), rng);
   assert.equal(result, "round");
   assert.equal(state.phase, "show");
   assert.deepEqual(state.sequence, [1, 3]);
@@ -52,7 +52,7 @@ test("repeating the sequence adds one pad and plays it back", () => {
 
 test("a right press partway through keeps the round going", () => {
   const rng = script(1, 3, 0);
-  let s = repeat(newGame(10, rng), rng).state;
+  let s = repeat(newGame(8, rng), rng).state;
   s = startInput(s);
   const step = press(s, 1, rng);
   assert.equal(step.result, "correct");
@@ -62,33 +62,52 @@ test("a right press partway through keeps the round going", () => {
 
 test("one wrong press ends the game and remembers the right pad", () => {
   const rng = script(1, 3, 0);
-  let s = repeat(newGame(10, rng), rng).state;
+  let s = repeat(newGame(8, rng), rng).state;
   s = startInput(s);
   s = press(s, 1, rng).state;
   const step = press(s, 2, rng);
   assert.equal(step.result, "wrong");
   assert.equal(step.state.phase, "lost");
   assert.equal(step.state.expected, 3);
+  assert.equal(step.state.miss, "wrong");
   assert.equal(completed(step.state), 1);
 });
 
-test("finishing round 10 wins a 10 round game", () => {
-  const rng = script(0, 1, 2, 3);
-  let s = newGame(10, rng);
-  for (let r = 1; r < 10; r++) s = repeat(s, rng).state;
-  assert.equal(round(s), 10);
-  const last = repeat(s, rng);
-  assert.equal(last.result, "won");
-  assert.equal(last.state.phase, "won");
-  assert.equal(completed(last.state), 10);
+for (const goal of [8, 14, 20, 31] as const) {
+  test(`finishing round ${goal} wins a ${goal} round game`, () => {
+    const rng = script(0, 1, 2, 3);
+    let s = newGame(goal, rng);
+    for (let r = 1; r < goal; r++) s = repeat(s, rng).state;
+    assert.equal(round(s), goal);
+    const last = repeat(s, rng);
+    assert.equal(last.result, "won");
+    assert.equal(last.state.phase, "won");
+    assert.equal(completed(last.state), goal);
+  });
+}
+
+test("running out of time ends the game on the pad that was due", () => {
+  const rng = script(1, 3, 0);
+  let s = startInput(repeat(newGame(8, rng), rng).state);
+  s = press(s, 1, rng).state;
+  const lost = timeUp(s);
+  assert.equal(lost.phase, "lost");
+  assert.equal(lost.miss, "slow");
+  assert.equal(lost.expected, 3);
+  assert.equal(completed(lost), 1);
 });
 
-test("endless keeps adding pads past 10", () => {
+test("the clock does nothing outside the player's turn", () => {
+  const s = newGame(8, script(2));
+  assert.equal(timeUp(s), s);
+});
+
+test("endless keeps adding pads past 31", () => {
   const rng = script(3, 2, 1);
   let s = newGame(null, rng);
-  for (let r = 1; r <= 12; r++) s = repeat(s, rng).state;
+  for (let r = 1; r <= 32; r++) s = repeat(s, rng).state;
   assert.equal(s.phase, "show");
-  assert.equal(round(s), 13);
+  assert.equal(round(s), 33);
 });
 
 test("playback speeds up at rounds 5, 9 and 13", () => {
