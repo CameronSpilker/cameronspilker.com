@@ -40,7 +40,7 @@ src/
 ├── lib/            # Framework-free helpers (cron.ts drives the Lab countdown)
 │   ├── dbt/        # Parser, metrics and colour rules for the run results tool
 │   ├── debt/       # Month by month payoff simulation, in whole cents
-│   ├── games/      # Pixel Football rules (pure, tested) and the Web Audio beeper
+│   ├── games/      # Pixel Football and Color Echo rules (pure, tested) and the Web Audio beeper
 │   └── gifts/      # Gift list: ids, prices, page reader, input checks; server/ holds the DB
 └── content/
     ├── site.ts        # name, tagline, contact links, Full Data Stack Lab URLs
@@ -141,6 +141,15 @@ can wait for the defence to drift and open a lane. Its skill follows the level:
 Pro taps faster and always takes its best move; Rookie taps slower and now and
 then slips. The page decides when it presses, so it plays at a human pace. Copy for the opening pop up, the result
 banner and both modes lives in `src/content/games.ts` like everything else.
+
+Color Echo is the four colour memory game. Its rules are `src/lib/games/memory.ts`
+(`newGame`, `startInput`, `press`, `timeUp`, `tempo`), pure and tested in
+`memory.test.ts` with a scripted random source. Games run to 8, 14, 20 or 31
+rounds, or Endless, with 3 seconds per press (`PRESS_LIMIT_MS`). The page owns
+the playback timers, the press clock and the lights. Each pad has a shape as well as a colour and a note, so colour is never
+the only cue. Its notes go through the same beeper as Pixel Football, via
+`beeper.notes`, and its bests per round count live in `localStorage`. Its notes (C, D, E, G) are
+its own: keep them that way rather than copying any real handheld's tones.
 
 ## Before pushing
 

@@ -464,3 +464,43 @@
     animation: none;
   }
 }
+
+/*
+ * Color Echo. The pad you should have pressed blinks after a miss. Pads light
+ * by changing colour, which reduced motion leaves alone; only the blink stops.
+ */
+@keyframes ce-miss {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.25;
+  }
+}
+
+@utility ce-miss {
+  animation: ce-miss 0.4s steps(1) 5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ce-miss {
+    animation: none;
+  }
+}
+
+/* Color Echo's press clock: a bar that drains over the time left for the next press. */
+@keyframes ce-clock {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@utility ce-clock {
+  transform-origin: left;
+  animation: ce-clock linear forwards;
+}
