@@ -611,8 +611,10 @@ function Handheld(props: HandheldProps) {
         {/* The bezel: readout on top, the field under it. */}
         <div className="rounded-[28px] p-4" style={{ background: "var(--pf-bezel)" }}>
           <Readout game={game} scoreMode={showScore || game.phase === "final"} mode={props.mode} />
-          <div className="relative mt-3 overflow-hidden rounded-xl p-2.5" style={{ background: "var(--pf-glass)" }}>
-            <Field game={game} paused={paused} mode={props.mode} />
+          <div className="relative mt-3">
+            <Stadium game={game}>
+              <Field game={game} paused={paused} mode={props.mode} />
+            </Stadium>
             <PlayBanner {...props} />
           </div>
           <div className="mt-2">
@@ -683,8 +685,10 @@ function PhoneHandheld(props: HandheldProps & { onClose: () => void }) {
 
       <div className="mx-2 flex flex-col gap-2 rounded-[22px] px-2 py-3" style={{ background: "var(--pf-bezel)" }}>
         <Readout game={game} scoreMode={showScore || game.phase === "final"} mode={props.mode} />
-        <div className="relative overflow-hidden rounded-xl p-1" style={{ background: "var(--pf-glass)" }}>
-          <Field game={game} paused={paused} mode={props.mode} big />
+        <div className="relative">
+          <Stadium game={game} compact>
+            <Field game={game} paused={paused} mode={props.mode} big />
+          </Stadium>
           <PlayBanner {...props} />
         </div>
         <div className="px-1">
@@ -725,8 +729,10 @@ function PhonePreview({ game, paused, mode, onPlay }: { game: State; paused: boo
       <div className="rounded-[32px] border-b-[6px] p-3" style={{ ...caseStyle, boxShadow: "0 24px 48px var(--pf-shadow)" }}>
         <div className="rounded-[22px] px-2 py-3" style={{ background: "var(--pf-bezel)" }}>
           <Readout game={game} scoreMode={game.phase === "final"} mode={mode} />
-          <div className="mt-2 overflow-hidden rounded-xl p-1" style={{ background: "var(--pf-glass)" }}>
-            <Field game={game} paused={paused} mode={mode} big />
+          <div className="mt-2">
+            <Stadium game={game} compact>
+              <Field game={game} paused={paused} mode={mode} big />
+            </Stadium>
           </div>
         </div>
         <button
@@ -756,7 +762,7 @@ function PlayBanner({ game, paused, mode, onNext, onNewGame }: HandheldProps) {
 
   if (game.phase === "final") {
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/65 px-3 text-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-xl bg-black/65 px-3 text-center">
         <p className="font-mono text-sm font-bold text-white sm:text-base">{describe(game, false, mode)}</p>
         <button
           type="button"
@@ -784,7 +790,7 @@ function PlayBanner({ game, paused, mode, onNext, onNewGame }: HandheldProps) {
   const cpuNext = cpuHasBall(game, mode);
 
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/60 px-3 text-center">
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-xl bg-black/60 px-3 text-center">
       <p className="font-mono text-sm font-bold tracking-wide text-white sm:text-lg">
         {headline}
         {game.quarterOver && ` · ${b.endQuarter(game.quarter)}`}
@@ -996,8 +1002,54 @@ function SideLamp({ on, dir }: { on: boolean; dir: "left" | "right" }) {
 }
 
 /**
- * The field: 9 columns by 3 lanes, running toward the goal of the side with
- * the ball. `big` squares the cells up for a narrow phone screen, so the dots
+ * The stadium around the field: stands full of crowd above and below, a light
+ * tower in each corner, and a goalpost at each end. The goalpost the side with
+ * the ball is running toward is lit, so the way to go is never in doubt.
+ */
+function Stadium({ game, compact = false, children }: { game: State; compact?: boolean; children: ReactNode }) {
+  const towardRight = game.board === "home";
+  const stand = `pf-crowd ${compact ? "h-3" : "h-4"}`;
+  return (
+    <div className="relative overflow-hidden rounded-xl" style={{ background: "var(--pf-stands)" }}>
+      <div className={stand} aria-hidden="true" />
+      <div className={`grid grid-cols-[auto_1fr_auto] items-center ${compact ? "gap-0.5 px-0.5" : "gap-1 px-1"}`}>
+        <Goalpost lit={!towardRight} compact={compact} />
+        <div
+          className="overflow-hidden rounded-[3px]"
+          style={{ background: "var(--pf-turf)", boxShadow: "0 0 0 2px var(--pf-chalk), 0 0 18px rgba(0,0,0,0.5)" }}
+        >
+          {children}
+        </div>
+        <Goalpost lit={towardRight} compact={compact} />
+      </div>
+      <div className={stand} aria-hidden="true" />
+      {/* Light towers in the four corners, washing the field. */}
+      {["left-1 top-0.5", "right-1 top-0.5", "left-1 bottom-0.5", "right-1 bottom-0.5"].map((at) => (
+        <span key={at} aria-hidden="true" className={`pf-floodlight absolute ${at} h-1.5 w-3 rounded-sm`} />
+      ))}
+    </div>
+  );
+}
+
+/** A goalpost seen from the side, at the back of an end zone. Lit when it is the one to run at. */
+function Goalpost({ lit, compact }: { lit: boolean; compact: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 12 28"
+      aria-hidden="true"
+      className={`${compact ? "h-9 w-3" : "h-14 w-4"} ${lit ? "pf-glow" : ""}`}
+      style={{ color: lit ? "var(--pf-post)" : "rgba(255,255,255,0.25)" }}
+    >
+      <path d="M2 2 V14 H10 V2 M6 14 V27" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/**
+ * The field: 9 columns by 3 lanes of turf, running toward the goal of the
+ * side with the ball. Chalk marks every yard faintly, every 5 more strongly,
+ * with the yard numbers at each 10 and a bold goal line; past it, the end
+ * zone. `big` squares the cells up for a narrow phone screen, so the dots
  * stay large.
  */
 function Field({ game, paused, mode, big = false }: { game: State; paused: boolean; mode: Mode; big?: boolean }) {
@@ -1016,19 +1068,45 @@ function Field({ game, paused, mode, big = false }: { game: State; paused: boole
       const isRunner = runner.x === c && runner.lane === lane;
       const isDefender = !isRunner && defenders.some((d) => d.x === c && d.lane === lane);
       const isTackler = holding && tackler !== null && tackler.x === c && tackler.lane === lane;
-      // A yard line sits on the edge of the cell nearest the offence's own goal.
-      const marked = yard === 100 || (yard % 10 === 0 && yard > 0 && yard < 100);
-      const line = `1px solid ${yard === 100 ? "var(--pf-goal)" : marked ? "var(--pf-line)" : "transparent"}`;
       const blink = isTackler || (allBlink && (isRunner || isDefender));
+
+      // A yard line sits on the edge of the cell nearest the offence's own goal.
+      const endZone = yard > 100;
+      const chalk =
+        yard === 100
+          ? "3px solid var(--pf-chalk)"
+          : endZone
+            ? "1px solid transparent"
+            : yard % 5 === 0
+              ? "1px solid rgba(255,255,255,0.45)"
+              : "1px solid rgba(255,255,255,0.1)";
+      // Mowing stripes: every other yard a shade lighter.
+      const turf = endZone
+        ? "repeating-linear-gradient(135deg, rgba(255,255,255,0.08) 0 5px, transparent 5px 10px), var(--pf-endzone)"
+        : yard % 2 === 0
+          ? "var(--pf-turf-stripe)"
+          : undefined;
+      // Yard numbers along the bottom at every 10, read from the nearer goal, as on a real field.
+      const number = lane === LANES - 1 && yard % 10 === 0 && yard > 0 && yard < 100 ? (yard <= 50 ? yard : 100 - yard) : null;
 
       cells.push(
         <div
           key={`${lane}-${screen}`}
-          className={`flex items-center justify-center ${big ? "aspect-[0.9]" : "aspect-[1.35]"}`}
-          style={{ [away ? "borderRight" : "borderLeft"]: line, background: yard > 100 ? "rgba(255,61,46,0.06)" : undefined }}
+          className={`relative flex items-center justify-center ${big ? "aspect-[0.78]" : "aspect-[1.35]"}`}
+          style={{ [away ? "borderRight" : "borderLeft"]: chalk, background: turf }}
         >
+          {number !== null && (
+            <span
+              aria-hidden="true"
+              className={`absolute bottom-0.5 font-mono font-bold text-white/45 ${big ? "text-[8px]" : "text-[10px]"} ${
+                away ? "right-[3px]" : "left-[3px]"
+              }`}
+            >
+              {number}
+            </span>
+          )}
           <span
-            className={`block rounded-full ${blink ? "pf-blink" : ""} ${
+            className={`relative block rounded-full ${blink ? "pf-blink" : ""} ${
               isRunner
                 ? `pf-glow-strong w-[78%] ${big ? "h-[32%]" : "h-[38%]"}`
                 : isDefender
@@ -1036,14 +1114,14 @@ function Field({ game, paused, mode, big = false }: { game: State; paused: boole
                   : `w-[48%] ${big ? "h-[16%]" : "h-[20%]"}`
             }`}
             style={{
-              // The runner is white hot in the middle; a defender is a solid, plainly dimmer red;
-              // an unlit cell is barely there, so only the players catch the eye.
+              // The runner is white hot in the middle; a defender is a solid red with a light rim, so it
+              // stands off the green; an unlit cell is a faint shadow on the grass.
               background: isRunner
                 ? "radial-gradient(ellipse at center, #fff4ef 0%, var(--pf-led-hot) 35%, var(--pf-led) 75%)"
                 : isDefender
                   ? "var(--pf-led-dim)"
-                  : "var(--pf-led-off)",
-              boxShadow: isDefender ? "inset 0 0 0 1px rgba(255,120,100,0.35)" : undefined,
+                  : "var(--pf-turf-dot)",
+              boxShadow: isDefender ? "inset 0 0 0 1px rgba(255,150,130,0.6), 0 1px 3px rgba(0,0,0,0.6)" : undefined,
             }}
           />
         </div>,
