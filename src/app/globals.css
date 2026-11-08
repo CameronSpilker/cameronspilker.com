@@ -323,7 +323,7 @@
   --pf-glass: #0b0605;
   --pf-led: #ff4a36;
   --pf-led-hot: #ffb3a3;
-  --pf-led-dim: #b02a20;
+  --pf-led-dim: #d23a2c;
   --pf-led-off: #1a0806;
   --pf-line: rgba(255, 61, 46, 0.1);
   --pf-goal: rgba(255, 61, 46, 0.32);
@@ -342,6 +342,45 @@
 
 :root[data-theme="dark"] {
   --pf-shadow: rgba(0, 0, 0, 0.6);
+}
+
+/*
+ * The stadium around the Pixel Football field. Fixed colours like the rest of
+ * the handheld: night game turf, chalk, a crowd in the stands, floodlights.
+ */
+:root {
+  --pf-turf: #0e3b1f;
+  --pf-turf-stripe: #124725;
+  --pf-chalk: rgba(255, 255, 255, 0.85);
+  --pf-endzone: #0b4a5a;
+  --pf-stands: #1b1916;
+  --pf-post: #f4c542;
+  /* An unlit spot on the field: a faint shadow on the grass. */
+  --pf-turf-dot: rgba(0, 0, 0, 0.3);
+}
+
+/* The crowd: specks of colour on a dark stand, the way a full stadium looks from the press box. */
+@utility pf-crowd {
+  background-color: var(--pf-stands);
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.28) 0.8px, transparent 1.3px),
+    radial-gradient(circle, rgba(226, 112, 42, 0.55) 0.8px, transparent 1.3px),
+    radial-gradient(circle, rgba(92, 200, 240, 0.4) 0.8px, transparent 1.3px);
+  background-size:
+    5px 4px,
+    7px 5px,
+    9px 6px;
+  background-position:
+    0 0,
+    2px 1px,
+    4px 2px;
+}
+
+@utility pf-floodlight {
+  background: #fffbe8;
+  box-shadow:
+    0 0 6px 2px rgba(255, 246, 200, 0.7),
+    0 0 16px 6px rgba(255, 246, 200, 0.25);
 }
 
 @utility pf-glow {
