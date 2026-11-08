@@ -373,6 +373,8 @@ export function PixelFootball() {
     if (on) {
       unlockSound();
       beeper.current?.play("firstDown");
+    } else {
+      beeper.current?.rest();
     }
   }, [unlockSound]);
 
@@ -419,6 +421,7 @@ export function PixelFootball() {
   // Leaving the tab pauses a game that is under way.
   useEffect(() => {
     const onHide = () => {
+      if (document.hidden) beeper.current?.rest();
       const phase = gameRef.current.phase;
       if (document.hidden && (phase === "live" || phase === "result")) setPaused(true);
     };
@@ -589,22 +592,39 @@ function TopBar({ game, sound, onLevel, onSound, children }: HandheldProps & { c
           value={game.difficulty}
           onChange={(v) => onLevel(v as Difficulty)}
         />
+        {/* Says ON or OFF in words: a dark button alone read as off to people, and a tap then muted the game. */}
         <button
           type="button"
           onClick={onSound}
           aria-pressed={sound}
-          className="rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase sm:text-[11px]"
+          aria-label={sound ? copy.buttons.soundIsOn : copy.buttons.soundIsOff}
+          className="flex items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase sm:text-[11px]"
           style={{
             borderColor: "var(--pf-case-edge)",
             background: sound ? "var(--pf-print)" : "transparent",
             color: sound ? "var(--pf-case)" : "var(--pf-print)",
           }}
         >
-          {copy.buttons.sound}
+          <SpeakerIcon on={sound} />
+          {sound ? copy.buttons.on : copy.buttons.off}
         </button>
         {children}
       </div>
     </div>
+  );
+}
+
+/** A speaker, with sound waves when on and a cross when off. */
+function SpeakerIcon({ on }: { on: boolean }) {
+  return (
+    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden="true">
+      <path d="M2 6h3l4-3v10l-4-3H2z" fill="currentColor" />
+      {on ? (
+        <path d="M11 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6 6 0 0 1 0 9" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      ) : (
+        <path d="M11 6l4 4M15 6l-4 4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      )}
+    </svg>
   );
 }
 
