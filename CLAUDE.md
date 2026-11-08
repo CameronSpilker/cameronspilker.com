@@ -135,8 +135,11 @@ kicks only on fourth down). Its name, case and sounds are its own: keep them
 that way rather than copying any real product's.
 
 The computer opponent is `src/lib/games/cpu.ts`: a pure `cpuMove` that picks
-the computer's next button, tested in `cpu.test.ts`. The page decides when it
-presses, so it plays at a human pace. Copy for the opening pop up, the result
+the computer's next button, tested in `cpu.test.ts`. It scores each move by
+open field ahead and by whether a defender could tackle it there next, and it
+can wait for the defence to drift and open a lane. Its skill follows the level:
+Pro taps faster and always takes its best move; Rookie taps slower and now and
+then slips. The page decides when it presses, so it plays at a human pace. Copy for the opening pop up, the result
 banner and both modes lives in `src/content/games.ts` like everything else.
 
 ## Before pushing

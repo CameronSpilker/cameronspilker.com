@@ -5,8 +5,8 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { cpuMove } from "./cpu.ts";
-import { advance, newGame, press, type Spot, type State } from "./football.ts";
+import { CPU_TAP_MS, cpuMove, type Skill } from "./cpu.ts";
+import { advance, newGame, press, type Difficulty, type Spot, type State } from "./football.ts";
 
 const still = () => 0.99;
 
@@ -52,4 +52,42 @@ test("left to itself, the computer plays every snap through to an outcome", () =
     if (s.phase === "result") s = press(s, "status", Math.random).state;
   }
   assert.equal(finished, 4);
+});
+
+test("it will not step next to a defender when a safe move exists", () => {
+  // Forward would put it beside the defender at (2, 1); stepping up keeps it clear.
+  const move = cpuMove(at([{ x: 2, lane: 1 }, { x: 5, lane: 0 }], { phase: "live" }), still);
+  assert.notEqual(move, "forward");
+});
+
+/** A seeded random source, so the averages below come out the same on every run. */
+function seeded(seed: number) {
+  let n = seed;
+  return () => (n = (n * 16807) % 2147483647) / 2147483647;
+}
+
+/** Average yards a play for the computer at one skill against one level of defence. */
+function averageGain(skill: Skill, defence: Difficulty, plays: number): number {
+  const rng = seeded(7);
+  let total = 0;
+  for (let p = 0; p < plays; p++) {
+    let s: State = { ...newGame(defence, rng), offense: "away", board: "away" };
+    for (let t = 0; t < 3_000 && (s.phase === "ready" || s.phase === "live"); t++) {
+      const move = cpuMove(s, rng, skill);
+      if (move) s = press(s, move, rng).state;
+      s = advance(s, CPU_TAP_MS[skill], rng).state;
+    }
+    if (s.outcome && "gain" in s.outcome) total += s.outcome.gain;
+  }
+  return total / plays;
+}
+
+test("the computer gets past the line instead of running into it", () => {
+  // Running straight gets exactly 2 yards a play; the computer has to do better than that.
+  assert.ok(averageGain("rookie", "rookie", 300) > 2.5);
+  assert.ok(averageGain("pro", "pro", 300) > 3.5);
+});
+
+test("the Pro computer is clearly better than the Rookie one", () => {
+  assert.ok(averageGain("pro", "pro", 300) > averageGain("rookie", "pro", 300) + 1);
 });

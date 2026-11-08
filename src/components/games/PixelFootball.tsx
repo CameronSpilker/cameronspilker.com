@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type Po
 import { pixelFootball as copy } from "@/content/games";
 import { createBeeper } from "@/lib/games/beeper";
 import { burstConfetti } from "@/components/tools/confetti";
-import { cpuMove } from "@/lib/games/cpu";
+import { CPU_TAP_MS, cpuMove } from "@/lib/games/cpu";
 import {
   COLUMNS,
   LANES,
@@ -28,9 +28,8 @@ const BESTS_KEY = "pixel-football-bests";
 const SOUND_KEY = "pixel-football-sound";
 const LEVEL_KEY = "pixel-football-level";
 const MODE_KEY = "pixel-football-mode";
-/** How long the computer waits before its snap, between its steps, and before setting up its next play. */
+/** How long the computer waits before its snap and before setting up its next play. Its step pace is its skill's. */
 const CPU_SNAP_MS = 900;
-const CPU_STEP_MS = 230;
 const CPU_NEXT_MS = 2_000;
 /** Run turns into Next after a play, but not until this long after it ended, so a mashed Run does not skip the result. */
 const NEXT_GUARD_MS = 450;
@@ -387,7 +386,8 @@ export function PixelFootball() {
         return;
       }
       cpuClock.current += ms;
-      const wait = g.phase === "ready" ? CPU_SNAP_MS : g.phase === "live" ? CPU_STEP_MS : CPU_NEXT_MS;
+      // The computer plays at the level picked: on Pro it taps faster and always takes its best move.
+      const wait = g.phase === "ready" ? CPU_SNAP_MS : g.phase === "live" ? CPU_TAP_MS[g.difficulty] : CPU_NEXT_MS;
       if (cpuClock.current < wait) return;
       cpuClock.current = 0;
       if (g.phase === "result") {
@@ -395,7 +395,7 @@ export function PixelFootball() {
         commit(press(g, "status", rng));
         return;
       }
-      const move = cpuMove(g, rng);
+      const move = cpuMove(g, rng, g.difficulty);
       if (move) commit(press(g, move, rng));
     },
     [commit],
@@ -595,7 +595,10 @@ function TopBar({ game, sound, onLevel, onSound, children }: HandheldProps & { c
         {/* Says ON or OFF in words: a dark button alone read as off to people, and a tap then muted the game. */}
         <button
           type="button"
-          onClick={onSound}
+          onClick={(event) => {
+            event.currentTarget.blur();
+            onSound();
+          }}
           aria-pressed={sound}
           aria-label={sound ? copy.buttons.soundIsOn : copy.buttons.soundIsOff}
           className="flex items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase sm:text-[11px]"
@@ -1336,7 +1339,11 @@ function Switch({
           type="button"
           role="radio"
           aria-checked={value === o.value}
-          onClick={() => onChange(o.value)}
+          onClick={(event) => {
+            // Let go of focus, so Space goes back to the game rather than pressing this again.
+            event.currentTarget.blur();
+            onChange(o.value);
+          }}
           className="rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold tracking-wider uppercase sm:text-[11px]"
           style={{
             background: value === o.value ? "var(--pf-print)" : "transparent",
