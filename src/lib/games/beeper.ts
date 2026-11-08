@@ -12,7 +12,7 @@ import type { GameEvent } from "./football";
 
 type Wave = OscillatorType;
 /** One note: pitch in Hz (a slide when `to` is set), length, the pause after it, its wave and loudness. */
-type Note = { freq: number; to?: number; ms: number; gap?: number; wave?: Wave; vol?: number };
+export type Note = { freq: number; to?: number; ms: number; gap?: number; wave?: Wave; vol?: number };
 
 /** A referee's whistle: a fast warble between two high notes. */
 const whistle = (gap = 0): Note[] => [
@@ -164,7 +164,10 @@ export function createBeeper() {
     },
     /** Play a sound now, or `delayMs` from now. */
     play(event: GameEvent, delayMs = 0) {
-      const notes = SOUNDS[event];
+      this.notes(SOUNDS[event], delayMs);
+    },
+    /** Play any run of notes now, or `delayMs` from now. Games other than Pixel Football bring their own. */
+    notes(notes: Note[], delayMs = 0) {
       if (notes.length === 0) return;
       const audio = context();
       if (!audio) return;

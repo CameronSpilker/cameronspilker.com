@@ -11,7 +11,7 @@ export const gamesIndex = {
   title: "Little games",
   lede: "Small games that run in your browser. No accounts, no ads.",
   all: "All games",
-  metaDescription: "Pixel Football: a retro LED football game. Play the computer or a friend.",
+  metaDescription: "Pixel Football, a retro LED football game, and Color Echo, a four color memory game.",
 } as const;
 
 export const pixelFootball = {
@@ -174,4 +174,79 @@ function yards(n: number): string {
   return n === 1 ? "1 yard" : `${n} yards`;
 }
 
-export const liveGames = [pixelFootball];
+export const colorEcho = {
+  slug: "color-echo",
+  name: "Color Echo",
+  label: "Memory game",
+  description: "Four colors, one growing tune. Watch the pattern, play it back, and see how far you get.",
+  lede: "Watch the lights, then play them back. One more each round.",
+
+  /** The four pads, in grid order: top left, top right, bottom left, bottom right. */
+  pads: [
+    { name: "Coral", key: "1" },
+    { name: "Amber", key: "2" },
+    { name: "Teal", key: "3" },
+    { name: "Violet", key: "4" },
+  ],
+  padLabel: (name: string, key: string) => `${name} pad, key ${key}`,
+
+  buttons: {
+    start: "Start",
+    again: "Play again",
+    soundIsOn: "Sound is on. Turn it off",
+    soundIsOff: "Sound is off. Turn it on",
+    sound: "Sound",
+    on: "On",
+    off: "Off",
+  },
+  goal: {
+    label: "Rounds",
+    option: (goal: number | null) => (goal === null ? "Endless" : String(goal)),
+  },
+
+  /** The readout above the pads. */
+  status: {
+    idle: "Press Start, then watch",
+    watch: "Watch",
+    yourTurn: "Your turn",
+    nice: "Nice. One more",
+    round: (round: number, goal: number | null) => (goal === null ? `Round ${round}` : `Round ${round} of ${goal}`),
+    lost: (done: number) => (done === 0 ? "Missed the first one" : `You got ${done} ${done === 1 ? "round" : "rounds"}`),
+    won: (goal: number) => `All ${goal} rounds!`,
+    newBest: "New best!",
+    speedUp: "Faster now",
+  },
+
+  /** What a screen reader hears. */
+  announce: {
+    watch: (round: number) => `Round ${round}. Watch.`,
+    yourTurn: (count: number) => `Your turn. Repeat ${count === 1 ? "1 light" : `${count} lights`}.`,
+    lost: (done: number, name: string) => `Game over after ${done === 1 ? "1 round" : `${done} rounds`}. It was ${name}.`,
+    won: (goal: number) => `You won all ${goal} rounds.`,
+  },
+
+  best: {
+    title: "Your bests in this browser",
+    line: (goal: number | null) => (goal === null ? "Endless" : `${goal} rounds`),
+    value: (n: number, goal: number | null) => (goal !== null && n >= goal ? `${n} · won` : n === 0 ? "None yet" : String(n)),
+  },
+
+  rules: {
+    title: "How to play",
+    items: [
+      "Press Start. One pad lights up and plays its note. Press the same pad.",
+      "Each round the game plays the whole pattern again with one new light on the end. Repeat all of it, in order.",
+      "One wrong press ends the game. The pad you should have pressed blinks so you can see what it was.",
+      "Pick 10 or 20 rounds to win, or Endless to play until you slip. The lights speed up at rounds 5, 9 and 13.",
+      "Each pad has its own shape as well as its own color and note, so you can play by any of the three.",
+    ],
+    keysTitle: "Keys",
+    keys: [
+      { k: "1 2 3 4", v: "The four pads, left to right, top to bottom" },
+      { k: "Q W A S", v: "The same pads, laid out like the grid" },
+      { k: "Space or Enter", v: "Start, or play again" },
+    ],
+  },
+} as const;
+
+export const liveGames = [pixelFootball, colorEcho];
