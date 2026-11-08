@@ -53,6 +53,10 @@ export const pixelFootball = {
     pause: "Pause",
     resume: "Resume",
     sound: "Sound",
+    on: "On",
+    off: "Off",
+    soundIsOn: "Sound is on. Turn it off",
+    soundIsOff: "Sound is off. Turn it on",
   },
   level: { label: "Level", rookie: "Rookie", pro: "Pro" },
 

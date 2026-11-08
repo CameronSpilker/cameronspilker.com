@@ -65,9 +65,26 @@ const SOUNDS: Record<GameEvent, Note[]> = {
 /** Loud enough for a phone speaker at arm's length, and still not painful in headphones. */
 const MASTER = 0.22;
 
+/**
+ * A tenth of a second of silence as a WAV file, about 800 bytes. On an iPhone
+ * with the ring switch on silent, web audio makes no sound at all; playing a
+ * real media element, even a silent one, moves the page into media playback
+ * the way a video would, and the game's sounds come through. This is the
+ * long standing fix for that, and it works on Safari versions that predate
+ * the newer audio session setting below.
+ */
+const SILENT_WAV = "data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
+
+/** iPhones and iPads, including iPads that describe themselves as a Mac. */
+function isAppleTouch(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
 export function createBeeper() {
   let ctx: AudioContext | null = null;
   let master: GainNode | null = null;
+  let media: HTMLAudioElement | null = null;
 
   function context(): AudioContext | null {
     if (ctx) return ctx;
@@ -128,6 +145,16 @@ export function createBeeper() {
           // Older Safari: nothing to set.
         }
       }
+      // Older Safari, or the newer setting refused: loop a silent track so the silent switch does not mute us.
+      if (isAppleTouch()) {
+        if (!media) {
+          media = new Audio(SILENT_WAV);
+          media.loop = true;
+          media.preload = "auto";
+          media.setAttribute("playsinline", "");
+        }
+        if (media.paused) void media.play().catch(() => undefined);
+      }
       if (audio.state === "suspended") void audio.resume();
       const silence = audio.createBuffer(1, 1, 22050);
       const source = audio.createBufferSource();
@@ -144,7 +171,13 @@ export function createBeeper() {
       if (audio.state === "suspended") void audio.resume();
       schedule(audio, notes, audio.currentTime + 0.01 + delayMs / 1000);
     },
+    /** Let go of the phone's media playback, when sound is turned off or the page is hidden. The next tap takes it back. */
+    rest() {
+      media?.pause();
+    },
     close() {
+      media?.pause();
+      media = null;
       void ctx?.close();
       ctx = null;
       master = null;
