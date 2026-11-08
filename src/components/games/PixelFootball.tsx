@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type Po
 import { pixelFootball as copy } from "@/content/games";
 import { createBeeper } from "@/lib/games/beeper";
 import { burstConfetti } from "@/components/tools/confetti";
-import { cpuMove } from "@/lib/games/cpu";
+import { CPU_TAP_MS, cpuMove } from "@/lib/games/cpu";
+import { addScore, parseScores, today, type HighScore } from "@/lib/games/scores";
 import {
   COLUMNS,
   LANES,
@@ -25,12 +26,12 @@ import {
 import { SevenSegment } from "./SevenSegment";
 
 const BESTS_KEY = "pixel-football-bests";
+const SCORES_KEY = "pixel-football-scores";
 const SOUND_KEY = "pixel-football-sound";
 const LEVEL_KEY = "pixel-football-level";
 const MODE_KEY = "pixel-football-mode";
-/** How long the computer waits before its snap, between its steps, and before setting up its next play. */
+/** How long the computer waits before its snap and before setting up its next play. Its step pace is its skill's. */
 const CPU_SNAP_MS = 900;
-const CPU_STEP_MS = 230;
 const CPU_NEXT_MS = 2_000;
 /** Run turns into Next after a play, but not until this long after it ended, so a mashed Run does not skip the result. */
 const NEXT_GUARD_MS = 450;
@@ -152,6 +153,10 @@ export function PixelFootball() {
   const [showScore, setShowScore] = useState(false);
   const [sound, setSound] = useState(true);
   const [bests, setBests] = useState<Bests>({ longestRun: 0, mostPoints: 0 });
+  const [highScores, setHighScores] = useState<HighScore[]>([]);
+  // Where the game that just ended placed on the high scores, for the final banner.
+  const [lastRank, setLastRank] = useState<number | null>(null);
+  const highScoresRef = useRef<HighScore[]>([]);
   const [announcement, setAnnouncement] = useState("");
   const [full, setFull] = useState(false);
   const [mode, setMode] = useState<Mode>("cpu");
@@ -187,6 +192,13 @@ export function PixelFootball() {
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect -- reading storage after hydration */
     setBests(readBests());
+    try {
+      const saved = parseScores(JSON.parse(load(SCORES_KEY) ?? "null"));
+      highScoresRef.current = saved;
+      setHighScores(saved);
+    } catch {
+      // A damaged list starts again empty.
+    }
     if (load(SOUND_KEY) === "off") setSound(false);
     if (load(MODE_KEY) === "friend") setMode("friend");
     const level = load(LEVEL_KEY);
@@ -250,6 +262,17 @@ export function PixelFootball() {
 
       const ended = next.phase === "result" && before.phase !== "result";
       const over = next.phase === "final" && before.phase !== "final";
+      // A finished game against the computer goes on this browser's high scores.
+      if (over && modeRef.current === "cpu") {
+        const entry: HighScore = { you: next.score.home, cpu: next.score.away, level: next.difficulty, date: today() };
+        const { list, rank } = addScore(highScoresRef.current, entry);
+        if (rank !== null) {
+          highScoresRef.current = list;
+          setHighScores(list);
+          save(SCORES_KEY, JSON.stringify(list));
+        }
+        setLastRank(rank);
+      }
       if (ended || over) {
         setAnnouncement(describe(next, false, modeRef.current));
         setBests((old) => {
@@ -319,6 +342,7 @@ export function PixelFootball() {
       save(MODE_KEY, picked);
       setPaused(false);
       setShowScore(false);
+      setLastRank(null);
       commit({ state: newGame(gameRef.current.difficulty, rng), events: [] });
       setIntro(null);
       introRef.current = null;
@@ -387,7 +411,8 @@ export function PixelFootball() {
         return;
       }
       cpuClock.current += ms;
-      const wait = g.phase === "ready" ? CPU_SNAP_MS : g.phase === "live" ? CPU_STEP_MS : CPU_NEXT_MS;
+      // The computer plays at the level picked: on Pro it taps faster and always takes its best move.
+      const wait = g.phase === "ready" ? CPU_SNAP_MS : g.phase === "live" ? CPU_TAP_MS[g.difficulty] : CPU_NEXT_MS;
       if (cpuClock.current < wait) return;
       cpuClock.current = 0;
       if (g.phase === "result") {
@@ -395,7 +420,7 @@ export function PixelFootball() {
         commit(press(g, "status", rng));
         return;
       }
-      const move = cpuMove(g, rng);
+      const move = cpuMove(g, rng, g.difficulty);
       if (move) commit(press(g, move, rng));
     },
     [commit],
@@ -498,6 +523,7 @@ export function PixelFootball() {
     showScore,
     sound,
     mode,
+    lastRank,
     onNext: next,
     onNewGame: newGameAsk,
     onInput: send,
@@ -549,9 +575,33 @@ export function PixelFootball() {
         </button>
       </div>
 
-      <Scoreboard game={game} bests={bests} mode={mode} />
+      <Scoreboard game={game} bests={bests} mode={mode} highScores={highScores} />
     </div>
   );
+}
+
+/**
+ * Stops a long press inside the game from selecting text or opening a menu.
+ * The styles do most of it; iOS also listens to these events, so they are
+ * cancelled too, and any selection a stray press made is cleared.
+ */
+function useNoSelect() {
+  return useCallback((node: HTMLDivElement | null) => {
+    if (!node) return;
+    const cancel = (event: Event) => event.preventDefault();
+    const clear = () => {
+      const selection = window.getSelection();
+      if (selection && !selection.isCollapsed) selection.removeAllRanges();
+    };
+    node.addEventListener("selectstart", cancel);
+    node.addEventListener("contextmenu", cancel);
+    node.addEventListener("pointerdown", clear);
+    return () => {
+      node.removeEventListener("selectstart", cancel);
+      node.removeEventListener("contextmenu", cancel);
+      node.removeEventListener("pointerdown", clear);
+    };
+  }, []);
 }
 
 /** Everything the two layouts of the handheld share. */
@@ -561,6 +611,8 @@ type HandheldProps = {
   showScore: boolean;
   sound: boolean;
   mode: Mode;
+  /** Where the game that just ended placed on the high scores, or null. */
+  lastRank: number | null;
   onNext: () => void;
   onNewGame: () => void;
   onInput: (input: Input) => void;
@@ -595,7 +647,10 @@ function TopBar({ game, sound, onLevel, onSound, children }: HandheldProps & { c
         {/* Says ON or OFF in words: a dark button alone read as off to people, and a tap then muted the game. */}
         <button
           type="button"
-          onClick={onSound}
+          onClick={(event) => {
+            event.currentTarget.blur();
+            onSound();
+          }}
           aria-pressed={sound}
           aria-label={sound ? copy.buttons.soundIsOn : copy.buttons.soundIsOff}
           className="flex items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider uppercase sm:text-[11px]"
@@ -655,7 +710,7 @@ function Handheld(props: HandheldProps) {
   const canKick = !paused && game.phase === "ready" && game.down === 4 && !cpuHasBall(game, props.mode);
 
   return (
-    <div className="mx-auto w-full max-w-[680px] select-none" style={{ touchAction: "manipulation" }}>
+    <div ref={useNoSelect()} className="pf-no-select mx-auto w-full max-w-[680px]" style={{ touchAction: "manipulation" }}>
       <div
         className="rounded-[44px] border-b-[6px] p-5"
         style={{ ...caseStyle, boxShadow: "0 30px 60px var(--pf-shadow), inset 0 2px 0 rgba(255,255,255,0.6)" }}
@@ -714,7 +769,8 @@ function PhoneHandheld(props: HandheldProps & { onClose: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col select-none"
+      ref={useNoSelect()}
+      className="pf-no-select fixed inset-0 z-[100] flex flex-col"
       style={{
         ...caseStyle,
         touchAction: "none",
@@ -779,7 +835,7 @@ function PhoneHandheld(props: HandheldProps & { onClose: () => void }) {
 /** On a phone, the page shows the field and one big button that opens the game full screen. */
 function PhonePreview({ game, paused, mode, onPlay }: { game: State; paused: boolean; mode: Mode; onPlay: () => void }) {
   return (
-    <div className="mx-auto w-full max-w-md">
+    <div ref={useNoSelect()} className="pf-no-select mx-auto w-full max-w-md">
       <div className="rounded-[32px] border-b-[6px] p-3" style={{ ...caseStyle, boxShadow: "0 24px 48px var(--pf-shadow)" }}>
         <div className="rounded-[22px] px-2 py-3" style={{ background: "var(--pf-bezel)" }}>
           <Readout game={game} scoreMode={game.phase === "final"} mode={mode} />
@@ -810,7 +866,7 @@ function PhonePreview({ game, paused, mode, onPlay }: { game: State; paused: boo
  * next. A big Next play button sets it up, unless the computer has the ball
  * next, in which case it sets up its own play after a moment.
  */
-function PlayBanner({ game, paused, mode, onNext, onNewGame }: HandheldProps) {
+function PlayBanner({ game, paused, mode, lastRank, onNext, onNewGame }: HandheldProps) {
   const b = copy.banner;
   if (paused) return null;
 
@@ -818,6 +874,14 @@ function PlayBanner({ game, paused, mode, onNext, onNewGame }: HandheldProps) {
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-xl bg-black/65 px-3 text-center">
         <p className="font-mono text-sm font-bold text-white sm:text-base">{describe(game, false, mode)}</p>
+        {mode === "cpu" && lastRank !== null && (
+          <p
+            className={`font-mono font-black tracking-wide uppercase ${lastRank === 1 ? "pf-blink-slow text-base sm:text-xl" : "text-xs sm:text-sm"}`}
+            style={{ color: "var(--pf-post)" }}
+          >
+            {lastRank === 1 ? copy.highScores.newHigh : copy.highScores.madeList(lastRank)}
+          </p>
+        )}
         <button
           type="button"
           onClick={onNewGame}
@@ -1336,7 +1400,11 @@ function Switch({
           type="button"
           role="radio"
           aria-checked={value === o.value}
-          onClick={() => onChange(o.value)}
+          onClick={(event) => {
+            // Let go of focus, so Space goes back to the game rather than pressing this again.
+            event.currentTarget.blur();
+            onChange(o.value);
+          }}
           className="rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold tracking-wider uppercase sm:text-[11px]"
           style={{
             background: value === o.value ? "var(--pf-print)" : "transparent",
@@ -1359,8 +1427,20 @@ function Arrow({ dir }: { dir: "up" | "down" | "left" | "right" }) {
   );
 }
 
-function Scoreboard({ game, bests, mode }: { game: State; bests: Bests; mode: Mode }) {
+function Scoreboard({
+  game,
+  bests,
+  mode,
+  highScores,
+}: {
+  game: State;
+  bests: Bests;
+  mode: Mode;
+  highScores: HighScore[];
+}) {
   const s = copy.scoreboard;
+  const h = copy.highScores;
+  const day = (date: string) => new Date(`${date}T00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" });
   const team = (t: Team) => (
     <div className="flex items-baseline justify-between gap-4">
       <dt className="text-sm">
@@ -1395,6 +1475,24 @@ function Scoreboard({ game, bests, mode }: { game: State; bests: Bests; mode: Mo
             <dd className="font-mono text-bright">{bests.mostPoints || s.none}</dd>
           </div>
         </dl>
+      </div>
+      <div className="glass rounded-[24px] p-5 sm:col-span-2">
+        <h2 className="text-xs font-semibold text-accent">{h.title}</h2>
+        {highScores.length === 0 ? (
+          <p className="mt-3 text-sm">{h.empty}</p>
+        ) : (
+          <ol className="mt-3 divide-y divide-line text-sm">
+            {highScores.map((score, i) => (
+              <li key={`${i}-${score.date}-${score.you}-${score.cpu}`} className="flex items-baseline gap-3 py-1.5">
+                <span className="w-6 font-mono text-xs text-accent">{i + 1}</span>
+                <span className="flex-1 font-mono text-bright">{h.line(score.you, score.cpu)}</span>
+                <span className="font-mono text-xs">{copy.level[score.level]}</span>
+                <span className="w-14 text-right font-mono text-xs">{day(score.date)}</span>
+              </li>
+            ))}
+          </ol>
+        )}
+        <p className="mt-3 text-xs">{h.note}</p>
       </div>
     </section>
   );

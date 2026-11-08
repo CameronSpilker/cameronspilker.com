@@ -130,6 +130,16 @@ export const pixelFootball = {
     yards: (n: number) => yards(n),
   },
 
+  /** Your own top ten against the computer, kept in this browser only. */
+  highScores: {
+    title: "Your high scores against the computer",
+    note: "Kept in this browser only.",
+    empty: "Finish a game against the computer to get on the board.",
+    line: (you: number, cpu: number) => `You ${you} · CPU ${cpu}`,
+    newHigh: "New high score!",
+    madeList: (rank: number) => `#${rank} on your high scores`,
+  },
+
   /** The full rules, folded away at the bottom of the page for anyone who wants them. */
   rules: {
     title: "Full rules",
