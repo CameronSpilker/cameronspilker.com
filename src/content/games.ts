@@ -80,6 +80,9 @@ export const pixelFootball = {
     turnover: "Turnover on downs",
     touchdown: "Touchdown!",
     fieldGoal: "Field goal!",
+    /** The big banner for a score: the points, who got them, and where that leaves the game. */
+    points: (points: number, team: string) => `+${points} for ${team}`,
+    scoreLine: (home: string, h: number, away: string, a: number) => `${home} ${h} · ${away} ${a}`,
     punt: (distance: number) => `Punt · ${yards(distance)}`,
     touchback: "Punt · touchback",
     endQuarter: (quarter: number) => (quarter === 2 ? "Halftime" : `End of Q${quarter}`),

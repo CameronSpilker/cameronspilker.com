@@ -183,7 +183,7 @@ test("in range, the kick can be a field goal, and closer kicks are likelier", ()
   assert.ok(fieldGoalChance(20) > fieldGoalChance(40));
   const step = press(snap([], { ballOn: 80, down: 4, toGo: 3 }), "kick", keen);
   assert.deepEqual(step.state.outcome, { kind: "fieldGoal", distance: 37 });
-  assert.deepEqual(step.events, ["fieldGoal"]);
+  assert.deepEqual(step.events, ["kick", "fieldGoal"]);
   assert.deepEqual(step.state.score, { home: 3, away: 0 });
   assert.equal(step.state.offense, "away");
   assert.equal(step.state.ballOn, 20);
@@ -192,7 +192,7 @@ test("in range, the kick can be a field goal, and closer kicks are likelier", ()
 test("otherwise the kick is a punt of 1 to 65 yards, two whistles, and the other side takes over", () => {
   const short = press(snap([], { ballOn: 30, down: 4, toGo: 8 }), "kick", keen);
   assert.deepEqual(short.state.outcome, { kind: "punt", distance: 1, touchback: false });
-  assert.deepEqual(short.events, ["turnover"]);
+  assert.deepEqual(short.events, ["kick", "turnover"]);
   assert.equal(short.state.ballOn, 69);
 
   const long = press(snap([], { ballOn: 40, down: 4, toGo: 8 }), "kick", still);
