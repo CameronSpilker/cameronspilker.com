@@ -383,6 +383,26 @@
     0 0 16px 6px rgba(255, 246, 200, 0.25);
 }
 
+/*
+ * The game is a thing you press, not text you read: no text selection, no
+ * iPhone long-press Copy / Look Up bar, no grey flash on tap. Applies to the
+ * element and everything inside it, since iOS checks the element under the
+ * finger.
+ */
+@utility pf-no-select {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+
+  & * {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
 @utility pf-glow {
   filter: drop-shadow(0 0 3px var(--pf-led)) drop-shadow(0 0 7px color-mix(in srgb, var(--pf-led) 55%, transparent));
 }

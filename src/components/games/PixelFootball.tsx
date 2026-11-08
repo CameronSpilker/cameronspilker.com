@@ -554,6 +554,30 @@ export function PixelFootball() {
   );
 }
 
+/**
+ * Stops a long press inside the game from selecting text or opening a menu.
+ * The styles do most of it; iOS also listens to these events, so they are
+ * cancelled too, and any selection a stray press made is cleared.
+ */
+function useNoSelect() {
+  return useCallback((node: HTMLDivElement | null) => {
+    if (!node) return;
+    const cancel = (event: Event) => event.preventDefault();
+    const clear = () => {
+      const selection = window.getSelection();
+      if (selection && !selection.isCollapsed) selection.removeAllRanges();
+    };
+    node.addEventListener("selectstart", cancel);
+    node.addEventListener("contextmenu", cancel);
+    node.addEventListener("pointerdown", clear);
+    return () => {
+      node.removeEventListener("selectstart", cancel);
+      node.removeEventListener("contextmenu", cancel);
+      node.removeEventListener("pointerdown", clear);
+    };
+  }, []);
+}
+
 /** Everything the two layouts of the handheld share. */
 type HandheldProps = {
   game: State;
@@ -658,7 +682,7 @@ function Handheld(props: HandheldProps) {
   const canKick = !paused && game.phase === "ready" && game.down === 4 && !cpuHasBall(game, props.mode);
 
   return (
-    <div className="mx-auto w-full max-w-[680px] select-none" style={{ touchAction: "manipulation" }}>
+    <div ref={useNoSelect()} className="pf-no-select mx-auto w-full max-w-[680px]" style={{ touchAction: "manipulation" }}>
       <div
         className="rounded-[44px] border-b-[6px] p-5"
         style={{ ...caseStyle, boxShadow: "0 30px 60px var(--pf-shadow), inset 0 2px 0 rgba(255,255,255,0.6)" }}
@@ -717,7 +741,8 @@ function PhoneHandheld(props: HandheldProps & { onClose: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col select-none"
+      ref={useNoSelect()}
+      className="pf-no-select fixed inset-0 z-[100] flex flex-col"
       style={{
         ...caseStyle,
         touchAction: "none",
@@ -782,7 +807,7 @@ function PhoneHandheld(props: HandheldProps & { onClose: () => void }) {
 /** On a phone, the page shows the field and one big button that opens the game full screen. */
 function PhonePreview({ game, paused, mode, onPlay }: { game: State; paused: boolean; mode: Mode; onPlay: () => void }) {
   return (
-    <div className="mx-auto w-full max-w-md">
+    <div ref={useNoSelect()} className="pf-no-select mx-auto w-full max-w-md">
       <div className="rounded-[32px] border-b-[6px] p-3" style={{ ...caseStyle, boxShadow: "0 24px 48px var(--pf-shadow)" }}>
         <div className="rounded-[22px] px-2 py-3" style={{ background: "var(--pf-bezel)" }}>
           <Readout game={game} scoreMode={game.phase === "final"} mode={mode} />
