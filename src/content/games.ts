@@ -133,7 +133,7 @@ export const pixelFootball = {
       "Kick only on fourth down. Close enough and it is a field goal for 3, likelier the closer you are. Otherwise it is a punt of up to 65 yards. After any score the other side starts on its own 20.",
       "Four quarters of 15 game minutes, about 2 and a half real minutes each. The clock only runs during a play. The second half starts with Away on its own 20.",
       "Status shows the down, the yard line (a light shows which side of midfield) and yards to go. Score shows both scores and the time. Either one, or Next, sets up the next play.",
-      "The defence moves one tackler at a time, and they drift toward your lane. Rookie gives you an extra yard before the line; Pro moves 50% faster. Changing level starts a new game.",
+      "The defence lines up 3 yards off: a wall across all three lanes, a linebacker and a safety. It moves one tackler at a time, and they drift toward your lane. Running straight only gets you 2 yards, so you have to dodge. Pro moves 50% faster than Rookie. Changing level starts a new game.",
       "The trick: step across to pull the defence that way, then cut back and run down the other side.",
     ],
     keysTitle: "Keys",
