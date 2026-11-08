@@ -31,20 +31,24 @@ const BETWEEN_ROUNDS_MS = 900;
 /** How long a pad stays lit, and sounds, when the player presses it. */
 const PRESS_MS = 240;
 
-/** Each pad's colour and note. The notes are an A major chord, so any order sounds fine. */
+/**
+ * Each pad's colour and note. The notes are C, D, E and G from the major
+ * pentatonic scale, which has no clashing pair, so any order sounds fine.
+ * They are this game's own, not borrowed from any real handheld.
+ */
 const PADS: { color: string; freq: number }[] = [
-  { color: "#ff6b5e", freq: 329.63 },
-  { color: "#ffc23d", freq: 440 },
-  { color: "#2ec4a6", freq: 554.37 },
-  { color: "#8a7dff", freq: 659.25 },
+  { color: "#ff6b5e", freq: 523.25 },
+  { color: "#ffc23d", freq: 587.33 },
+  { color: "#2ec4a6", freq: 659.25 },
+  { color: "#8a7dff", freq: 783.99 },
 ];
 
 const MISS: Note[] = [{ freq: 98, ms: 650, wave: "sawtooth", vol: 0.7 }];
 const WIN: Note[] = [
   ...PADS.map((p) => ({ freq: p.freq, ms: 110, gap: 20 })),
-  { freq: 880, ms: 140, gap: 60 },
-  { freq: 659.25, ms: 120, gap: 20 },
-  { freq: 880, ms: 520 },
+  { freq: 1046.5, ms: 140, gap: 60 },
+  { freq: 783.99, ms: 120, gap: 20 },
+  { freq: 1046.5, ms: 520 },
 ];
 
 /** Speed changes at these rounds, and the readout says so. */

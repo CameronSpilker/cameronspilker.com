@@ -148,7 +148,8 @@ Color Echo is the four colour memory game. Its rules are `src/lib/games/memory.t
 rounds, or Endless, with 3 seconds per press (`PRESS_LIMIT_MS`). The page owns
 the playback timers, the press clock and the lights. Each pad has a shape as well as a colour and a note, so colour is never
 the only cue. Its notes go through the same beeper as Pixel Football, via
-`beeper.notes`, and its bests per round count live in `localStorage`.
+`beeper.notes`, and its bests per round count live in `localStorage`. Its notes (C, D, E, G) are
+its own: keep them that way rather than copying any real handheld's tones.
 
 ## Before pushing
 
