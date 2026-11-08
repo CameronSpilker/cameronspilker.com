@@ -17,7 +17,7 @@ type Piece = {
   round: boolean;
 };
 
-export function burstConfetti(count = 240, duration = 3600) {
+export function burstConfetti(count = 240, duration = 3600, zIndex = 80) {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
@@ -33,7 +33,7 @@ export function burstConfetti(count = 240, duration = 3600) {
     width: "100%",
     height: "100%",
     pointerEvents: "none",
-    zIndex: "80",
+    zIndex: String(zIndex),
   });
   document.body.appendChild(canvas);
   ctx.scale(dpr, dpr);

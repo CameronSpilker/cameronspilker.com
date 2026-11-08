@@ -48,6 +48,7 @@ export type GameEvent =
   | "firstDown"
   | "touchdown"
   | "fieldGoal"
+  | "kick"
   | "quarter"
   | "final";
 
@@ -266,7 +267,7 @@ function kick(state: State, rng: Rng): Step {
 
   if (distance !== null && rng() < fieldGoalChance(distance)) {
     const score = { ...state.score, [state.offense]: state.score[state.offense] + FIELD_GOAL_POINTS };
-    return hold(changeOver({ ...base, score }, RESTART_AT), { kind: "fieldGoal", distance }, ["fieldGoal"]);
+    return hold(changeOver({ ...base, score }, RESTART_AT), { kind: "fieldGoal", distance }, ["kick", "fieldGoal"]);
   }
 
   // Two rolls averaged: anything from 1 to 65 yards, but mostly mid length, so a shank is rare.
@@ -275,7 +276,7 @@ function kick(state: State, rng: Rng): Step {
   const lands = state.ballOn + yards;
   const touchback = lands >= 100;
   const next = changeOver(base, touchback ? RESTART_AT : 100 - lands);
-  return hold(next, { kind: "punt", distance: yards, touchback }, ["turnover"]);
+  return hold(next, { kind: "punt", distance: yards, touchback }, ["kick", "turnover"]);
 }
 
 /** After a play: the next snap, the next quarter, or the second half. */

@@ -406,6 +406,22 @@
   animation: pf-blink 0.36s steps(1) infinite;
 }
 
+/* The score banner's headline: a slower flash than a tackle, like a scoreboard going wild. */
+@keyframes pf-blink-slow {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  61%,
+  100% {
+    opacity: 0.6;
+  }
+}
+
+@utility pf-blink-slow {
+  animation: pf-blink-slow 0.7s steps(1) infinite;
+}
+
 /* The next thing to press breathes, so after a play the eye goes straight to it. */
 @keyframes pf-pulse {
   0%,
@@ -423,6 +439,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .pf-blink,
+  .pf-blink-slow,
   .pf-pulse {
     animation: none;
   }

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { pixelFootball as copy } from "@/content/games";
 import { createBeeper } from "@/lib/games/beeper";
+import { burstConfetti } from "@/components/tools/confetti";
 import { cpuMove } from "@/lib/games/cpu";
 import {
   COLUMNS,
@@ -200,7 +201,10 @@ export function PixelFootball() {
   const play = useCallback((events: GameEvent[]) => {
     if (!soundRef.current || events.length === 0) return;
     beeper.current ??= createBeeper();
-    // The biggest moment wins when a step brings several: a tackle that is also a first down.
+    // A kick thumps first, and what came of it plays once the ball is away.
+    const kicked = events.includes("kick");
+    if (kicked) beeper.current.play("kick");
+    // Otherwise the biggest moment wins when a step brings several: a tackle that is also a first down.
     const order: GameEvent[] = [
       "final",
       "touchdown",
@@ -209,11 +213,27 @@ export function PixelFootball() {
       "quarter",
       "firstDown",
       "tackle",
+      "snap",
       "step",
     ];
     const loudest = order.find((e) => events.includes(e));
-    if (loudest) beeper.current.play(loudest);
+    if (loudest) beeper.current.play(loudest, kicked ? 380 : 0);
   }, []);
+
+  /** Wake the audio from a real tap, click or key press. Phones only allow sound after one. */
+  const unlockSound = useCallback(() => {
+    if (!soundRef.current) return;
+    beeper.current ??= createBeeper();
+    beeper.current.unlock();
+  }, []);
+
+  useEffect(() => {
+    const events = ["pointerup", "touchend", "click", "keydown"] as const;
+    for (const e of events) window.addEventListener(e, unlockSound, { passive: true });
+    return () => {
+      for (const e of events) window.removeEventListener(e, unlockSound);
+    };
+  }, [unlockSound]);
 
   const commit = useCallback(
     (step: Step) => {
@@ -247,6 +267,14 @@ export function PixelFootball() {
       // The display swaps to the score whenever the score changes, and back to status at the snap.
       const scored = next.score.home !== before.score.home || next.score.away !== before.score.away;
       if (scored || over) setShowScore(true);
+      // A score is a moment: confetti over everything, the phone layout included.
+      if (scored) {
+        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!reduced) {
+          const big = next.outcome?.kind === "touchdown";
+          burstConfetti(big ? 260 : 140, big ? 3400 : 2600, 130);
+        }
+      }
       if (next.phase === "live" && before.phase !== "live") setShowScore(false);
     },
     [play],
@@ -295,8 +323,9 @@ export function PixelFootball() {
       setIntro(null);
       introRef.current = null;
       setFull(true);
+      unlockSound();
     },
-    [commit],
+    [commit, unlockSound],
   );
 
   const togglePause = useCallback(() => {
@@ -335,12 +364,17 @@ export function PixelFootball() {
     [commit],
   );
 
+  /** Turning sound on plays a chime straight away, so you know it works. */
   const toggleSound = useCallback(() => {
-    setSound((on) => {
-      save(SOUND_KEY, on ? "off" : "on");
-      return !on;
-    });
-  }, []);
+    const on = !soundRef.current;
+    soundRef.current = on;
+    setSound(on);
+    save(SOUND_KEY, on ? "on" : "off");
+    if (on) {
+      unlockSound();
+      beeper.current?.play("firstDown");
+    }
+  }, [unlockSound]);
 
   /** The computer's side of the game: it snaps, runs, kicks and sets up its next play at a human pace. */
   const driveCpu = useCallback(
@@ -776,6 +810,42 @@ function PlayBanner({ game, paused, mode, onNext, onNewGame }: HandheldProps) {
     );
   }
   if (game.phase !== "result" || !game.outcome) return null;
+
+  // A score gets the whole field: big gold words, the points, and the new score.
+  if (game.outcome.kind === "touchdown" || game.outcome.kind === "fieldGoal") {
+    const touchdown = game.outcome.kind === "touchdown";
+    const scorer = nameOf(game.board, mode);
+    const cpuNextScore = cpuHasBall(game, mode);
+    return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-xl bg-black/70 px-3 text-center">
+        <p
+          className="pf-blink-slow font-mono text-xl font-black tracking-[0.12em] uppercase sm:text-3xl"
+          style={{ color: "var(--pf-post)", textShadow: "0 0 12px rgba(244,197,66,0.7)" }}
+        >
+          {touchdown ? b.touchdown : b.fieldGoal}
+        </p>
+        <p className="font-mono text-xs font-bold text-white sm:text-sm">
+          {b.points(touchdown ? 7 : 3, scorer)}
+        </p>
+        <p className="font-mono text-[11px] text-white/80 sm:text-xs">
+          {b.scoreLine(nameOf("home", mode), game.score.home, nameOf("away", mode), game.score.away)}
+          {game.quarterOver && ` · ${b.endQuarter(game.quarter)}`}
+        </p>
+        {cpuNextScore ? (
+          <p className="font-mono text-[10px] text-white/60 sm:text-xs">{b.cpuNext}</p>
+        ) : (
+          <button
+            type="button"
+            onClick={onNext}
+            className="pf-pulse mt-1 rounded-full px-4 py-1.5 font-mono text-[11px] font-bold tracking-[0.2em] text-white uppercase sm:px-5 sm:py-2 sm:text-xs"
+            style={{ background: "var(--pf-go)" }}
+          >
+            {copy.buttons.nextPlay} &#9654;
+          </button>
+        )}
+      </div>
+    );
+  }
 
   const o = game.outcome;
   const headline = {
